@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  password  String
+  role      String   @default("artist")
+  createdAt DateTime @default(now())
+}
+
+model Release {
+  id           Int      @id @default(autoincrement())
+
+  trackTitle   String
+  artistName   String
+
+  genre        String
+  language     String
+
+  explicit     Boolean  @default(false)
+
+  coverUrl     String?
+  audioUrl     String?
+
+  status       String   @default("pending")
+
+  reviewNotes  String?
+  reviewedAt   DateTime?
+
+  createdAt    DateTime @default(now())
+}
