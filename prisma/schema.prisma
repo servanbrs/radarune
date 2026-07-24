@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum OrganizationMembershipRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum LabelStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ArtistType {
+  SOLO
+  BAND
+  PRODUCER
+  DJ
+  COMPOSER
+}
+
+enum DistributionProvider {
+  ONE_RPM
+  FUGA
+  SYMPHONIC
+  REVELATOR
+  INTERNAL
+}
+
+model User {
+  id             String                   @id @default(cuid())
+  name           String
+  email          String                   @unique
+  emailVerified  Boolean                  @default(false)
+  image          String?
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  accounts       Account[]
+  memberships    OrganizationMembership[]
+  createdArtists Artist[]
+  createdLabels  Label[]
+  sessions       Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?   @db.Text
+  refreshToken          String?   @db.Text
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  idToken               String?   @db.Text
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, value])
+  @@index([expiresAt])
+}
+
+model Organization {
+  id                     String                              @id @default(cuid())
+  name                   String
+  slug                   String                              @unique
+  createdAt              DateTime                            @default(now())
+  updatedAt              DateTime                            @updatedAt
+  artists                Artist[]
+  labels                 Label[]
+  memberships            OrganizationMembership[]
+  providerConfigurations DistributionProviderConfiguration[]
+}
+
+model OrganizationMembership {
+  id             String                     @id @default(cuid())
+  organizationId String
+  userId         String
+  role           OrganizationMembershipRole
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+  organization   Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@index([organizationId])
+}
+
+model Label {
+  id              String       @id @default(cuid())
+  organizationId  String
+  createdByUserId String?
+  name            String
+  slug            String
+  legalName       String?
+  status          LabelStatus  @default(ACTIVE)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdByUser   User?        @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+  artistLinks     LabelArtist[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([createdByUserId])
+}
+
+model Artist {
+  id                   String       @id @default(cuid())
+  organizationId       String
+  createdByUserId      String?
+  name                 String
+  slug                 String
+  sortName             String?
+  type                 ArtistType
+  spotifyProfileUrl    String?
+  appleMusicProfileUrl String?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdByUser        User?        @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+  labelLinks           LabelArtist[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([createdByUserId])
+}
+
+model LabelArtist {
+  id        String   @id @default(cuid())
+  labelId    String
+  artistId   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  label      Label    @relation(fields: [labelId], references: [id], onDelete: Cascade)
+  artist     Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([labelId, artistId])
+  @@index([artistId])
+}
+
+model DistributionProviderConfiguration {
+  id                   String               @id @default(cuid())
+  organizationId       String?
+  provider             DistributionProvider
+  isEnabled            Boolean              @default(false)
+  credentials          Json?
+  webhookSigningSecret String?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  organization         Organization?        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, provider])
+  @@index([provider])
+}

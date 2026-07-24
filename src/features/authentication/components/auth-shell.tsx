@@ -1,0 +1,91 @@
+import Link from "next/link";
+import type { ReactNode } from "react";
+
+type AuthShellProps = {
+  title: string;
+  description: string;
+  eyebrow: string;
+  footerText: string;
+  footerLinkLabel: string;
+  footerHref: string;
+  children: ReactNode;
+};
+
+export function AuthShell({
+  children,
+  description,
+  eyebrow,
+  footerHref,
+  footerLinkLabel,
+  footerText,
+  title,
+}: AuthShellProps) {
+  return (
+    <main className="page-shell items-stretch">
+      <div className="grid w-full gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <section className="panel relative overflow-hidden px-8 py-10 md:px-12 md:py-12">
+          <div className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,#0f766e,#ff9357,#0f766e)]" />
+          <div className="flex h-full flex-col justify-between gap-12">
+            <div className="max-w-2xl space-y-6">
+              <span className="inline-flex rounded-full border border-accent/20 bg-accent/8 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-accent">
+                {eyebrow}
+              </span>
+              <div className="space-y-4">
+                <h1 className="max-w-xl text-4xl leading-tight font-semibold md:text-6xl">
+                  Music operations, rights data, and distribution in one control
+                  plane.
+                </h1>
+                <p className="max-w-xl text-base leading-8 text-muted md:text-lg">
+                  Radarune is built for labels and catalog teams that need
+                  release readiness, distribution governance, and provider
+                  routing without spreadsheet drift.
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-[1.5rem] border bg-white/70 p-5">
+                <p className="text-xs uppercase tracking-[0.24em] text-muted">
+                  Providers
+                </p>
+                <p className="mt-3 text-2xl font-semibold">5 adapters</p>
+              </div>
+              <div className="rounded-[1.5rem] border bg-white/70 p-5">
+                <p className="text-xs uppercase tracking-[0.24em] text-muted">
+                  Metadata
+                </p>
+                <p className="mt-3 text-2xl font-semibold">ISRC / UPC aware</p>
+              </div>
+              <div className="rounded-[1.5rem] border bg-white/70 p-5">
+                <p className="text-xs uppercase tracking-[0.24em] text-muted">
+                  Architecture
+                </p>
+                <p className="mt-3 text-2xl font-semibold">Clean, modular</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="panel flex items-center px-6 py-8 md:px-10">
+          <div className="mx-auto flex w-full max-w-md flex-col gap-8">
+            <div className="space-y-3">
+              <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted">
+                {eyebrow}
+              </p>
+              <div className="space-y-2">
+                <h2 className="text-3xl font-semibold">{title}</h2>
+                <p className="text-sm leading-7 text-muted">{description}</p>
+              </div>
+            </div>
+            {children}
+            <p className="text-sm text-muted">
+              {footerText}{" "}
+              <Link className="font-semibold text-accent hover:text-accent/80" href={footerHref}>
+                {footerLinkLabel}
+              </Link>
+            </p>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
