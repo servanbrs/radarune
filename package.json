@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "prebuild": "prisma generate",
-    "start": "NODE_ENV=production tsx scripts/validate-production-env.ts && NODE_ENV=production node app.js",
+    "start": "NODE_ENV=production tsx scripts/validate-production-env.ts && NODE_ENV=production next start -H 0.0.0.0 -p ${PORT:-3000}",
     "lint": "eslint .",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
