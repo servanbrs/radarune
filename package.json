@@ -18,6 +18,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
+    "install:codecanyon": "NODE_OPTIONS='-r ./scripts/register-server-only.cjs' tsx scripts/codecanyon-installer.ts",
     "package:codecanyon": "bash deploy/codecanyon/package.sh"
   },
   "dependencies": {
