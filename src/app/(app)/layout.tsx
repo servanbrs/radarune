@@ -6,15 +6,63 @@ import { authSessionService } from "@/features/authentication/server/services/au
 const navigationItems = [
   {
     href: "/dashboard",
-    label: "Dashboard",
+    label: "Panel",
+  },
+  {
+    href: "/releases",
+    label: "Yayınlar",
   },
   {
     href: "/labels",
-    label: "Labels",
+    label: "Label",
   },
   {
     href: "/artists",
-    label: "Artists",
+    label: "Sanatçılar",
+  },
+  {
+    href: "/analytics",
+    label: "Analytics",
+  },
+  {
+    href: "/royalties",
+    label: "Royalty",
+  },
+  {
+    href: "/payouts",
+    label: "Ödemeler",
+  },
+  {
+    href: "/billing",
+    label: "Faturalama",
+  },
+  {
+    href: "/smart-links",
+    label: "Smart Link",
+  },
+  {
+    href: "/presaves",
+    label: "Pre-save",
+  },
+  {
+    href: "/discover",
+    label: "Discover",
+  },
+  {
+    href: "/playlists",
+    label: "Playlist",
+  },
+  {
+    href: "/admin/distribution",
+    label: "Distribution",
+  },
+  {
+    href: "/admin/finance",
+    label: "Admin Finans",
+  },
+  {
+    href: "/admin/intelligence",
+    label: "AI Intelligence",
   },
 ];
 

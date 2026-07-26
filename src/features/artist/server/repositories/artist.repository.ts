@@ -54,6 +54,7 @@ export class ArtistRepository {
       data: {
         organizationId,
         createdByUserId,
+        ownerUserId: createdByUserId,
         name: input.name,
         slug: input.slug,
         sortName: input.sortName ?? null,
@@ -68,6 +69,47 @@ export class ArtistRepository {
       },
     });
   }
+
+  async findByOrganizationAndSlugs(organizationId: string, slugs: string[]) {
+    if (slugs.length === 0) {
+      return [];
+    }
+
+    return prisma.artist.findMany({
+      where: {
+        organizationId,
+        slug: {
+          in: slugs,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        ownerUserId: true,
+      },
+    });
+  }
+
+  async listOwnedArtistIdsByUserId(userId: string) {
+    return prisma.artist.findMany({
+      where: {
+        ownerUserId: userId,
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
+
+  async countByOrganizationId(organizationId: string) {
+    return prisma.artist.count({
+      where: {
+        organizationId,
+      },
+    });
+  }
 }
+
 
 export const artistRepository = new ArtistRepository();

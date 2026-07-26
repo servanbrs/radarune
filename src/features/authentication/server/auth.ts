@@ -3,6 +3,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { env } from "@/lib/env";
 import { prisma } from "@/server/prisma/prisma";
+import { passwordPolicy } from "@/features/authentication/schemas/password-policy.schema";
 
 export const auth = betterAuth({
   appName: "Radarune",
@@ -13,6 +14,8 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    minPasswordLength: passwordPolicy.minLength,
+    maxPasswordLength: passwordPolicy.maxLength,
   },
   user: {
     modelName: "User",
@@ -25,6 +28,15 @@ export const auth = betterAuth({
   },
   verification: {
     modelName: "Verification",
+  },
+  trustedOrigins: [env.BETTER_AUTH_URL, env.NEXT_PUBLIC_APP_URL],
+  advanced: {
+    useSecureCookies: env.NODE_ENV === "production",
+    defaultCookieAttributes: {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: env.NODE_ENV === "production",
+    },
   },
   experimental: {
     joins: true,

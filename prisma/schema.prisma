@@ -13,6 +13,308 @@ enum OrganizationMembershipRole {
   MEMBER
 }
 
+enum TenantMode {
+  SINGLE_TENANT
+  MULTI_TENANT
+  WHITE_LABEL
+  PLATFORM_OWNER
+}
+
+enum TenantStatus {
+  PENDING_SETUP
+  ACTIVE
+  SUSPENDED
+  MAINTENANCE
+  CANCELLED
+  ARCHIVED
+}
+
+enum TenantPlanCode {
+  COMMUNITY
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+  SELF_HOSTED
+}
+
+enum TenantMembershipRole {
+  OWNER
+  ADMIN
+  CONTENT_MANAGER
+  DISTRIBUTION_MANAGER
+  FINANCE_MANAGER
+  MODERATOR
+  SUPPORT
+  VIEWER
+}
+
+enum TenantMembershipStatus {
+  INVITED
+  ACTIVE
+  SUSPENDED
+  REMOVED
+}
+
+enum TenantDomainStatus {
+  PENDING
+  VERIFYING
+  VERIFIED
+  ACTIVE
+  FAILED
+  DISABLED
+}
+
+enum TenantSslStatus {
+  NOT_CONFIGURED
+  PENDING
+  ACTIVE
+  FAILED
+}
+
+enum ThemeColorScheme {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
+enum ThemeDensity {
+  COMPACT
+  COMFORTABLE
+  SPACIOUS
+}
+
+enum SitePageKind {
+  HOMEPAGE
+  DISCOVER
+  CUSTOM
+}
+
+enum SitePageStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum SiteSectionDataSource {
+  MANUAL
+  LATEST_RELEASES
+  TRENDING_RELEASES
+  GLOBAL_CHART
+  TURKEY_CHART
+  FEATURED_ARTISTS
+  FEATURED_PLAYLISTS
+  ACTIVE_CAMPAIGN
+  ACTIVE_REWARD_VOTE
+}
+
+enum WebhookDeliveryStatus {
+  PENDING
+  PROCESSING
+  DELIVERED
+  RETRY_SCHEDULED
+  FAILED
+  DISABLED
+}
+
+enum WebhookFailurePolicy {
+  RETRY
+  DISABLE_AFTER_LIMIT
+  IGNORE
+}
+
+enum OnboardingStepStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+}
+
+enum SystemHealthStatus {
+  PASS
+  WARNING
+  FAIL
+  NOT_CONFIGURED
+}
+
+enum LicenseStatus {
+  ACTIVE
+  EXPIRED
+  SUSPENDED
+  REVOKED
+  INVALID
+  GRACE_PERIOD
+}
+
+enum ChartType {
+  GLOBAL
+  COUNTRY
+  TURKEY
+  GENRE
+  NEW_RELEASES
+  TRENDING
+  MOST_VOTED
+  MOST_LIKED
+  MOST_PLAYED
+  EDITORIAL
+  REWARDED_CAMPAIGN
+}
+
+enum ChartPeriod {
+  DAILY
+  WEEKLY
+  MONTHLY
+  ALL_TIME
+  CUSTOM
+}
+
+enum ChartEntityType {
+  TRACK
+  RELEASE
+  ARTIST
+  PLAYLIST
+}
+
+enum VoteType {
+  LIKE_VOTE
+  ONE_VOTE_PER_USER
+  DAILY_VOTE
+  WEEKLY_VOTE
+  TOKEN_BASED
+  JURY
+  HYBRID
+}
+
+enum VoteStatus {
+  VALID
+  PENDING_REVIEW
+  INVALID
+  FRAUD_SUSPECTED
+  REVOKED
+}
+
+enum RewardType {
+  CASH
+  DISTRIBUTION_CREDIT
+  FREE_PLAN
+  FEATURED_PLACEMENT
+  PROMOTION_PACKAGE
+  STUDIO_SESSION
+  EQUIPMENT
+  CUSTOM
+}
+
+enum RewardStatus {
+  DRAFT
+  ACTIVE
+  LOCKED
+  WINNER_PENDING
+  WINNER_CONFIRMED
+  FULFILLMENT_PENDING
+  FULFILLED
+  CANCELLED
+  DISPUTED
+}
+
+enum AdType {
+  POPUP
+  MODAL
+  BANNER
+  INLINE
+  DISCOVER_CARD
+  SIDEBAR
+  HEADER
+  FOOTER
+  PLAYER
+  INTERSTITIAL
+}
+
+enum AdPlacementSlot {
+  HOME
+  DISCOVER
+  CHARTS
+  ARTIST_PROFILE
+  RELEASE
+  SMART_LINK
+  PRESAVE
+  DASHBOARD
+  MOBILE_HOME
+  MOBILE_DISCOVER
+}
+
+enum AdCampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+  ARCHIVED
+}
+
+enum LegalDocumentType {
+  TERMS_OF_SERVICE
+  PRIVACY_POLICY
+  COOKIE_POLICY
+  KVKK_DISCLOSURE
+  EXPLICIT_CONSENT
+  DISTRIBUTION_AGREEMENT
+  ARTIST_AGREEMENT
+  COMMUNITY_GUIDELINES
+  COPYRIGHT_POLICY
+  DMCA_POLICY
+  REFUND_POLICY
+  CONTEST_RULES
+  MARKETING_CONSENT
+  DATA_PROCESSING_AGREEMENT
+  CUSTOM
+}
+
+enum LegalDocumentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  SCHEDULED
+}
+
+enum ConsentCategory {
+  NECESSARY
+  ANALYTICS
+  MARKETING
+  PERSONALIZATION
+}
+
+enum InstallationStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  LOCKED
+}
+
+enum BackupStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  EXPIRED
+  DELETED
+}
+
+enum UpdateStatus {
+  PENDING
+  CHECKING
+  BACKING_UP
+  MAINTENANCE
+  MIGRATING
+  BUILDING
+  COMPLETED
+  FAILED
+}
+
+enum QueueExecutionMode {
+  WORKER
+  CRON
+  INLINE_SAFE
+  DATABASE_POLLING
+}
+
 enum LabelStatus {
   ACTIVE
   INACTIVE
@@ -26,6 +328,122 @@ enum ArtistType {
   COMPOSER
 }
 
+enum ArtistTeamRole {
+  OWNER
+  MANAGER
+  EDITOR
+  ANALYST
+  FINANCE
+  VIEWER
+}
+
+enum ReleaseType {
+  SINGLE
+  EP
+  ALBUM
+}
+
+enum ReleaseStatus {
+  DRAFT
+  PENDING_REVIEW
+  REVISION_REQUESTED
+  APPROVED
+  REJECTED
+  QUEUED
+  PROCESSING
+  DISTRIBUTED
+  LIVE
+  TAKEDOWN_REQUESTED
+  REMOVED
+}
+
+enum ReleaseArtistRole {
+  PRIMARY_ARTIST
+  FEATURED_ARTIST
+  REMIXER
+  PRODUCER
+}
+
+enum ContributorRole {
+  COMPOSER
+  LYRICIST
+  PRODUCER
+  MIXING_ENGINEER
+  MASTERING_ENGINEER
+  ARRANGER
+  VOCALIST
+  BACKGROUND_VOCALIST
+  GUITARIST
+  BASSIST
+  PIANIST
+  DRUMMER
+}
+
+enum UploadKind {
+  AUDIO
+  ARTWORK
+}
+
+enum UploadStatus {
+  PENDING
+  READY
+  FAILED
+}
+
+enum StorageProviderType {
+  LOCAL
+  S3
+  S3_COMPATIBLE
+  CLOUDFLARE_R2
+  DIGITALOCEAN_SPACES
+  MINIO
+  SUPABASE_STORAGE
+  AZURE_BLOB
+  GOOGLE_CLOUD_STORAGE
+}
+
+enum StorageProviderStatus {
+  ACTIVE
+  INACTIVE
+  CONFIGURATION_REQUIRED
+  FAILED
+}
+
+enum StorageMigrationStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  PARTIALLY_COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum ReleaseValidationSeverity {
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+}
+
+enum IntelligenceIssueSource {
+  RULE_ENGINE
+  AI
+  AUDIO_ANALYZER
+  ARTWORK_ANALYZER
+  PROVIDER_RULE
+}
+
+enum IntelligenceIssueCategory {
+  METADATA
+  AUDIO
+  ARTWORK
+  RIGHTS
+  PROVIDER_COMPATIBILITY
+  CONTRIBUTOR
+  DUPLICATE
+  LYRICS
+}
+
 enum DistributionProvider {
   ONE_RPM
   FUGA
@@ -34,19 +452,717 @@ enum DistributionProvider {
   INTERNAL
 }
 
+enum DistributionJobStatus {
+  PENDING
+  VALIDATING
+  QUEUED
+  PROCESSING
+  WAITING_PROVIDER
+  RETRY_SCHEDULED
+  SUCCEEDED
+  PARTIALLY_SUCCEEDED
+  FAILED
+  CANCELLED
+  MANUAL_REVIEW
+}
+
+enum DeliveryStatus {
+  NOT_SENT
+  QUEUED
+  SUBMITTED
+  ACCEPTED
+  PROCESSING
+  DELIVERED
+  LIVE
+  REJECTED
+  FAILED
+  TAKEDOWN_PENDING
+  TAKEN_DOWN
+}
+
+enum ProviderEnvironment {
+  SANDBOX
+  PRODUCTION
+}
+
+enum DistributionProviderCapabilityKey {
+  CREATE_RELEASE
+  UPDATE_RELEASE
+  TAKEDOWN
+  STATUS_SYNC
+  WEBHOOKS
+  ROYALTY_REPORTS
+  AUTO_ISRC
+  AUTO_UPC
+  CONTENT_ID
+  DOLBY_ATMOS
+  PRESAVE
+}
+
+enum ProviderWebhookEventStatus {
+  PENDING
+  PROCESSED
+  FAILED
+  DUPLICATE
+  INVALID_SIGNATURE
+}
+
+enum BillingProvider {
+  STRIPE
+  IYZICO
+  PAYTR
+  MANUAL_BANK_TRANSFER
+}
+
+enum UserSystemRole {
+  USER
+  ARTIST
+  MODERATOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum UserAccountStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
+enum UserDeletionRequestStatus {
+  REQUESTED
+  IN_REVIEW
+  APPROVED
+  REJECTED
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+enum ArtistApplicationStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  REVISION_REQUESTED
+}
+
+enum SystemLogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  CRITICAL
+}
+
+enum SystemLogSource {
+  APPLICATION
+  API
+  DISTRIBUTION_WORKER
+  WEBHOOK
+  VALIDATION
+  PROVIDER_CONNECTION
+}
+
+enum AdminSettingKey {
+  PLATFORM_NAME
+  LOGO_URL
+  SUPPORT_EMAIL
+  DEFAULT_DISTRIBUTION_PROVIDER
+  AUTO_DISTRIBUTION_ENABLED
+  MAX_AUDIO_FILE_SIZE_BYTES
+  MAX_ARTWORK_FILE_SIZE_BYTES
+  MIN_ARTWORK_RESOLUTION
+  USER_REGISTRATION_ENABLED
+  ARTIST_APPLICATIONS_ENABLED
+  EMAIL_VERIFICATION_REQUIRED
+  MAINTENANCE_MODE_ENABLED
+  MAINTENANCE_MESSAGE
+}
+
+enum SmartLinkBackgroundType {
+  COLOR
+  GRADIENT
+  IMAGE
+}
+
+enum SmartLinkPlatformType {
+  SPOTIFY
+  APPLE_MUSIC
+  YOUTUBE_MUSIC
+  YOUTUBE
+  DEEZER
+  AMAZON_MUSIC
+  TIDAL
+  SOUNDCLOUD
+  TIKTOK
+  INSTAGRAM
+  FACEBOOK
+  PANDORA
+  SHAZAM
+  BANDCAMP
+  CUSTOM
+}
+
+enum PreSaveProviderType {
+  SPOTIFY
+  APPLE_MUSIC
+  EMAIL_REMINDER
+}
+
+enum ExternalMediaProvider {
+  YOUTUBE
+  SPOTIFY
+}
+
+enum ExternalMediaStatus {
+  ACTIVE
+  PRIVATE
+  REMOVED_AT_SOURCE
+  UNAVAILABLE
+  BLOCKED
+}
+
+enum ImportSourceType {
+  YOUTUBE_CHANNEL
+  YOUTUBE_PLAYLIST
+  SPOTIFY_ARTIST
+  SPOTIFY_PLAYLIST
+  SPOTIFY_ALBUM
+  MANUAL_URL
+}
+
+enum ImportSourceStatus {
+  ACTIVE
+  PAUSED
+  CONFIGURATION_REQUIRED
+  RATE_LIMITED
+  FAILED
+  DISABLED
+}
+
+enum ImportScheduleMode {
+  WORKER
+  CRON
+  MANUAL
+  DATABASE_POLLING
+}
+
+enum ImportRunStatus {
+  RUNNING
+  SUCCEEDED
+  PARTIAL
+  FAILED
+  SKIPPED
+}
+
+enum ImportItemStatus {
+  DETECTED
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  IMPORTED
+  DUPLICATE
+  FAILED
+  REMOVED_AT_SOURCE
+}
+
+enum ImportMatchConfidence {
+  EXACT
+  HIGH
+  MEDIUM
+  LOW
+  NONE
+}
+
+enum PreSaveCapability {
+  SAVE_RELEASE
+  FOLLOW_ARTIST
+  ADD_TO_LIBRARY
+  EMAIL_CAPTURE
+  OAUTH
+  WEBHOOKS
+}
+
+enum PreSaveConversionStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CONFIGURATION_REQUIRED
+}
+
+enum OAuthConnectionStatus {
+  PENDING
+  ACTIVE
+  FAILED
+  REVOKED
+}
+
+enum MobilePlatform {
+  IOS
+  ANDROID
+  WEB
+}
+
+enum MobileSessionStatus {
+  ACTIVE
+  REVOKED
+  EXPIRED
+  REUSE_DETECTED
+}
+
+enum MobileUploadSessionStatus {
+  CREATED
+  UPLOADING
+  PAUSED
+  VERIFYING
+  COMPLETED
+  FAILED
+  ABORTED
+  EXPIRED
+}
+
+enum PushProvider {
+  EXPO_PUSH
+  FCM
+  APNS
+}
+
+enum PushDeliveryStatus {
+  PENDING
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+  INVALID_TOKEN
+  CANCELLED
+}
+
+enum NotificationPreferenceCategory {
+  RELEASE_UPDATES
+  FINANCE_PAYOUT
+  SOCIAL
+  MARKETING
+  SYSTEM
+  SECURITY
+}
+
+enum PlaybackSource {
+  DISCOVER
+  RELEASE
+  ARTIST_PROFILE
+  PLAYLIST
+  SMART_LINK
+  PRESAVE
+  SEARCH
+}
+
+enum OfflineOperationStatus {
+  PENDING
+  APPLIED
+  CONFLICT
+  REJECTED
+  EXPIRED
+}
+
+enum CommentStatus {
+  VISIBLE
+  HIDDEN
+  PENDING_REVIEW
+  REMOVED
+  SPAM
+}
+
+enum StoryType {
+  IMAGE
+  VIDEO
+  TEXT
+  RELEASE_SHARE
+  SMART_LINK_SHARE
+}
+
+enum StoryStatus {
+  DRAFT
+  ACTIVE
+  EXPIRED
+  REMOVED
+}
+
+enum DiscoverEventType {
+  IMPRESSION
+  PLAY
+  PAUSE
+  SKIP
+  LIKE
+  DISLIKE
+  COMPLETE
+  PROFILE_OPEN
+  ADD_TO_PLAYLIST
+  SHARE
+}
+
+enum ContentReportReason {
+  SPAM
+  HARASSMENT
+  COPYRIGHT
+  INAPPROPRIATE_CONTENT
+  IMPERSONATION
+  MISLEADING
+  OTHER
+}
+
+enum ContentReportStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  REJECTED
+}
+
+enum ModerationActionType {
+  HIDE
+  RESTORE
+  REMOVE
+  WARN_USER
+  SUSPEND_USER
+  RESOLVE_REPORT
+  REJECT_REPORT
+}
+
+enum AiProviderCode {
+  OPENAI
+  ANTHROPIC
+  GOOGLE
+  INTERNAL_RULE_ENGINE
+}
+
+enum AiCapabilityKey {
+  TEXT_ANALYSIS
+  STRUCTURED_OUTPUT
+  IMAGE_ANALYSIS
+  EMBEDDINGS
+  MODERATION
+  LANGUAGE_DETECTION
+  GENRE_SUGGESTION
+  METADATA_REWRITE
+}
+
+enum AiAnalysisJobType {
+  METADATA_ANALYSIS
+  ARTWORK_ANALYSIS
+  AUDIO_ANALYSIS
+  AUDIO_FINGERPRINT
+  DUPLICATE_DETECTION
+  LYRICS_ANALYSIS
+  READINESS_SCORE
+  PROVIDER_COMPATIBILITY
+}
+
+enum AiAnalysisJobStatus {
+  PENDING
+  QUEUED
+  PROCESSING
+  RETRY_SCHEDULED
+  COMPLETED
+  FAILED
+  CANCELLED
+  CONFIGURATION_REQUIRED
+}
+
+enum AiAnalysisStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  UNSUPPORTED
+  STALE
+  CONFIGURATION_REQUIRED
+}
+
+enum AiSuggestionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  STALE
+}
+
+enum AiConfidence {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum AudioAnalysisStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  UNSUPPORTED
+}
+
+enum DuplicateMatchStatus {
+  POSSIBLE
+  CONFIRMED
+  DISMISSED
+  MANUAL_REVIEW
+}
+
+enum ProviderRuleProfileCode {
+  RADARUNE_BASE
+  ONERPM
+  FUGA
+  SYMPHONIC
+  REVELATOR
+  SPOTIFY
+  APPLE_MUSIC
+  YOUTUBE_MUSIC
+  AMAZON_MUSIC
+  TIKTOK
+  META
+}
+
+enum ProviderRuleOperator {
+  REQUIRED
+  EQUALS
+  NOT_EQUALS
+  MIN
+  MAX
+  REGEX
+  IN
+  NOT_IN
+}
+
+enum ArtworkRiskSignal {
+  POSSIBLE_RISK
+  NEEDS_REVIEW
+  NO_OBVIOUS_RISK
+}
+
+enum CurrencyCode {
+  TRY
+  USD
+  EUR
+}
+
+enum RevenueImportStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum RoyaltySplitRole {
+  LABEL
+  ARTIST
+  PRODUCER
+  COMPOSER
+  LYRICIST
+  MANAGER
+}
+
+enum RoyaltyReportStatus {
+  FINALIZED
+}
+
+enum FinancialSubjectType {
+  ARTIST
+  LABEL
+}
+
+enum FinancialStatementStatus {
+  OPEN
+  LOCKED
+}
+
+enum PayoutStatus {
+  PENDING
+  APPROVED
+  PROCESSING
+  PAID
+  FAILED
+  CANCELLED
+}
+
+enum PayoutMethodType {
+  PAYONEER
+  WISE
+  IBAN
+  STRIPE_CONNECT
+}
+
+enum AdjustmentDirection {
+  CREDIT
+  DEBIT
+}
+
+enum BillingInterval {
+  MONTHLY
+  YEARLY
+  CUSTOM
+}
+
+enum SubscriptionStatus {
+  INCOMPLETE
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  PAYMENT_FAILED
+  PAUSED
+  CANCEL_AT_PERIOD_END
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  REQUIRES_ACTION
+  PENDING
+  AUTHORIZED
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  OPEN
+  PAID
+  VOID
+  UNCOLLECTIBLE
+  REFUNDED
+}
+
+enum PlanFeatureValueType {
+  BOOLEAN
+  INTEGER
+  STRING
+  JSON
+}
+
+enum CouponDuration {
+  ONCE
+  REPEATING
+  FOREVER
+}
+
+enum RefundStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+enum BillingEventProcessingStatus {
+  PENDING
+  PROCESSED
+  FAILED
+  IGNORED
+}
+
+enum ManualPaymentRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CONFIRMED
+  CANCELLED
+}
+
 model User {
-  id             String                   @id @default(cuid())
-  name           String
-  email          String                   @unique
-  emailVerified  Boolean                  @default(false)
-  image          String?
-  createdAt      DateTime                 @default(now())
-  updatedAt      DateTime                 @updatedAt
-  accounts       Account[]
-  memberships    OrganizationMembership[]
-  createdArtists Artist[]
-  createdLabels  Label[]
-  sessions       Session[]
+  id                             String                           @id @default(cuid())
+  name                           String
+  email                          String                           @unique
+  emailVerified                  Boolean                          @default(false)
+  systemRole                     UserSystemRole                   @default(USER)
+  accountStatus                  UserAccountStatus                @default(ACTIVE)
+  image                          String?
+  username                       String?                          @unique
+  usernameUpdatedAt              DateTime?
+  usernameChangeAvailableAt      DateTime?
+  createdAt                      DateTime                         @default(now())
+  updatedAt                      DateTime                         @updatedAt
+  accounts                       Account[]
+  auditLogs                      AuditLog[]
+  artistApplications             ArtistApplication[]
+  reviewedArtistApplications     ArtistApplication[]              @relation("ArtistApplicationReviewer")
+  artistApplicationStatusHistory ArtistApplicationStatusHistory[]
+  notifications                  Notification[]
+  memberships                    OrganizationMembership[]
+  payoutMethods                  PayoutMethod[]
+  requestedPayouts               Payout[]                         @relation("PayoutRequestedBy")
+  approvedPayouts                Payout[]                         @relation("PayoutApprovedBy")
+  importedRevenueImports         RevenueImport[]
+  generatedRevenueReports        RevenueReport[]
+  generatedRoyaltyReports        RoyaltyReport[]
+  financialAdjustments           FinancialAdjustment[]            @relation("FinancialAdjustmentCreatedBy")
+  beneficiaryAdjustments         FinancialAdjustment[]            @relation("FinancialAdjustmentBeneficiary")
+  beneficiaryRoyaltyLines        RoyaltyLine[]
+  beneficiaryFinancialStatements FinancialStatement[]
+  beneficiaryPayouts             Payout[]
+  billingAddresses               BillingAddress[]
+  billingCustomers               BillingCustomer[]
+  billingEvents                  BillingEvent[]
+  couponRedemptions              CouponRedemption[]
+  manualPaymentRequests          ManualPaymentRequest[]           @relation("ManualPaymentRequestUser")
+  processedManualPaymentRequests ManualPaymentRequest[]           @relation("ManualPaymentRequestProcessedBy")
+  paymentTransactions            PaymentTransaction[]
+  refunds                        Refund[]
+  subscriptions                  Subscription[]
+  invoices                       Invoice[]
+  comments                       Comment[]
+  commentLikes                   CommentLike[]
+  contentReports                 ContentReport[]                  @relation("ContentReportReporter")
+  discoverEvents                 DiscoverEvent[]
+  follows                        Follow[]
+  moderationActions              ModerationAction[]               @relation("ModerationActionActor")
+  acceptedMetadataSuggestions    MetadataSuggestion[]             @relation("MetadataSuggestionAcceptedBy")
+  aiAnalysisAttempts             AiAnalysisAttempt[]
+  aiAnalysisJobs                 AiAnalysisJob[]                  @relation("AiAnalysisJobRequestedBy")
+  aiPromptTemplates              AiPromptTemplate[]               @relation("AiPromptTemplateCreatedBy")
+  aiUsageRecords                 AiUsageRecord[]
+  rejectedMetadataSuggestions    MetadataSuggestion[]             @relation("MetadataSuggestionRejectedBy")
+  oauthConnections               OAuthConnection[]
+  playlistCollaborations         PlaylistCollaborator[]
+  playlistLikes                  PlaylistLike[]
+  playlists                      Playlist[]
+  preSaveConversions             PreSaveConversion[]
+  preSaveSubscribers             PreSaveSubscriber[]
+  releaseLikes                   ReleaseLike[]
+  storyViews                     StoryView[]
+  trackLikes                     TrackLike[]
+  userMusicPreferences           UserMusicPreference[]
+  createdDistributionJobs        DistributionJob[]                @relation("DistributionJobCreatedBy")
+  createdReleases                Release[]                        @relation("ReleaseCreatedBy")
+  submittedReleases              Release[]                        @relation("ReleaseSubmittedBy")
+  uploads                        Upload[]
+  ownedArtists                   Artist[]                         @relation("ArtistOwner")
+  createdArtists                 Artist[]
+  createdLabels                  Label[]
+  deviceSessions                 DeviceSession[]
+  mobileApiRequestLogs           MobileApiRequestLog[]
+  mobileDevices                  MobileDevice[]
+  mobileOfflineOperations        MobileOfflineOperation[]
+  mobileUploadSessions           MobileUploadSession[]
+  notificationPreferences        NotificationPreference[]
+  playbackSessions               PlaybackSession[]
+  pushNotifications              PushNotification[]
+  pushTokens                     PushToken[]
+  refreshTokenFamilies           RefreshTokenFamily[]
+  royaltySplits                  RoyaltySplit[]
+  sessions                       Session[]
+  ownedOrganizations             Organization[]                   @relation("OrganizationOwner")
+  apiClients                     ApiClient[]
+  apiKeys                        ApiKey[]
+  webhookEndpoints               WebhookEndpoint[]
+  votes                          Vote[]
+  userConsents                   UserConsent[]
+  cookieConsents                 CookieConsent[]
+  rewardWinners                  RewardWinner[]
+  usernameHistory                UserUsernameHistory[]
+  importSources                  ImportSource[]
+  importModerationDecisions      ImportModerationDecision[]
+  deletionRequests               UserDeletionRequest[]            @relation("UserDeletionTarget")
+  requestedDeletionRequests      UserDeletionRequest[]            @relation("UserDeletionRequester")
+  reviewedDeletionRequests       UserDeletionRequest[]            @relation("UserDeletionReviewer")
+  artistTeamMemberships          ArtistTeamMember[]
+  artistDraftUpdates             ArtistProfileDraft[]             @relation("ArtistProfileDraftUpdater")
 }
 
 model Session {
@@ -97,15 +1213,161 @@ model Verification {
 }
 
 model Organization {
-  id                     String                              @id @default(cuid())
-  name                   String
-  slug                   String                              @unique
-  createdAt              DateTime                            @default(now())
-  updatedAt              DateTime                            @updatedAt
-  artists                Artist[]
-  labels                 Label[]
-  memberships            OrganizationMembership[]
-  providerConfigurations DistributionProviderConfiguration[]
+  id                             String                              @id @default(cuid())
+  name                           String
+  slug                           String                              @unique
+  legalName                      String?
+  tenantStatus                   TenantStatus                        @default(PENDING_SETUP)
+  tenantMode                     TenantMode                          @default(SINGLE_TENANT)
+  tenantPlan                     TenantPlanCode                      @default(COMMUNITY)
+  primaryDomain                  String?
+  defaultLocale                  String                              @default("tr-TR")
+  defaultCurrency                String                              @default("TRY")
+  defaultTimezone                String                              @default("Europe/Istanbul")
+  ownerUserId                    String?
+  onboardingCompletedAt          DateTime?
+  createdAt                      DateTime                            @default(now())
+  updatedAt                      DateTime                            @updatedAt
+  ownerUser                      User?                               @relation("OrganizationOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  artists                        Artist[]
+  auditLogs                      AuditLog[]
+  adminSettings                  AdminSetting[]
+  artistApplications             ArtistApplication[]
+  artistApplicationStatusHistory ArtistApplicationStatusHistory[]
+  exchangeRates                  ExchangeRate[]
+  financialAdjustments           FinancialAdjustment[]
+  financialStatements            FinancialStatement[]
+  labels                         Label[]
+  memberships                    OrganizationMembership[]
+  providerConfigurations         DistributionProviderConfiguration[]
+  distributionJobs               DistributionJob[]
+  distributionAttempts           DistributionAttempt[]
+  releaseDeliveries              ReleaseDelivery[]
+  providerWebhookEvents          ProviderWebhookEvent[]
+  providerExternalReferences     ProviderExternalReference[]
+  providerHealthChecks           ProviderHealthCheck[]
+  distributionStatusHistory      DistributionStatusHistory[]
+  payoutMethods                  PayoutMethod[]
+  payouts                        Payout[]
+  platformRevenues               PlatformRevenue[]
+  billingAddresses               BillingAddress[]
+  billingCustomers               BillingCustomer[]
+  billingEvents                  BillingEvent[]
+  couponRedemptions              CouponRedemption[]
+  invoices                       Invoice[]
+  manualPaymentRequests          ManualPaymentRequest[]
+  paymentProviderConfigs         PaymentProviderConfig[]
+  paymentTransactions            PaymentTransaction[]
+  revenueImports                 RevenueImport[]
+  revenueReports                 RevenueReport[]
+  refunds                        Refund[]
+  royaltyLines                   RoyaltyLine[]
+  royaltyReports                 RoyaltyReport[]
+  royaltySplits                  RoyaltySplit[]
+  storeRevenues                  StoreRevenue[]
+  subscriptions                  Subscription[]
+  releases                       Release[]
+  comments                       Comment[]
+  contentReports                 ContentReport[]
+  discoverEvents                 DiscoverEvent[]
+  follows                        Follow[]
+  moderationActions              ModerationAction[]
+  aiAnalysisAttempts             AiAnalysisAttempt[]
+  aiAnalysisJobs                 AiAnalysisJob[]
+  aiProviders                    AiProvider[]
+  aiUsageRecords                 AiUsageRecord[]
+  artworkAnalyses                ArtworkAnalysis[]
+  audioAnalyses                  AudioAnalysis[]
+  audioFingerprints              AudioFingerprint[]
+  duplicateAudioMatchesAsSource  DuplicateAudioMatch[]               @relation("DuplicateAudioSource")
+  duplicateAudioMatchesAsTarget  DuplicateAudioMatch[]               @relation("DuplicateAudioTarget")
+  lyricsAnalyses                 LyricsAnalysis[]
+  metadataAnalyses               MetadataAnalysis[]
+  metadataSuggestions            MetadataSuggestion[]
+  providerRuleProfiles           ProviderRuleProfile[]
+  readinessScores                ReleaseReadinessScore[]
+  releaseReadinessCategories     ReleaseReadinessCategory[]
+  validationRuns                 ValidationRun[]
+  deviceSessions                 DeviceSession[]
+  mobileApiRequestLogs           MobileApiRequestLog[]
+  mobileDevices                  MobileDevice[]
+  mobileOfflineOperations        MobileOfflineOperation[]
+  mobileUploadSessions           MobileUploadSession[]
+  notificationPreferences        NotificationPreference[]
+  notificationTopics             NotificationTopic[]
+  playbackSessions               PlaybackSession[]
+  pushNotificationDeliveries     PushNotificationDelivery[]
+  pushNotifications              PushNotification[]
+  pushTokens                     PushToken[]
+  refreshTokenFamilies           RefreshTokenFamily[]
+  oauthConnections               OAuthConnection[]
+  playlistCollaborators          PlaylistCollaborator[]
+  playlistLikes                  PlaylistLike[]
+  playlists                      Playlist[]
+  preSaveCampaigns               PreSaveCampaign[]
+  preSaveConversions             PreSaveConversion[]
+  preSaveProviders               PreSaveProvider[]
+  preSaveSubscribers             PreSaveSubscriber[]
+  releaseLikes                   ReleaseLike[]
+  smartLinks                     SmartLink[]
+  smartLinkClicks                SmartLinkClick[]
+  smartLinkPlatforms             SmartLinkPlatform[]
+  smartLinkViews                 SmartLinkView[]
+  stories                        Story[]
+  storyViews                     StoryView[]
+  trackLikes                     TrackLike[]
+  tracks                         Track[]
+  uploads                        Upload[]
+  releaseValidationIssues        ReleaseValidationIssue[]
+  releaseStatusHistory           ReleaseStatusHistory[]
+  notifications                  Notification[]
+  systemLogs                     SystemLog[]
+  tenantBranding                 TenantBranding?
+  themeConfig                    ThemeConfig?
+  themeVersions                  ThemeVersion[]
+  tenantDomains                  TenantDomain[]
+  sitePages                      SitePage[]
+  sitePageVersions               SitePageVersion[]
+  discoverConfig                 DiscoverConfig?
+  apiClients                     ApiClient[]
+  apiKeys                        ApiKey[]
+  webhookEndpoints               WebhookEndpoint[]
+  onboardingProgress             OnboardingProgress[]
+  systemHealthChecks             SystemHealthCheck[]
+  license                        License?
+  apiUsageRecords                ApiUsageRecord[]
+  webhookDeliveries              WebhookDelivery[]
+  charts                         Chart[]
+  chartRules                     ChartRule[]
+  chartSnapshots                 ChartSnapshot[]
+  chartEntries                   ChartEntry[]
+  voteCampaigns                  VoteCampaign[]
+  rewardCampaigns                RewardCampaign[]
+  adCampaigns                    AdCampaign[]
+  legalDocuments                 LegalDocument[]
+  installationState              InstallationState?
+  backupJobs                     BackupJob[]
+  updateJobs                     UpdateJob[]
+  adImpressions                  AdImpression[]
+  adClicks                       AdClick[]
+  legalDocumentVersions          LegalDocumentVersion[]
+  userConsents                   UserConsent[]
+  cookieConsents                 CookieConsent[]
+  systemRequirementChecks        SystemRequirementCheck[]
+  votes                          Vote[]
+  storageProviders               StorageProvider[]
+  storageMigrations              StorageMigration[]
+  externalMediaSources           ExternalMediaSource[]
+  importSources                  ImportSource[]
+  importRuns                     ImportRun[]
+  importItems                    ImportItem[]
+  importMatches                  ImportMatch[]
+  userDeletionRequests           UserDeletionRequest[]
+  artistTeamMembers              ArtistTeamMember[]
+
+  @@index([tenantStatus])
+  @@index([primaryDomain])
+  @@index([ownerUserId])
 }
 
 model OrganizationMembership {
@@ -113,6 +1375,11 @@ model OrganizationMembership {
   organizationId String
   userId         String
   role           OrganizationMembershipRole
+  tenantRole     TenantMembershipRole       @default(VIEWER)
+  permissions    Json?
+  status         TenantMembershipStatus     @default(ACTIVE)
+  invitedAt      DateTime?
+  joinedAt       DateTime?
   createdAt      DateTime                   @default(now())
   updatedAt      DateTime                   @updatedAt
   organization   Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -123,19 +1390,108 @@ model OrganizationMembership {
   @@index([organizationId])
 }
 
+model UserUsernameHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  oldUsername String   @unique
+  newUsername String
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model UserDeletionRequest {
+  id             String                    @id @default(cuid())
+  organizationId String
+  userId         String
+  requestedById  String
+  reviewedById   String?
+  status         UserDeletionRequestStatus @default(REQUESTED)
+  reason         String                    @db.Text
+  reviewNote     String?                   @db.Text
+  requestedAt    DateTime                  @default(now())
+  reviewedAt     DateTime?
+  completedAt    DateTime?
+  organization   Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User                      @relation("UserDeletionTarget", fields: [userId], references: [id], onDelete: Cascade)
+  requestedBy    User                      @relation("UserDeletionRequester", fields: [requestedById], references: [id], onDelete: Restrict)
+  reviewedBy     User?                     @relation("UserDeletionReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, status, requestedAt])
+  @@index([userId, status])
+}
+
+model StorageProvider {
+  id                     String                @id @default(cuid())
+  organizationId         String
+  name                   String
+  type                   StorageProviderType
+  status                 StorageProviderStatus @default(CONFIGURATION_REQUIRED)
+  active                 Boolean               @default(false)
+  isDefault              Boolean               @default(false)
+  configurationEncrypted String                @db.Text
+  localBasePath          String?
+  publicBaseUrl          String?
+  maxFileSizeBytes       BigInt?
+  lastCheckedAt          DateTime?
+  lastError              String?               @db.Text
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+  organization           Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  uploads                Upload[]
+  migrationsFrom         StorageMigration[]    @relation("StorageMigrationFrom")
+  migrationsTo           StorageMigration[]    @relation("StorageMigrationTo")
+
+  @@index([organizationId, active])
+  @@index([organizationId, type, status])
+}
+
+model StorageMigration {
+  id               String                 @id @default(cuid())
+  organizationId   String
+  sourceProviderId String
+  targetProviderId String
+  status           StorageMigrationStatus @default(PENDING)
+  requestedById    String?
+  totalObjects     Int                    @default(0)
+  processedObjects Int                    @default(0)
+  failedObjects    Int                    @default(0)
+  errorMessage     String?                @db.Text
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  organization     Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sourceProvider   StorageProvider        @relation("StorageMigrationFrom", fields: [sourceProviderId], references: [id], onDelete: Restrict)
+  targetProvider   StorageProvider        @relation("StorageMigrationTo", fields: [targetProviderId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, status, createdAt])
+  @@index([sourceProviderId])
+  @@index([targetProviderId])
+}
+
 model Label {
-  id              String       @id @default(cuid())
-  organizationId  String
-  createdByUserId String?
-  name            String
-  slug            String
-  legalName       String?
-  status          LabelStatus  @default(ACTIVE)
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  createdByUser   User?        @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
-  artistLinks     LabelArtist[]
+  id                   String                @id @default(cuid())
+  organizationId       String
+  createdByUserId      String?
+  name                 String
+  slug                 String
+  legalName            String?
+  status               LabelStatus           @default(ACTIVE)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  organization         Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdByUser        User?                 @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+  artistLinks          LabelArtist[]
+  financialAdjustments FinancialAdjustment[]
+  financialStatements  FinancialStatement[]
+  payoutMethods        PayoutMethod[]
+  payouts              Payout[]
+  royaltyLines         RoyaltyLine[]
+  royaltySplits        RoyaltySplit[]
+  storeRevenues        StoreRevenue[]
+  releases             Release[]
 
   @@unique([organizationId, slug])
   @@index([organizationId])
@@ -143,50 +1499,3872 @@ model Label {
 }
 
 model Artist {
-  id                   String       @id @default(cuid())
+  id                   String                @id @default(cuid())
   organizationId       String
   createdByUserId      String?
+  ownerUserId          String?
   name                 String
   slug                 String
   sortName             String?
   type                 ArtistType
   spotifyProfileUrl    String?
   appleMusicProfileUrl String?
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
-  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  createdByUser        User?        @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+  youtubeProfileUrl    String?               @db.VarChar(2048)
+  profileImageUrl      String?               @db.VarChar(2048)
+  coverImageUrl        String?               @db.VarChar(2048)
+  shortBiography       String?               @db.VarChar(500)
+  biography            String?               @db.Text
+  country              String?               @db.VarChar(100)
+  city                 String?               @db.VarChar(100)
+  genre                String?               @db.VarChar(100)
+  subgenre             String?               @db.VarChar(100)
+  language             String?               @db.VarChar(50)
+  foundedYear          Int?
+  tiktokProfileUrl     String?               @db.VarChar(2048)
+  instagramProfileUrl  String?               @db.VarChar(2048)
+  xProfileUrl          String?               @db.VarChar(2048)
+  facebookProfileUrl   String?               @db.VarChar(2048)
+  soundcloudProfileUrl String?               @db.VarChar(2048)
+  deezerProfileUrl     String?               @db.VarChar(2048)
+  websiteUrl           String?               @db.VarChar(2048)
+  bookingEmail         String?               @db.VarChar(320)
+  managementEmail      String?               @db.VarChar(320)
+  seoTitle             String?               @db.VarChar(160)
+  seoDescription       String?               @db.VarChar(320)
+  ogImageUrl           String?               @db.VarChar(2048)
+  profilePublishedAt   DateTime?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  organization         Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdByUser        User?                 @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+  ownerUser            User?                 @relation("ArtistOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  applications         ArtistApplication[]
+  artistProfileLinks   ArtistProfileLink[]
+  discoverEvents       DiscoverEvent[]
+  featuredSmartLinks   SmartLink[]           @relation("ArtistFeaturedSmartLink")
+  follows              Follow[]
+  playlists            Playlist[]
+  preSaveCampaigns     PreSaveCampaign[]
+  smartLinks           SmartLink[]
+  slugHistory          ArtistSlugHistory[]
+  stories              Story[]
+  financialStatements  FinancialStatement[]
   labelLinks           LabelArtist[]
+  payoutMethods        PayoutMethod[]
+  payouts              Payout[]
+  financialAdjustments FinancialAdjustment[]
+  royaltyLines         RoyaltyLine[]
+  royaltySplits        RoyaltySplit[]
+  storeRevenues        StoreRevenue[]
+  releaseArtistLinks   ReleaseArtist[]
+  trackArtistLinks     TrackArtist[]
+  externalMediaSources ExternalMediaSource[]
+  importSources        ImportSource[]
+  importMatches        ImportMatch[]
+  teamMembers          ArtistTeamMember[]
+  profileDraft         ArtistProfileDraft?
 
   @@unique([organizationId, slug])
   @@index([organizationId])
   @@index([createdByUserId])
+  @@index([ownerUserId])
+}
+
+model ArtistTeamMember {
+  id             String         @id @default(cuid())
+  organizationId String
+  artistId       String
+  userId         String
+  role           ArtistTeamRole
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  artist         Artist         @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([artistId, userId])
+  @@index([organizationId, artistId, role])
+  @@index([userId, role])
+}
+
+model ArtistProfileDraft {
+  id          String   @id @default(cuid())
+  artistId    String   @unique
+  data        Json
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  artist      Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  updatedBy   User?    @relation("ArtistProfileDraftUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
 }
 
 model LabelArtist {
   id        String   @id @default(cuid())
-  labelId    String
-  artistId   String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  label      Label    @relation(fields: [labelId], references: [id], onDelete: Cascade)
-  artist     Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  labelId   String
+  artistId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  label     Label    @relation(fields: [labelId], references: [id], onDelete: Cascade)
+  artist    Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
 
   @@unique([labelId, artistId])
   @@index([artistId])
 }
 
+model Upload {
+  id                String                @id @default(cuid())
+  organizationId    String
+  ownerUserId       String
+  releaseId         String?
+  trackId           String?
+  kind              UploadKind
+  status            UploadStatus          @default(PENDING)
+  fileName          String
+  mimeType          String
+  byteSize          BigInt
+  storageKey        String
+  storageProviderId String?
+  checksumSha256    String?
+  width             Int?
+  height            Int?
+  durationMs        Int?
+  failureReason     String?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  organization      Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ownerUser         User                  @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  release           Release?              @relation(fields: [releaseId], references: [id], onDelete: SetNull)
+  track             Track?                @relation(fields: [trackId], references: [id], onDelete: SetNull)
+  artworkAnalyses   ArtworkAnalysis[]
+  audioAnalyses     AudioAnalysis[]
+  audioFingerprints AudioFingerprint[]
+  mobileSessions    MobileUploadSession[]
+  storageProvider   StorageProvider?      @relation(fields: [storageProviderId], references: [id], onDelete: SetNull)
+
+  @@unique([storageKey])
+  @@index([organizationId, kind, status])
+  @@index([releaseId])
+  @@index([trackId])
+}
+
+model Release {
+  id                    String                   @id @default(cuid())
+  organizationId        String
+  createdByUserId       String
+  submittedByUserId     String?
+  labelId               String?
+  title                 String
+  versionTitle          String?
+  primaryLanguage       String
+  primaryGenre          String
+  secondaryGenre        String?
+  type                  ReleaseType
+  status                ReleaseStatus            @default(DRAFT)
+  explicit              Boolean                  @default(false)
+  copyrightP            String
+  copyrightC            String
+  plannedReleaseDate    DateTime?
+  originalReleaseDate   DateTime?
+  previouslyReleased    Boolean                  @default(false)
+  upc                   String?
+  artworkUploadId       String?
+  distributionProvider  DistributionProvider?
+  worldwideDistribution Boolean                  @default(true)
+  presaveEnabled        Boolean                  @default(false)
+  dolbyAtmosEnabled     Boolean                  @default(false)
+  contentIdEnabled      Boolean                  @default(false)
+  submittedAt           DateTime?
+  approvedAt            DateTime?
+  rejectedAt            DateTime?
+  liveAt                DateTime?
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+  organization          Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdByUser         User                     @relation("ReleaseCreatedBy", fields: [createdByUserId], references: [id], onDelete: Cascade)
+  submittedByUser       User?                    @relation("ReleaseSubmittedBy", fields: [submittedByUserId], references: [id], onDelete: SetNull)
+  label                 Label?                   @relation(fields: [labelId], references: [id], onDelete: SetNull)
+  tracks                Track[]
+  artists               ReleaseArtist[]
+  contributors          Contributor[]
+  distributionSelection DistributionSelection?
+  stores                ReleaseStore[]
+  territories           ReleaseTerritory[]
+  uploads               Upload[]
+  validationIssues      ReleaseValidationIssue[]
+  statusHistory         ReleaseStatusHistory[]
+  aiAnalysisJobs        AiAnalysisJob[]
+  artworkAnalyses       ArtworkAnalysis[]
+  audioAnalyses         AudioAnalysis[]
+  duplicateMatches      DuplicateAudioMatch[]
+  lyricsAnalyses        LyricsAnalysis[]
+  metadataAnalyses      MetadataAnalysis[]
+  readinessScores       ReleaseReadinessScore[]
+  validationRuns        ValidationRun[]
+  comments              Comment[]
+  discoverEvents        DiscoverEvent[]
+  playlistTracks        PlaylistTrack[]
+  preSaveCampaigns      PreSaveCampaign[]
+  releaseLikes          ReleaseLike[]
+  smartLinks            SmartLink[]
+  stories               Story[]
+  externalMediaSources  ExternalMediaSource[]
+  importMatches         ImportMatch[]
+
+  @@index([organizationId, status, updatedAt])
+  @@index([createdByUserId, status])
+  @@index([labelId])
+  @@index([upc])
+}
+
+model Track {
+  id                   String                   @id @default(cuid())
+  organizationId       String
+  releaseId            String
+  title                String
+  versionTitle         String?
+  trackNumber          Int
+  discNumber           Int                      @default(1)
+  language             String
+  explicit             Boolean                  @default(false)
+  instrumental         Boolean                  @default(false)
+  previouslyReleased   Boolean                  @default(false)
+  isrc                 String?
+  audioUploadId        String?
+  durationMs           Int?
+  lyrics               String?                  @db.Text
+  previewStartSeconds  Int?
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+  organization         Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  release              Release                  @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  artists              TrackArtist[]
+  contributors         TrackContributor[]
+  uploads              Upload[]
+  validationIssues     ReleaseValidationIssue[]
+  audioAnalyses        AudioAnalysis[]
+  audioFingerprints    AudioFingerprint[]
+  duplicateMatches     DuplicateAudioMatch[]
+  lyricsAnalyses       LyricsAnalysis[]
+  comments             Comment[]
+  discoverEvents       DiscoverEvent[]
+  playlistTracks       PlaylistTrack[]
+  trackLikes           TrackLike[]
+  playbackSessions     PlaybackSession[]
+  externalMediaSources ExternalMediaSource[]
+  importMatches        ImportMatch[]
+
+  @@unique([releaseId, discNumber, trackNumber])
+  @@index([organizationId])
+  @@index([isrc])
+}
+
+model ReleaseArtist {
+  id        String            @id @default(cuid())
+  releaseId String
+  artistId  String
+  role      ReleaseArtistRole
+  sortOrder Int               @default(0)
+  createdAt DateTime          @default(now())
+  release   Release           @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  artist    Artist            @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([releaseId, artistId, role])
+  @@index([artistId])
+}
+
+model TrackArtist {
+  id        String            @id @default(cuid())
+  trackId   String
+  artistId  String
+  role      ReleaseArtistRole
+  sortOrder Int               @default(0)
+  createdAt DateTime          @default(now())
+  track     Track             @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  artist    Artist            @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([trackId, artistId, role])
+  @@index([artistId])
+}
+
+model Contributor {
+  id        String             @id @default(cuid())
+  releaseId String
+  name      String
+  role      ContributorRole
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  release   Release            @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  tracks    TrackContributor[]
+
+  @@index([releaseId, role])
+}
+
+model TrackContributor {
+  id            String          @id @default(cuid())
+  trackId       String
+  contributorId String
+  role          ContributorRole
+  createdAt     DateTime        @default(now())
+  track         Track           @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  contributor   Contributor     @relation(fields: [contributorId], references: [id], onDelete: Cascade)
+
+  @@unique([trackId, contributorId, role])
+  @@index([contributorId])
+}
+
+model DistributionSelection {
+  id                    String               @id @default(cuid())
+  releaseId             String               @unique
+  provider              DistributionProvider
+  releaseDate           DateTime?
+  worldwideDistribution Boolean              @default(true)
+  presaveEnabled        Boolean              @default(false)
+  dolbyAtmosEnabled     Boolean              @default(false)
+  contentIdEnabled      Boolean              @default(false)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  release               Release              @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+}
+
+model ReleaseStore {
+  id        String   @id @default(cuid())
+  releaseId String
+  storeCode String
+  createdAt DateTime @default(now())
+  release   Release  @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+
+  @@unique([releaseId, storeCode])
+}
+
+model ReleaseTerritory {
+  id            String   @id @default(cuid())
+  releaseId     String
+  territoryCode String
+  createdAt     DateTime @default(now())
+  release       Release  @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+
+  @@unique([releaseId, territoryCode])
+}
+
+model ReleaseValidationIssue {
+  id              String                    @id @default(cuid())
+  organizationId  String
+  releaseId       String
+  trackId         String?
+  fieldPath       String
+  step            String
+  code            String
+  category        IntelligenceIssueCategory @default(METADATA)
+  title           String?
+  message         String
+  suggestedAction String?                   @db.Text
+  severity        ReleaseValidationSeverity @default(ERROR)
+  blocking        Boolean                   @default(true)
+  source          IntelligenceIssueSource   @default(RULE_ENGINE)
+  metadata        Json?
+  resolvedAt      DateTime?
+  createdAt       DateTime                  @default(now())
+  organization    Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  release         Release                   @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  track           Track?                    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, releaseId])
+  @@index([releaseId, severity, resolvedAt])
+}
+
+model ReleaseStatusHistory {
+  id             String         @id @default(cuid())
+  organizationId String
+  releaseId      String
+  previousStatus ReleaseStatus?
+  status         ReleaseStatus
+  actorUserId    String?
+  reason         String?
+  metadata       Json?
+  createdAt      DateTime       @default(now())
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  release        Release        @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([releaseId, createdAt])
+}
+
 model DistributionProviderConfiguration {
-  id                   String               @id @default(cuid())
-  organizationId       String?
-  provider             DistributionProvider
-  isEnabled            Boolean              @default(false)
-  credentials          Json?
-  webhookSigningSecret String?
-  createdAt            DateTime             @default(now())
-  updatedAt            DateTime             @updatedAt
-  organization         Organization?        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id                     String                           @id @default(cuid())
+  organizationId         String?
+  provider               DistributionProvider
+  isEnabled              Boolean                          @default(false)
+  environment            ProviderEnvironment              @default(SANDBOX)
+  priority               Int                              @default(100)
+  maxRetryCount          Int                              @default(3)
+  timeoutSeconds         Int                              @default(30)
+  supportsAutoIsrc       Boolean                          @default(false)
+  supportsAutoUpc        Boolean                          @default(false)
+  supportsWebhooks       Boolean                          @default(false)
+  supportsUpdate         Boolean                          @default(false)
+  supportsTakedown       Boolean                          @default(false)
+  isDefault              Boolean                          @default(false)
+  credentials            Json?
+  webhookSigningSecret   String?
+  credentialsEncrypted   String?                          @db.Text
+  webhookSecretEncrypted String?                          @db.Text
+  publicMetadata         Json?
+  lastValidatedAt        DateTime?
+  lastValidationStatus   String?
+  createdAt              DateTime                         @default(now())
+  updatedAt              DateTime                         @updatedAt
+  organization           Organization?                    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  capabilities           DistributionProviderCapability[]
+  distributionJobs       DistributionJob[]
+  releaseDeliveries      ReleaseDelivery[]
+  webhookEvents          ProviderWebhookEvent[]
+  healthChecks           ProviderHealthCheck[]
 
   @@unique([organizationId, provider])
   @@index([provider])
+}
+
+model DistributionProviderCapability {
+  id              String                            @id @default(cuid())
+  configurationId String
+  provider        DistributionProvider
+  capability      DistributionProviderCapabilityKey
+  isEnabled       Boolean                           @default(true)
+  createdAt       DateTime                          @default(now())
+  updatedAt       DateTime                          @updatedAt
+  configuration   DistributionProviderConfiguration @relation(fields: [configurationId], references: [id], onDelete: Cascade)
+
+  @@unique([configurationId, capability])
+  @@index([provider, capability])
+}
+
+model AuditLog {
+  id             String        @id @default(cuid())
+  organizationId String?
+  actorUserId    String?
+  action         String
+  entityType     String
+  entityId       String?
+  metadata       Json?
+  createdAt      DateTime      @default(now())
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actorUser      User?         @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([actorUserId, createdAt])
+  @@index([entityType, entityId])
+}
+
+model ArtistApplication {
+  id                  String                           @id @default(cuid())
+  organizationId      String
+  userId              String
+  artistId            String?
+  stageName           String
+  legalName           String
+  biography           String                           @db.Text
+  profileImageUrl     String?
+  socialLinks         Json?
+  spotifyArtistUrl    String?
+  appleMusicArtistUrl String?
+  youtubeChannelUrl   String?
+  documentReference   String?
+  status              ArtistApplicationStatus          @default(PENDING)
+  adminNotes          String?                          @db.Text
+  reviewedByUserId    String?
+  reviewedAt          DateTime?
+  createdAt           DateTime                         @default(now())
+  updatedAt           DateTime                         @updatedAt
+  organization        Organization                     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                User                             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  artist              Artist?                          @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  reviewedByUser      User?                            @relation("ArtistApplicationReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  statusHistory       ArtistApplicationStatusHistory[]
+
+  @@index([organizationId, status, createdAt])
+  @@index([userId, status])
+  @@index([artistId])
+}
+
+model ArtistApplicationStatusHistory {
+  id             String                   @id @default(cuid())
+  organizationId String
+  applicationId  String
+  previousStatus ArtistApplicationStatus?
+  status         ArtistApplicationStatus
+  actorUserId    String?
+  reason         String?
+  metadata       Json?
+  createdAt      DateTime                 @default(now())
+  organization   Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  application    ArtistApplication        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  actorUser      User?                    @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([applicationId, createdAt])
+}
+
+model Notification {
+  id                String             @id @default(cuid())
+  organizationId    String?
+  userId            String
+  type              String
+  title             String
+  message           String             @db.Text
+  entityType        String?
+  entityId          String?
+  readAt            DateTime?
+  createdAt         DateTime           @default(now())
+  organization      Organization?      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pushNotifications PushNotification[]
+
+  @@index([organizationId, createdAt])
+  @@index([userId, readAt, createdAt])
+}
+
+model SystemLog {
+  id             String          @id @default(cuid())
+  organizationId String?
+  level          SystemLogLevel
+  source         SystemLogSource
+  message        String          @db.Text
+  entityType     String?
+  entityId       String?
+  metadata       Json?
+  createdAt      DateTime        @default(now())
+  organization   Organization?   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, level, createdAt])
+  @@index([source, createdAt])
+}
+
+model AdminSetting {
+  id              String          @id @default(cuid())
+  organizationId  String?
+  key             AdminSettingKey
+  value           Json
+  updatedByUserId String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  organization    Organization?   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, key])
+  @@index([key])
+}
+
+model AiProvider {
+  id                  String                 @id @default(cuid())
+  organizationId      String?
+  code                AiProviderCode
+  displayName         String
+  active              Boolean                @default(false)
+  priority            Int                    @default(100)
+  lastHealthStatus    String?
+  lastHealthMessage   String?
+  lastHealthCheckedAt DateTime?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  organization        Organization?          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  credentials         AiProviderCredential[]
+  capabilities        AiCapability[]
+  jobs                AiAnalysisJob[]
+  attempts            AiAnalysisAttempt[]
+  usageRecords        AiUsageRecord[]
+
+  @@unique([organizationId, code])
+  @@index([code, active])
+}
+
+model AiProviderCredential {
+  id             String     @id @default(cuid())
+  providerId     String
+  keyName        String
+  encryptedValue String     @db.Text
+  maskedValue    String
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  provider       AiProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, keyName])
+}
+
+model AiCapability {
+  id         String          @id @default(cuid())
+  providerId String
+  capability AiCapabilityKey
+  active     Boolean         @default(true)
+  createdAt  DateTime        @default(now())
+  provider   AiProvider      @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, capability])
+  @@index([capability, active])
+}
+
+model AiAnalysisJob {
+  id                String              @id @default(cuid())
+  organizationId    String
+  releaseId         String?
+  trackId           String?
+  uploadId          String?
+  requestedByUserId String?
+  providerId        String?
+  jobType           AiAnalysisJobType
+  status            AiAnalysisJobStatus @default(PENDING)
+  inputHash         String
+  idempotencyKey    String              @unique
+  priority          Int                 @default(100)
+  attemptCount      Int                 @default(0)
+  maxRetryCount     Int                 @default(3)
+  nextAttemptAt     DateTime?
+  lockedAt          DateTime?
+  lockedBy          String?
+  lastErrorCode     String?
+  lastErrorMessage  String?
+  queuedAt          DateTime?
+  startedAt         DateTime?
+  completedAt       DateTime?
+  cancelledAt       DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  organization      Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  release           Release?            @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  requestedByUser   User?               @relation("AiAnalysisJobRequestedBy", fields: [requestedByUserId], references: [id], onDelete: SetNull)
+  provider          AiProvider?         @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  attempts          AiAnalysisAttempt[]
+
+  @@unique([organizationId, jobType, inputHash])
+  @@index([organizationId, status, nextAttemptAt])
+  @@index([releaseId, jobType, createdAt])
+  @@index([trackId, jobType, createdAt])
+  @@index([uploadId, jobType, createdAt])
+}
+
+model AiAnalysisAttempt {
+  id             String              @id @default(cuid())
+  organizationId String
+  jobId          String
+  providerId     String?
+  actorUserId    String?
+  attemptNumber  Int
+  status         AiAnalysisJobStatus
+  retryable      Boolean             @default(false)
+  errorCode      String?
+  errorMessage   String?
+  startedAt      DateTime            @default(now())
+  finishedAt     DateTime?
+  durationMs     Int?
+  usageMetadata  Json?
+  createdAt      DateTime            @default(now())
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  job            AiAnalysisJob       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  provider       AiProvider?         @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  actorUser      User?               @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@unique([jobId, attemptNumber])
+  @@index([organizationId, createdAt])
+}
+
+model AiUsageRecord {
+  id             String            @id @default(cuid())
+  organizationId String
+  userId         String?
+  providerId     String?
+  jobId          String?
+  usageType      AiAnalysisJobType
+  unitCount      Int               @default(1)
+  costMinor      BigInt?
+  currencyCode   CurrencyCode?
+  usageDate      DateTime          @default(now())
+  idempotencyKey String            @unique
+  metadata       Json?
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  provider       AiProvider?       @relation(fields: [providerId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, usageType, usageDate])
+}
+
+model ValidationRun {
+  id             String           @id @default(cuid())
+  organizationId String
+  releaseId      String
+  inputHash      String
+  status         AiAnalysisStatus @default(COMPLETED)
+  issueCount     Int              @default(0)
+  blockingCount  Int              @default(0)
+  createdAt      DateTime         @default(now())
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  release        Release          @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, releaseId, createdAt])
+  @@index([inputHash])
+}
+
+model MetadataAnalysis {
+  id               String               @id @default(cuid())
+  organizationId   String
+  releaseId        String
+  jobId            String?
+  inputHash        String
+  status           AiAnalysisStatus     @default(PENDING)
+  providerCode     AiProviderCode?
+  structuredResult Json?
+  rawResponse      Json?
+  promptVersionId  String?
+  staleAt          DateTime?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  organization     Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  release          Release              @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  suggestions      MetadataSuggestion[]
+
+  @@unique([organizationId, releaseId, inputHash])
+  @@index([releaseId, status, createdAt])
+}
+
+model MetadataSuggestion {
+  id               String             @id @default(cuid())
+  organizationId   String
+  analysisId       String
+  fieldPath        String
+  originalValue    Json?
+  suggestedValue   Json
+  title            String
+  explanation      String             @db.Text
+  confidence       AiConfidence
+  status           AiSuggestionStatus @default(PENDING)
+  acceptedByUserId String?
+  rejectedByUserId String?
+  decidedAt        DateTime?
+  createdAt        DateTime           @default(now())
+  organization     Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  analysis         MetadataAnalysis   @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  acceptedByUser   User?              @relation("MetadataSuggestionAcceptedBy", fields: [acceptedByUserId], references: [id], onDelete: SetNull)
+  rejectedByUser   User?              @relation("MetadataSuggestionRejectedBy", fields: [rejectedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, status, createdAt])
+  @@index([analysisId, status])
+}
+
+model ArtworkAnalysis {
+  id               String                 @id @default(cuid())
+  organizationId   String
+  releaseId        String
+  uploadId         String
+  inputHash        String
+  status           AiAnalysisStatus       @default(PENDING)
+  width            Int?
+  height           Int?
+  aspectRatio      Decimal?               @db.Decimal(10, 6)
+  fileSizeBytes    BigInt
+  mimeType         String
+  actualSignature  String?
+  colorSpace       String?
+  hasAlphaChannel  Boolean?
+  blurScore        Decimal?               @db.Decimal(10, 4)
+  compressionScore Decimal?               @db.Decimal(10, 4)
+  brightness       Decimal?               @db.Decimal(10, 4)
+  contrast         Decimal?               @db.Decimal(10, 4)
+  riskSignal       ArtworkRiskSignal?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  organization     Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  release          Release                @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  upload           Upload                 @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+  issues           ArtworkAnalysisIssue[]
+
+  @@unique([uploadId, inputHash])
+  @@index([organizationId, status, createdAt])
+  @@index([releaseId, createdAt])
+}
+
+model ArtworkAnalysisIssue {
+  id          String                    @id @default(cuid())
+  analysisId  String
+  code        String
+  severity    ReleaseValidationSeverity
+  blocking    Boolean                   @default(false)
+  message     String                    @db.Text
+  boundingBox Json?
+  metadata    Json?
+  createdAt   DateTime                  @default(now())
+  analysis    ArtworkAnalysis           @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  @@index([analysisId, severity, blocking])
+}
+
+model AudioAnalysis {
+  id                 String               @id @default(cuid())
+  organizationId     String
+  releaseId          String
+  trackId            String
+  uploadId           String
+  inputHash          String
+  status             AudioAnalysisStatus  @default(PENDING)
+  codec              String?
+  container          String?
+  durationMs         Int?
+  sampleRate         Int?
+  bitDepth           Int?
+  bitrate            Int?
+  channels           Int?
+  channelLayout      String?
+  fileSizeBytes      BigInt
+  peakLevel          Decimal?             @db.Decimal(10, 4)
+  truePeak           Decimal?             @db.Decimal(10, 4)
+  integratedLoudness Decimal?             @db.Decimal(10, 4)
+  dynamicRange       Decimal?             @db.Decimal(10, 4)
+  silenceStartMs     Int?
+  silenceEndMs       Int?
+  clippingLikely     Boolean?
+  corruptFile        Boolean              @default(false)
+  decodeError        String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  organization       Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  release            Release              @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  track              Track                @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  upload             Upload               @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+  issues             AudioAnalysisIssue[]
+
+  @@unique([uploadId, inputHash])
+  @@index([organizationId, status, createdAt])
+  @@index([releaseId, trackId, createdAt])
+}
+
+model AudioAnalysisIssue {
+  id         String                    @id @default(cuid())
+  analysisId String
+  code       String
+  severity   ReleaseValidationSeverity
+  blocking   Boolean                   @default(false)
+  message    String                    @db.Text
+  metadata   Json?
+  createdAt  DateTime                  @default(now())
+  analysis   AudioAnalysis             @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  @@index([analysisId, severity, blocking])
+}
+
+model AudioFingerprint {
+  id              String       @id @default(cuid())
+  organizationId  String
+  trackId         String
+  uploadId        String
+  fileHash        String
+  fingerprintHash String?
+  normalizedHash  String?
+  algorithm       String       @default("SHA256")
+  createdAt       DateTime     @default(now())
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  track           Track        @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  upload          Upload       @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+
+  @@unique([uploadId, algorithm])
+  @@index([organizationId, fileHash])
+  @@index([fingerprintHash])
+}
+
+model DuplicateAudioMatch {
+  id                    String               @id @default(cuid())
+  organizationId        String
+  releaseId             String
+  trackId               String
+  sourceFingerprintId   String
+  matchedOrganizationId String
+  matchedFingerprintId  String
+  exactHashMatch        Boolean              @default(false)
+  similarityScore       Decimal?             @db.Decimal(10, 6)
+  status                DuplicateMatchStatus @default(POSSIBLE)
+  crossTenant           Boolean              @default(false)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  organization          Organization         @relation("DuplicateAudioSource", fields: [organizationId], references: [id], onDelete: Cascade)
+  matchedOrganization   Organization         @relation("DuplicateAudioTarget", fields: [matchedOrganizationId], references: [id], onDelete: Cascade)
+  release               Release              @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  track                 Track                @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceFingerprintId, matchedFingerprintId])
+  @@index([organizationId, status, createdAt])
+  @@index([trackId, status])
+}
+
+model LyricsAnalysis {
+  id             String           @id @default(cuid())
+  organizationId String
+  releaseId      String
+  trackId        String
+  inputHash      String
+  status         AiAnalysisStatus @default(PENDING)
+  language       String?
+  explicitRisk   AiConfidence?
+  riskSummary    Json?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  release        Release          @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  track          Track            @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@unique([trackId, inputHash])
+  @@index([organizationId, status, createdAt])
+}
+
+model ProviderRuleProfile {
+  id             String                  @id @default(cuid())
+  organizationId String?
+  code           ProviderRuleProfileCode
+  name           String
+  active         Boolean                 @default(true)
+  version        String                  @default("1")
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  organization   Organization?           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  rules          ProviderRule[]
+
+  @@unique([organizationId, code, version])
+  @@index([code, active])
+}
+
+model ProviderRule {
+  id                     String                    @id @default(cuid())
+  profileId              String
+  code                   String
+  category               IntelligenceIssueCategory
+  fieldPath              String
+  operator               ProviderRuleOperator
+  expectedValue          Json?
+  severity               ReleaseValidationSeverity
+  blocking               Boolean                   @default(false)
+  active                 Boolean                   @default(true)
+  message                String                    @db.Text
+  documentationReference String?                   @db.VarChar(2048)
+  version                String                    @default("1")
+  effectiveFrom          DateTime?
+  effectiveUntil         DateTime?
+  createdAt              DateTime                  @default(now())
+  updatedAt              DateTime                  @updatedAt
+  profile                ProviderRuleProfile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, code, version])
+  @@index([profileId, active])
+  @@index([category, blocking])
+}
+
+model ReleaseReadinessScore {
+  id             String                     @id @default(cuid())
+  organizationId String
+  releaseId      String
+  inputHash      String
+  score          Int
+  blockingCount  Int                        @default(0)
+  warningCount   Int                        @default(0)
+  explanation    Json
+  createdAt      DateTime                   @default(now())
+  organization   Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  release        Release                    @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  categories     ReleaseReadinessCategory[]
+
+  @@index([organizationId, releaseId, createdAt])
+  @@index([inputHash])
+}
+
+model ReleaseReadinessCategory {
+  id             String                    @id @default(cuid())
+  organizationId String
+  scoreId        String
+  category       IntelligenceIssueCategory
+  score          Int
+  deductions     Json
+  createdAt      DateTime                  @default(now())
+  organization   Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  readinessScore ReleaseReadinessScore     @relation(fields: [scoreId], references: [id], onDelete: Cascade)
+
+  @@unique([scoreId, category])
+}
+
+model AiPromptTemplate {
+  id              String            @id @default(cuid())
+  key             String
+  name            String
+  activeVersionId String?
+  createdByUserId String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  createdByUser   User?             @relation("AiPromptTemplateCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  versions        AiPromptVersion[]
+
+  @@unique([key])
+}
+
+model AiPromptVersion {
+  id         String           @id @default(cuid())
+  templateId String
+  version    String
+  content    String           @db.Text
+  active     Boolean          @default(false)
+  metadata   Json?
+  createdAt  DateTime         @default(now())
+  template   AiPromptTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@unique([templateId, version])
+}
+
+model MobileDevice {
+  id             String          @id @default(cuid())
+  organizationId String
+  userId         String
+  deviceId       String
+  platform       MobilePlatform
+  deviceName     String?
+  appVersion     String
+  osVersion      String?
+  locale         String?
+  timezone       String?
+  active         Boolean         @default(true)
+  lastSeenAt     DateTime        @default(now())
+  lastIpHash     String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions       DeviceSession[]
+  pushTokens     PushToken[]
+
+  @@unique([userId, deviceId])
+  @@index([organizationId, platform, active])
+  @@index([deviceId, active])
+  @@index([lastSeenAt])
+}
+
+model RefreshTokenFamily {
+  id              String              @id @default(cuid())
+  organizationId  String
+  userId          String
+  familyHash      String              @unique
+  status          MobileSessionStatus @default(ACTIVE)
+  revokedAt       DateTime?
+  reuseDetectedAt DateTime?
+  expiresAt       DateTime
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  organization    Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions        DeviceSession[]
+
+  @@index([userId, status, expiresAt])
+  @@index([organizationId, status])
+}
+
+model DeviceSession {
+  id                    String              @id @default(cuid())
+  organizationId        String
+  userId                String
+  deviceId              String
+  tokenFamilyId         String
+  accessTokenHash       String              @unique
+  refreshTokenHash      String              @unique
+  status                MobileSessionStatus @default(ACTIVE)
+  accessTokenExpiresAt  DateTime
+  refreshTokenExpiresAt DateTime
+  revokedAt             DateTime?
+  lastUsedAt            DateTime            @default(now())
+  lastIpHash            String?
+  userAgentHash         String?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  organization          Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device                MobileDevice        @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  tokenFamily           RefreshTokenFamily  @relation(fields: [tokenFamilyId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status, refreshTokenExpiresAt])
+  @@index([deviceId, status])
+  @@index([tokenFamilyId, status])
+}
+
+model MobileAppVersion {
+  id                      String         @id @default(cuid())
+  platform                MobilePlatform
+  version                 String
+  buildNumber             Int
+  minimumSupportedVersion String
+  latestVersion           String
+  forceUpdate             Boolean        @default(false)
+  maintenanceMode         Boolean        @default(false)
+  maintenanceMessage      String?        @db.Text
+  featureFlags            Json?
+  legalDocumentVersions   Json?
+  active                  Boolean        @default(true)
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+
+  @@unique([platform, version, buildNumber])
+  @@index([platform, active])
+}
+
+model PushToken {
+  id             String                     @id @default(cuid())
+  organizationId String
+  userId         String
+  deviceId       String
+  provider       PushProvider
+  tokenHash      String                     @unique
+  tokenEncrypted String                     @db.Text
+  maskedToken    String
+  active         Boolean                    @default(true)
+  invalidatedAt  DateTime?
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+  organization   Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device         MobileDevice               @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  deliveries     PushNotificationDelivery[]
+
+  @@index([organizationId, provider, active])
+  @@index([userId, active])
+  @@index([deviceId, active])
+}
+
+model PushNotification {
+  id             String                     @id @default(cuid())
+  organizationId String?
+  userId         String
+  notificationId String?
+  type           String
+  title          String
+  body           String                     @db.Text
+  deepLink       String?
+  payload        Json?
+  priority       Int                        @default(100)
+  createdAt      DateTime                   @default(now())
+  organization   Organization?              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notification   Notification?              @relation(fields: [notificationId], references: [id], onDelete: SetNull)
+  deliveries     PushNotificationDelivery[]
+
+  @@index([organizationId, createdAt])
+  @@index([userId, createdAt])
+  @@index([notificationId])
+}
+
+model PushNotificationDelivery {
+  id                 String             @id @default(cuid())
+  organizationId     String
+  pushNotificationId String
+  pushTokenId        String
+  provider           PushProvider
+  status             PushDeliveryStatus @default(PENDING)
+  providerMessageId  String?
+  errorCode          String?
+  errorMessage       String?            @db.Text
+  queuedAt           DateTime?
+  sentAt             DateTime?
+  deliveredAt        DateTime?
+  failedAt           DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  organization       Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pushNotification   PushNotification   @relation(fields: [pushNotificationId], references: [id], onDelete: Cascade)
+  pushToken          PushToken          @relation(fields: [pushTokenId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status, createdAt])
+  @@index([pushNotificationId, status])
+  @@index([pushTokenId, status])
+}
+
+model NotificationPreference {
+  id             String                         @id @default(cuid())
+  organizationId String
+  userId         String
+  category       NotificationPreferenceCategory
+  pushEnabled    Boolean                        @default(true)
+  emailEnabled   Boolean                        @default(true)
+  inAppEnabled   Boolean                        @default(true)
+  locked         Boolean                        @default(false)
+  createdAt      DateTime                       @default(now())
+  updatedAt      DateTime                       @updatedAt
+  organization   Organization                   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User                           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category])
+  @@index([organizationId, category])
+}
+
+model NotificationTopic {
+  id             String                         @id @default(cuid())
+  organizationId String
+  key            String
+  name           String
+  description    String?                        @db.Text
+  active         Boolean                        @default(true)
+  createdAt      DateTime                       @default(now())
+  updatedAt      DateTime                       @updatedAt
+  organization   Organization                   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscriptions  UserNotificationSubscription[]
+
+  @@unique([organizationId, key])
+  @@index([organizationId, active])
+}
+
+model UserNotificationSubscription {
+  id        String            @id @default(cuid())
+  userId    String
+  topicId   String
+  active    Boolean           @default(true)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  topic     NotificationTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, topicId])
+  @@index([topicId, active])
+}
+
+model MobileUploadSession {
+  id              String                    @id @default(cuid())
+  organizationId  String
+  userId          String
+  uploadId        String?
+  idempotencyKey  String                    @unique
+  kind            UploadKind
+  status          MobileUploadSessionStatus @default(CREATED)
+  fileName        String
+  mimeType        String
+  byteSize        BigInt
+  checksumSha256  String?
+  storageKey      String
+  signedUploadUrl String?                   @db.Text
+  expiresAt       DateTime
+  completedAt     DateTime?
+  abortedAt       DateTime?
+  failureReason   String?                   @db.Text
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+  organization    Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user            User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  upload          Upload?                   @relation(fields: [uploadId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, status, createdAt])
+  @@index([userId, status])
+  @@index([expiresAt])
+}
+
+model PlaybackSession {
+  id                   String         @id @default(cuid())
+  organizationId       String
+  userId               String?
+  sessionId            String         @unique
+  trackId              String
+  source               PlaybackSource
+  startedAt            DateTime       @default(now())
+  listenedMilliseconds Int            @default(0)
+  completed            Boolean        @default(false)
+  streamCountedAt      DateTime?
+  deviceId             String?
+  ipHash               String?
+  userAgentHash        String?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  organization         Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                 User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  track                Track          @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, trackId, createdAt])
+  @@index([userId, createdAt])
+  @@index([streamCountedAt])
+}
+
+model ExternalMediaSource {
+  id                 String                @id @default(cuid())
+  organizationId     String
+  provider           ExternalMediaProvider
+  externalId         String
+  externalUrl        String                @db.VarChar(1024)
+  normalizedUrl      String                @db.VarChar(768)
+  embedUrl           String?               @db.VarChar(1024)
+  title              String
+  artistName         String?
+  durationMs         Int?
+  thumbnailUrl       String?               @db.VarChar(1024)
+  publishedAt        DateTime?
+  playable           Boolean               @default(false)
+  embeddable         Boolean               @default(false)
+  regionRestrictions Json?
+  metadataHash       String?
+  lastCheckedAt      DateTime?
+  status             ExternalMediaStatus   @default(ACTIVE)
+  artistId           String?
+  releaseId          String?
+  trackId            String?
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  organization       Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  artist             Artist?               @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  release            Release?              @relation(fields: [releaseId], references: [id], onDelete: SetNull)
+  track              Track?                @relation(fields: [trackId], references: [id], onDelete: SetNull)
+  importItems        ImportItem[]
+
+  @@unique([organizationId, provider, externalId])
+  @@unique([organizationId, normalizedUrl])
+  @@index([organizationId, provider, status])
+  @@index([organizationId, lastCheckedAt])
+  @@index([artistId])
+  @@index([releaseId])
+  @@index([trackId])
+}
+
+model ImportSource {
+  id                 String                 @id @default(cuid())
+  organizationId     String
+  createdByUserId    String
+  type               ImportSourceType
+  provider           ExternalMediaProvider?
+  providerExternalId String?
+  url                String                 @db.VarChar(1024)
+  name               String
+  artistId           String?
+  active             Boolean                @default(false)
+  autoPublish        Boolean                @default(false)
+  ownershipVerified  Boolean                @default(false)
+  requiresReview     Boolean                @default(true)
+  minDurationMs      Int?
+  maxDurationMs      Int?
+  maxAgeDays         Int?
+  contentFilter      Json?
+  frequencyMinutes   Int                    @default(60)
+  scheduleMode       ImportScheduleMode     @default(CRON)
+  status             ImportSourceStatus     @default(CONFIGURATION_REQUIRED)
+  lastCheckedAt      DateTime?
+  lastSuccessAt      DateTime?
+  lastError          String?                @db.Text
+  cursor             String?                @db.Text
+  lockToken          String?                @unique
+  lockExpiresAt      DateTime?
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  organization       Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdByUser      User                   @relation(fields: [createdByUserId], references: [id], onDelete: Cascade)
+  artist             Artist?                @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  runs               ImportRun[]
+  importItems        ImportItem[]
+
+  @@index([organizationId, status, active])
+  @@index([organizationId, type, providerExternalId])
+  @@index([artistId])
+}
+
+model ImportRun {
+  id             String          @id @default(cuid())
+  organizationId String
+  sourceId       String
+  status         ImportRunStatus @default(RUNNING)
+  startedAt      DateTime        @default(now())
+  completedAt    DateTime?
+  cursorBefore   String?         @db.Text
+  cursorAfter    String?         @db.Text
+  detectedCount  Int             @default(0)
+  importedCount  Int             @default(0)
+  duplicateCount Int             @default(0)
+  failedCount    Int             @default(0)
+  errorMessage   String?         @db.Text
+  createdAt      DateTime        @default(now())
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  source         ImportSource    @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  items          ImportItem[]
+
+  @@index([organizationId, sourceId, startedAt])
+  @@index([status, startedAt])
+}
+
+model ImportItem {
+  id                    String                     @id @default(cuid())
+  organizationId        String
+  runId                 String
+  sourceId              String
+  externalMediaSourceId String?
+  provider              ExternalMediaProvider
+  externalId            String
+  status                ImportItemStatus           @default(DETECTED)
+  title                 String?
+  artistName            String?
+  durationMs            Int?
+  metadataScore         Int?
+  matchConfidence       ImportMatchConfidence      @default(NONE)
+  errorMessage          String?                    @db.Text
+  detectedAt            DateTime                   @default(now())
+  reviewedAt            DateTime?
+  createdAt             DateTime                   @default(now())
+  updatedAt             DateTime                   @updatedAt
+  organization          Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  run                   ImportRun                  @relation(fields: [runId], references: [id], onDelete: Cascade)
+  source                ImportSource               @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  externalMediaSource   ExternalMediaSource?       @relation(fields: [externalMediaSourceId], references: [id], onDelete: SetNull)
+  matches               ImportMatch[]
+  decisions             ImportModerationDecision[]
+
+  @@index([organizationId, provider, externalId])
+  @@index([sourceId, status, createdAt])
+  @@index([externalMediaSourceId])
+}
+
+model ImportMatch {
+  id             String                @id @default(cuid())
+  organizationId String
+  importItemId   String
+  trackId        String?
+  releaseId      String?
+  artistId       String?
+  confidence     ImportMatchConfidence
+  reason         String
+  automatic      Boolean               @default(false)
+  resolvedAt     DateTime?
+  createdAt      DateTime              @default(now())
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  importItem     ImportItem            @relation(fields: [importItemId], references: [id], onDelete: Cascade)
+  track          Track?                @relation(fields: [trackId], references: [id], onDelete: SetNull)
+  release        Release?              @relation(fields: [releaseId], references: [id], onDelete: SetNull)
+  artist         Artist?               @relation(fields: [artistId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, confidence, createdAt])
+  @@index([importItemId])
+  @@index([trackId])
+  @@index([releaseId])
+  @@index([artistId])
+}
+
+model ImportModerationDecision {
+  id           String           @id @default(cuid())
+  importItemId String
+  actorUserId  String
+  decision     ImportItemStatus
+  reason       String           @db.Text
+  createdAt    DateTime         @default(now())
+  importItem   ImportItem       @relation(fields: [importItemId], references: [id], onDelete: Cascade)
+  actorUser    User             @relation(fields: [actorUserId], references: [id], onDelete: Cascade)
+
+  @@index([importItemId, createdAt])
+  @@index([actorUserId, createdAt])
+}
+
+model MobileOfflineOperation {
+  id             String                 @id @default(cuid())
+  organizationId String
+  userId         String
+  operationId    String
+  operationType  String
+  idempotencyKey String                 @unique
+  status         OfflineOperationStatus @default(PENDING)
+  payloadHash    String
+  conflictReason String?                @db.Text
+  appliedAt      DateTime?
+  expiresAt      DateTime
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  organization   Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, operationId])
+  @@index([organizationId, status, createdAt])
+  @@index([expiresAt])
+}
+
+model MobileApiRequestLog {
+  id             String          @id @default(cuid())
+  organizationId String?
+  userId         String?
+  requestId      String          @unique
+  method         String
+  path           String
+  statusCode     Int
+  durationMs     Int?
+  appVersion     String?
+  platform       MobilePlatform?
+  ipHash         String?
+  userAgentHash  String?
+  createdAt      DateTime        @default(now())
+  organization   Organization?   @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  user           User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([userId, createdAt])
+  @@index([statusCode, createdAt])
+}
+
+model SmartLink {
+  id                  String                  @id @default(cuid())
+  organizationId      String
+  ownerUserId         String
+  artistId            String
+  releaseId           String?
+  title               String
+  slug                String                  @unique
+  description         String?                 @db.Text
+  coverImageUrl       String?
+  backgroundType      SmartLinkBackgroundType @default(GRADIENT)
+  backgroundImageUrl  String?
+  theme               String                  @default("RADARUNE")
+  ctaText             String                  @default("Dinle")
+  releaseDate         DateTime?
+  active              Boolean                 @default(false)
+  seoTitle            String?
+  seoDescription      String?
+  ogImageUrl          String?
+  customPixelSettings Json?
+  utmDefaults         Json?
+  featuredForArtistId String?
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
+  organization        Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  artist              Artist                  @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  featuredForArtist   Artist?                 @relation("ArtistFeaturedSmartLink", fields: [featuredForArtistId], references: [id], onDelete: SetNull)
+  release             Release?                @relation(fields: [releaseId], references: [id], onDelete: SetNull)
+  platforms           SmartLinkPlatform[]
+  views               SmartLinkView[]
+  clicks              SmartLinkClick[]
+  stories             Story[]
+
+  @@index([organizationId, artistId, createdAt])
+  @@index([releaseId])
+  @@index([active, slug])
+}
+
+model SmartLinkPlatform {
+  id                 String                @id @default(cuid())
+  organizationId     String
+  smartLinkId        String
+  platform           SmartLinkPlatformType
+  url                String                @db.VarChar(2048)
+  sortOrder          Int                   @default(0)
+  active             Boolean               @default(true)
+  buttonText         String?
+  countryRestriction Json?
+  deviceRestriction  Json?
+  clickCount         Int                   @default(0)
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  organization       Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  smartLink          SmartLink             @relation(fields: [smartLinkId], references: [id], onDelete: Cascade)
+  clicks             SmartLinkClick[]
+
+  @@unique([smartLinkId, platform, url])
+  @@index([organizationId, platform])
+  @@index([smartLinkId, sortOrder])
+}
+
+model SmartLinkView {
+  id             String       @id @default(cuid())
+  organizationId String
+  smartLinkId    String
+  visitorHash    String
+  ipHash         String
+  country        String?
+  city           String?
+  device         String?
+  browser        String?
+  referrer       String?      @db.VarChar(2048)
+  utmSource      String?
+  utmMedium      String?
+  utmCampaign    String?
+  isBot          Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  smartLink      SmartLink    @relation(fields: [smartLinkId], references: [id], onDelete: Cascade)
+
+  @@unique([smartLinkId, visitorHash, createdAt])
+  @@index([organizationId, smartLinkId, createdAt])
+  @@index([smartLinkId, country, createdAt])
+}
+
+model SmartLinkClick {
+  id             String            @id @default(cuid())
+  organizationId String
+  smartLinkId    String
+  platformId     String
+  visitorHash    String
+  ipHash         String
+  country        String?
+  device         String?
+  referrer       String?           @db.VarChar(2048)
+  utmSource      String?
+  utmMedium      String?
+  utmCampaign    String?
+  createdAt      DateTime          @default(now())
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  smartLink      SmartLink         @relation(fields: [smartLinkId], references: [id], onDelete: Cascade)
+  platform       SmartLinkPlatform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, smartLinkId, createdAt])
+  @@index([platformId, createdAt])
+}
+
+model PreSaveCampaign {
+  id                   String              @id @default(cuid())
+  organizationId       String
+  ownerUserId          String
+  artistId             String
+  releaseId            String
+  name                 String
+  slug                 String              @unique
+  coverImageUrl        String?
+  description          String?             @db.Text
+  releaseDate          DateTime
+  startDate            DateTime
+  endDate              DateTime
+  active               Boolean             @default(false)
+  spotifyEnabled       Boolean             @default(false)
+  appleMusicEnabled    Boolean             @default(false)
+  emailCaptureEnabled  Boolean             @default(true)
+  marketingConsentText String?             @db.Text
+  successMessage       String
+  redirectUrl          String?             @db.VarChar(2048)
+  theme                String              @default("RADARUNE")
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  organization         Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  artist               Artist              @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  release              Release             @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  providers            PreSaveProvider[]
+  conversions          PreSaveConversion[]
+  subscribers          PreSaveSubscriber[]
+  oauthConnections     OAuthConnection[]
+
+  @@index([organizationId, artistId, createdAt])
+  @@index([releaseId])
+  @@index([active, slug])
+}
+
+model PreSaveProvider {
+  id                  String              @id @default(cuid())
+  organizationId      String
+  campaignId          String
+  provider            PreSaveProviderType
+  capabilities        Json
+  active              Boolean             @default(false)
+  configurationStatus String              @default("CONFIGURATION_REQUIRED")
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  organization        Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaign            PreSaveCampaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, provider])
+  @@index([organizationId, provider])
+}
+
+model PreSaveConversion {
+  id             String                  @id @default(cuid())
+  organizationId String
+  campaignId     String
+  userId         String?
+  provider       PreSaveProviderType
+  providerUserId String?
+  emailHash      String?
+  status         PreSaveConversionStatus
+  consentAt      DateTime?
+  metadata       Json?
+  createdAt      DateTime                @default(now())
+  organization   Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaign       PreSaveCampaign         @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user           User?                   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([campaignId, provider, providerUserId])
+  @@unique([campaignId, emailHash])
+  @@index([organizationId, campaignId, createdAt])
+  @@index([provider, status])
+}
+
+model PreSaveSubscriber {
+  id               String          @id @default(cuid())
+  organizationId   String
+  campaignId       String
+  userId           String?
+  emailNormalized  String
+  emailHash        String
+  marketingConsent Boolean         @default(false)
+  consentText      String?         @db.Text
+  unsubscribeToken String          @unique
+  unsubscribedAt   DateTime?
+  reminderQueuedAt DateTime?
+  createdAt        DateTime        @default(now())
+  organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaign         PreSaveCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user             User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([campaignId, emailHash])
+  @@index([organizationId, campaignId, createdAt])
+}
+
+model OAuthConnection {
+  id                    String                @id @default(cuid())
+  organizationId        String
+  campaignId            String
+  userId                String?
+  provider              PreSaveProviderType
+  stateHash             String                @unique
+  codeVerifierEncrypted String?
+  accessTokenEncrypted  String?
+  refreshTokenEncrypted String?
+  providerUserId        String?
+  scopes                String?
+  status                OAuthConnectionStatus @default(PENDING)
+  consentAt             DateTime?
+  expiresAt             DateTime?
+  usedAt                DateTime?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  organization          Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaign              PreSaveCampaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user                  User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, campaignId, provider])
+  @@index([status, expiresAt])
+}
+
+model ArtistProfileLink {
+  id        String   @id @default(cuid())
+  artistId  String
+  label     String
+  url       String   @db.VarChar(2048)
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  artist    Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@index([artistId, sortOrder])
+}
+
+model ArtistSlugHistory {
+  id        String   @id @default(cuid())
+  artistId  String
+  oldSlug   String   @unique
+  newSlug   String
+  createdAt DateTime @default(now())
+  artist    Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@index([artistId, createdAt])
+}
+
+model Follow {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  artistId       String
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  artist         Artist       @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, artistId])
+  @@index([organizationId, artistId, createdAt])
+}
+
+model ReleaseLike {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  releaseId      String
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  release        Release      @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, releaseId])
+  @@index([organizationId, releaseId, createdAt])
+}
+
+model TrackLike {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  trackId        String
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track          Track        @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, trackId])
+  @@index([organizationId, trackId, createdAt])
+}
+
+model Playlist {
+  id             String                 @id @default(cuid())
+  organizationId String?
+  ownerUserId    String
+  artistId       String?
+  name           String
+  slug           String?                @unique
+  description    String?                @db.Text
+  coverImageUrl  String?
+  public         Boolean                @default(false)
+  collaborative  Boolean                @default(false)
+  featured       Boolean                @default(false)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  organization   Organization?          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ownerUser      User                   @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  artist         Artist?                @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  tracks         PlaylistTrack[]
+  collaborators  PlaylistCollaborator[]
+  likes          PlaylistLike[]
+  comments       Comment[]
+
+  @@index([ownerUserId, createdAt])
+  @@index([organizationId, public, createdAt])
+}
+
+model PlaylistTrack {
+  id         String   @id @default(cuid())
+  playlistId String
+  releaseId  String?
+  trackId    String
+  sortOrder  Int
+  addedAt    DateTime @default(now())
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  release    Release? @relation(fields: [releaseId], references: [id], onDelete: SetNull)
+  track      Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@unique([playlistId, trackId])
+  @@unique([playlistId, sortOrder])
+  @@index([trackId])
+}
+
+model PlaylistCollaborator {
+  id             String        @id @default(cuid())
+  organizationId String?
+  playlistId     String
+  userId         String
+  role           String        @default("EDITOR")
+  createdAt      DateTime      @default(now())
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  playlist       Playlist      @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([playlistId, userId])
+  @@index([userId])
+}
+
+model PlaylistLike {
+  id             String        @id @default(cuid())
+  organizationId String?
+  userId         String
+  playlistId     String
+  createdAt      DateTime      @default(now())
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  playlist       Playlist      @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, playlistId])
+  @@index([playlistId, createdAt])
+}
+
+model Comment {
+  id               String        @id @default(cuid())
+  organizationId   String?
+  authorUserId     String
+  releaseId        String?
+  trackId          String?
+  playlistId       String?
+  storyId          String?
+  parentCommentId  String?
+  content          String        @db.Text
+  status           CommentStatus @default(VISIBLE)
+  editedAt         DateTime?
+  deletedAt        DateTime?
+  moderationReason String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  authorUser       User          @relation(fields: [authorUserId], references: [id], onDelete: Cascade)
+  release          Release?      @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  track            Track?        @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  playlist         Playlist?     @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  story            Story?        @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  parentComment    Comment?      @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: SetNull)
+  replies          Comment[]     @relation("CommentReplies")
+  likes            CommentLike[]
+
+  @@index([organizationId, status, createdAt])
+  @@index([releaseId, status, createdAt])
+  @@index([trackId, status, createdAt])
+  @@index([playlistId, status, createdAt])
+  @@index([storyId, status, createdAt])
+  @@index([authorUserId, createdAt])
+}
+
+model CommentLike {
+  id        String   @id @default(cuid())
+  userId    String
+  commentId String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+  @@index([commentId, createdAt])
+}
+
+model Story {
+  id             String        @id @default(cuid())
+  organizationId String?
+  ownerUserId    String?
+  artistId       String?
+  releaseId      String?
+  smartLinkId    String?
+  type           StoryType
+  mediaUrl       String?       @db.VarChar(2048)
+  text           String?       @db.Text
+  linkUrl        String?       @db.VarChar(2048)
+  publishedAt    DateTime?
+  expiresAt      DateTime?
+  pinned         Boolean       @default(false)
+  viewCount      Int           @default(0)
+  status         StoryStatus   @default(DRAFT)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  artist         Artist?       @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  release        Release?      @relation(fields: [releaseId], references: [id], onDelete: SetNull)
+  smartLink      SmartLink?    @relation(fields: [smartLinkId], references: [id], onDelete: SetNull)
+  views          StoryView[]
+  comments       Comment[]
+
+  @@index([organizationId, status, createdAt])
+  @@index([artistId, status, expiresAt])
+}
+
+model StoryView {
+  id             String        @id @default(cuid())
+  organizationId String?
+  storyId        String
+  userId         String?
+  visitorHash    String
+  createdAt      DateTime      @default(now())
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  story          Story         @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([storyId, visitorHash])
+  @@index([storyId, createdAt])
+}
+
+model DiscoverEvent {
+  id             String            @id @default(cuid())
+  organizationId String?
+  userId         String?
+  visitorHash    String?
+  artistId       String?
+  releaseId      String?
+  trackId        String?
+  eventType      DiscoverEventType
+  score          Decimal?          @db.Decimal(10, 4)
+  metadata       Json?
+  createdAt      DateTime          @default(now())
+  organization   Organization?     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  artist         Artist?           @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  release        Release?          @relation(fields: [releaseId], references: [id], onDelete: SetNull)
+  track          Track?            @relation(fields: [trackId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, trackId, eventType, createdAt])
+  @@index([eventType, createdAt])
+  @@index([userId, eventType, createdAt])
+  @@index([trackId, eventType, createdAt])
+}
+
+model UserMusicPreference {
+  id        String   @id @default(cuid())
+  userId    String
+  genre     String
+  weight    Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, genre])
+  @@index([genre])
+}
+
+model ContentReport {
+  id                String              @id @default(cuid())
+  organizationId    String?
+  reporterUserId    String
+  entityType        String
+  entityId          String
+  reason            ContentReportReason
+  details           String?             @db.Text
+  status            ContentReportStatus @default(OPEN)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  organization      Organization?       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  reporterUser      User                @relation("ContentReportReporter", fields: [reporterUserId], references: [id], onDelete: Cascade)
+  moderationActions ModerationAction[]
+
+  @@index([organizationId, status, createdAt])
+  @@index([entityType, entityId])
+  @@index([reporterUserId, createdAt])
+}
+
+model ModerationAction {
+  id             String               @id @default(cuid())
+  organizationId String?
+  reportId       String?
+  actorUserId    String
+  action         ModerationActionType
+  entityType     String
+  entityId       String
+  reason         String               @db.Text
+  createdAt      DateTime             @default(now())
+  organization   Organization?        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  report         ContentReport?       @relation(fields: [reportId], references: [id], onDelete: SetNull)
+  actorUser      User                 @relation("ModerationActionActor", fields: [actorUserId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([entityType, entityId])
+}
+
+model ExchangeRate {
+  id             String        @id @default(cuid())
+  organizationId String?
+  effectiveDate  DateTime
+  baseCurrency   CurrencyCode
+  quoteCurrency  CurrencyCode
+  rate           Decimal       @db.Decimal(18, 8)
+  source         String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, effectiveDate, baseCurrency, quoteCurrency])
+  @@index([effectiveDate])
+}
+
+model RevenueImport {
+  id                String              @id @default(cuid())
+  organizationId    String
+  importedByUserId  String
+  fileName          String
+  sourceMimeType    String
+  sourceFileSha256  String
+  periodStart       DateTime
+  periodEnd         DateTime
+  reportingCurrency CurrencyCode
+  status            RevenueImportStatus
+  rowCount          Int
+  importedRowCount  Int
+  rejectedRowCount  Int
+  failureReason     String?
+  metadata          Json?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  completedAt       DateTime?
+  organization      Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  importedByUser    User                @relation(fields: [importedByUserId], references: [id], onDelete: Cascade)
+  platformRevenues  PlatformRevenue[]
+  storeRevenues     StoreRevenue[]
+
+  @@unique([organizationId, sourceFileSha256])
+  @@index([organizationId, createdAt])
+  @@index([periodStart, periodEnd])
+}
+
+model StoreRevenue {
+  id                    String        @id @default(cuid())
+  revenueImportId       String
+  organizationId        String
+  labelId               String?
+  artistId              String?
+  reportDate            DateTime
+  storeName             String
+  platformName          String
+  countryCode           String
+  currencyCode          CurrencyCode
+  exchangeRate          Decimal       @db.Decimal(18, 8)
+  releaseTitle          String
+  trackTitle            String
+  trackKey              String
+  isrc                  String?
+  upc                   String?
+  streamCount           Int           @default(0)
+  downloadCount         Int           @default(0)
+  playlistAppearances   Int           @default(0)
+  grossRevenueMinor     BigInt
+  platformFeeMinor      BigInt
+  netRevenueMinor       BigInt
+  externalTransactionId String?
+  dedupeKey             String        @unique
+  metadata              Json?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  organization          Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  revenueImport         RevenueImport @relation(fields: [revenueImportId], references: [id], onDelete: Cascade)
+  label                 Label?        @relation(fields: [labelId], references: [id], onDelete: SetNull)
+  artist                Artist?       @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  royaltyLines          RoyaltyLine[]
+
+  @@index([organizationId, reportDate])
+  @@index([labelId])
+  @@index([artistId])
+  @@index([trackKey])
+  @@index([platformName, countryCode])
+}
+
+model PlatformRevenue {
+  id                String        @id @default(cuid())
+  revenueImportId   String
+  organizationId    String
+  reportDate        DateTime
+  platformName      String
+  storeName         String
+  currencyCode      CurrencyCode
+  totalStreams      Int           @default(0)
+  totalDownloads    Int           @default(0)
+  grossRevenueMinor BigInt
+  netRevenueMinor   BigInt
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  organization      Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  revenueImport     RevenueImport @relation(fields: [revenueImportId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, reportDate])
+  @@index([platformName])
+}
+
+model RevenueReport {
+  id                String       @id @default(cuid())
+  organizationId    String
+  generatedByUserId String
+  periodStart       DateTime
+  periodEnd         DateTime
+  reportingCurrency CurrencyCode
+  totalStreams      Int          @default(0)
+  totalDownloads    Int          @default(0)
+  grossRevenueMinor BigInt
+  platformFeeMinor  BigInt
+  netRevenueMinor   BigInt
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  generatedByUser   User         @relation(fields: [generatedByUserId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, periodStart, periodEnd, reportingCurrency])
+  @@index([organizationId, createdAt])
+}
+
+model RoyaltySplit {
+  id                String           @id @default(cuid())
+  organizationId    String
+  beneficiaryUserId String?
+  artistId          String?
+  labelId           String?
+  trackKey          String
+  trackTitle        String
+  releaseTitle      String?
+  role              RoyaltySplitRole
+  participantName   String
+  percentageBps     Int
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  organization      Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  beneficiaryUser   User?            @relation(fields: [beneficiaryUserId], references: [id], onDelete: SetNull)
+  artist            Artist?          @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  label             Label?           @relation(fields: [labelId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, trackKey])
+  @@index([artistId])
+  @@index([labelId])
+}
+
+model RoyaltyReport {
+  id                  String               @id @default(cuid())
+  organizationId      String
+  generatedByUserId   String
+  periodStart         DateTime
+  periodEnd           DateTime
+  reportingCurrency   CurrencyCode
+  status              RoyaltyReportStatus
+  grossRevenueMinor   BigInt
+  platformFeeMinor    BigInt
+  commissionMinor     BigInt
+  netRevenueMinor     BigInt
+  immutableAt         DateTime
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  organization        Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  generatedByUser     User                 @relation(fields: [generatedByUserId], references: [id], onDelete: Cascade)
+  financialStatements FinancialStatement[]
+  lines               RoyaltyLine[]
+
+  @@index([organizationId, periodStart, periodEnd])
+}
+
+model RoyaltyLine {
+  id                     String               @id @default(cuid())
+  royaltyReportId        String
+  organizationId         String
+  subjectType            FinancialSubjectType
+  beneficiaryUserId      String?
+  artistId               String?
+  labelId                String?
+  sourceStoreRevenueId   String?
+  participantName        String
+  splitRole              RoyaltySplitRole
+  platformName           String
+  storeName              String
+  countryCode            String
+  currencyCode           CurrencyCode
+  trackKey               String
+  trackTitle             String
+  releaseTitle           String
+  grossRevenueMinor      BigInt
+  platformFeeMinor       BigInt
+  commissionMinor        BigInt
+  distributableMinor     BigInt
+  beneficiaryAmountMinor BigInt
+  shareBps               Int
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  royaltyReport          RoyaltyReport        @relation(fields: [royaltyReportId], references: [id], onDelete: Cascade)
+  organization           Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  beneficiaryUser        User?                @relation(fields: [beneficiaryUserId], references: [id], onDelete: SetNull)
+  artist                 Artist?              @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  label                  Label?               @relation(fields: [labelId], references: [id], onDelete: SetNull)
+  sourceStoreRevenue     StoreRevenue?        @relation(fields: [sourceStoreRevenueId], references: [id], onDelete: SetNull)
+
+  @@index([royaltyReportId])
+  @@index([organizationId, subjectType])
+  @@index([beneficiaryUserId])
+}
+
+model FinancialAdjustment {
+  id                String               @id @default(cuid())
+  organizationId    String
+  createdByUserId   String
+  subjectType       FinancialSubjectType
+  beneficiaryUserId String?
+  artistId          String?
+  labelId           String?
+  statementId       String?
+  direction         AdjustmentDirection
+  currencyCode      CurrencyCode
+  amountMinor       BigInt
+  reason            String
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  organization      Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdByUser     User                 @relation("FinancialAdjustmentCreatedBy", fields: [createdByUserId], references: [id], onDelete: Cascade)
+  beneficiaryUser   User?                @relation("FinancialAdjustmentBeneficiary", fields: [beneficiaryUserId], references: [id], onDelete: SetNull)
+  artist            Artist?              @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  label             Label?               @relation(fields: [labelId], references: [id], onDelete: SetNull)
+  statement         FinancialStatement?  @relation(fields: [statementId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([statementId])
+}
+
+model FinancialStatement {
+  id                  String                   @id @default(cuid())
+  organizationId      String
+  royaltyReportId     String?
+  subjectType         FinancialSubjectType
+  beneficiaryUserId   String?
+  artistId            String?
+  labelId             String?
+  periodStart         DateTime
+  periodEnd           DateTime
+  currencyCode        CurrencyCode
+  openingBalanceMinor BigInt
+  totalRevenueMinor   BigInt
+  adjustmentsMinor    BigInt
+  withdrawalsMinor    BigInt
+  closingBalanceMinor BigInt
+  status              FinancialStatementStatus
+  generatedAt         DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+  organization        Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  royaltyReport       RoyaltyReport?           @relation(fields: [royaltyReportId], references: [id], onDelete: SetNull)
+  beneficiaryUser     User?                    @relation(fields: [beneficiaryUserId], references: [id], onDelete: SetNull)
+  artist              Artist?                  @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  label               Label?                   @relation(fields: [labelId], references: [id], onDelete: SetNull)
+  adjustments         FinancialAdjustment[]
+  payouts             Payout[]
+
+  @@index([organizationId, periodStart, periodEnd])
+  @@index([beneficiaryUserId])
+}
+
+model PayoutMethod {
+  id                     String           @id @default(cuid())
+  organizationId         String?
+  userId                 String?
+  artistId               String?
+  labelId                String?
+  type                   PayoutMethodType
+  accountHolderName      String
+  bankName               String?
+  iban                   String?
+  payoneerEmail          String?
+  wiseRecipientId        String?
+  stripeConnectAccountId String?
+  isDefault              Boolean          @default(false)
+  isActive               Boolean          @default(true)
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+  organization           Organization?    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                   User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  artist                 Artist?          @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  label                  Label?           @relation(fields: [labelId], references: [id], onDelete: Cascade)
+  payouts                Payout[]
+
+  @@index([organizationId])
+  @@index([userId])
+}
+
+model Payout {
+  id                String               @id @default(cuid())
+  organizationId    String
+  requestedByUserId String
+  approvedByUserId  String?
+  statementId       String
+  payoutMethodId    String
+  subjectType       FinancialSubjectType
+  beneficiaryUserId String?
+  artistId          String?
+  labelId           String?
+  amountMinor       BigInt
+  currencyCode      CurrencyCode
+  status            PayoutStatus
+  failureReason     String?
+  externalReference String?
+  idempotencyKey    String               @unique
+  requestedAt       DateTime             @default(now())
+  approvedAt        DateTime?
+  processingAt      DateTime?
+  paidAt            DateTime?
+  cancelledAt       DateTime?
+  updatedAt         DateTime             @updatedAt
+  organization      Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  requestedByUser   User                 @relation("PayoutRequestedBy", fields: [requestedByUserId], references: [id], onDelete: Cascade)
+  approvedByUser    User?                @relation("PayoutApprovedBy", fields: [approvedByUserId], references: [id], onDelete: SetNull)
+  statement         FinancialStatement   @relation(fields: [statementId], references: [id], onDelete: Cascade)
+  payoutMethod      PayoutMethod         @relation(fields: [payoutMethodId], references: [id], onDelete: Restrict)
+  beneficiaryUser   User?                @relation(fields: [beneficiaryUserId], references: [id], onDelete: SetNull)
+  artist            Artist?              @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  label             Label?               @relation(fields: [labelId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, status])
+  @@index([statementId])
+}
+
+model DistributionJob {
+  id                      String                             @id @default(cuid())
+  organizationId          String
+  createdByUserId         String?
+  providerConfigurationId String?
+  provider                DistributionProvider
+  status                  DistributionJobStatus
+  releaseId               String
+  releaseVersion          Int                                @default(1)
+  releaseTitle            String
+  idempotencyKey          String                             @unique
+  payloadHash             String
+  canonicalPayload        Json
+  validationIssues        Json?
+  attemptCount            Int                                @default(0)
+  maxRetryCount           Int                                @default(3)
+  nextAttemptAt           DateTime?
+  lastAttemptAt           DateTime?
+  lockedAt                DateTime?
+  lockedBy                String?
+  lastErrorCode           String?
+  lastErrorMessage        String?
+  queuedAt                DateTime?
+  completedAt             DateTime?
+  cancelledAt             DateTime?
+  createdAt               DateTime                           @default(now())
+  updatedAt               DateTime                           @updatedAt
+  organization            Organization                       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdByUser           User?                              @relation("DistributionJobCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  providerConfiguration   DistributionProviderConfiguration? @relation(fields: [providerConfigurationId], references: [id], onDelete: SetNull)
+  attempts                DistributionAttempt[]
+  deliveries              ReleaseDelivery[]
+  statusHistory           DistributionStatusHistory[]
+
+  @@unique([organizationId, releaseId, provider, releaseVersion, payloadHash])
+  @@index([organizationId, status, nextAttemptAt])
+  @@index([provider, status, nextAttemptAt])
+}
+
+model DistributionAttempt {
+  id              String                @id @default(cuid())
+  organizationId  String
+  jobId           String
+  provider        DistributionProvider
+  attemptNumber   Int
+  status          DistributionJobStatus
+  idempotencyKey  String
+  retryable       Boolean               @default(false)
+  requestPayload  Json?
+  responsePayload Json?
+  errorCode       String?
+  errorMessage    String?
+  startedAt       DateTime              @default(now())
+  finishedAt      DateTime?
+  durationMs      Int?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  organization    Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  job             DistributionJob       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, attemptNumber])
+  @@index([organizationId, createdAt])
+}
+
+model ReleaseDelivery {
+  id                      String                             @id @default(cuid())
+  organizationId          String
+  jobId                   String?
+  providerConfigurationId String?
+  provider                DistributionProvider
+  releaseId               String
+  releaseVersion          Int                                @default(1)
+  status                  DeliveryStatus                     @default(NOT_SENT)
+  externalReleaseId       String?
+  externalReleaseUrl      String?
+  lastSyncedAt            DateTime?
+  submittedAt             DateTime?
+  deliveredAt             DateTime?
+  liveAt                  DateTime?
+  rejectedAt              DateTime?
+  failedAt                DateTime?
+  takenDownAt             DateTime?
+  failureReason           String?
+  createdAt               DateTime                           @default(now())
+  updatedAt               DateTime                           @updatedAt
+  organization            Organization                       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  job                     DistributionJob?                   @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  providerConfiguration   DistributionProviderConfiguration? @relation(fields: [providerConfigurationId], references: [id], onDelete: SetNull)
+  storeDeliveries         StoreDelivery[]
+  statusHistory           DistributionStatusHistory[]
+  webhookEvents           ProviderWebhookEvent[]
+
+  @@unique([organizationId, releaseId, provider])
+  @@index([organizationId, status, updatedAt])
+  @@index([provider, externalReleaseId])
+}
+
+model StoreDelivery {
+  id                     String                      @id @default(cuid())
+  releaseDeliveryId      String
+  storeCode              String
+  territoryCode          String?
+  status                 DeliveryStatus              @default(NOT_SENT)
+  externalStoreReference String?
+  liveUrl                String?
+  deliveredAt            DateTime?
+  liveAt                 DateTime?
+  createdAt              DateTime                    @default(now())
+  updatedAt              DateTime                    @updatedAt
+  releaseDelivery        ReleaseDelivery             @relation(fields: [releaseDeliveryId], references: [id], onDelete: Cascade)
+  statusHistory          DistributionStatusHistory[]
+
+  @@unique([releaseDeliveryId, storeCode, territoryCode])
+  @@index([status, updatedAt])
+}
+
+model ProviderWebhookEvent {
+  id                      String                             @id @default(cuid())
+  organizationId          String?
+  providerConfigurationId String?
+  releaseDeliveryId       String?
+  provider                DistributionProvider
+  externalEventId         String
+  processingStatus        ProviderWebhookEventStatus         @default(PENDING)
+  signatureVerified       Boolean                            @default(false)
+  payload                 Json
+  headers                 Json?
+  normalizedPayload       Json?
+  errorMessage            String?
+  receivedAt              DateTime                           @default(now())
+  processedAt             DateTime?
+  failedAt                DateTime?
+  createdAt               DateTime                           @default(now())
+  updatedAt               DateTime                           @updatedAt
+  organization            Organization?                      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  providerConfiguration   DistributionProviderConfiguration? @relation(fields: [providerConfigurationId], references: [id], onDelete: SetNull)
+  releaseDelivery         ReleaseDelivery?                   @relation(fields: [releaseDeliveryId], references: [id], onDelete: SetNull)
+
+  @@unique([provider, externalEventId])
+  @@index([organizationId, processingStatus, receivedAt])
+}
+
+model ProviderExternalReference {
+  id             String               @id @default(cuid())
+  organizationId String
+  provider       DistributionProvider
+  releaseId      String
+  referenceType  String
+  externalId     String
+  metadata       Json?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, externalId])
+  @@index([organizationId, releaseId, provider])
+}
+
+model DistributionStatusHistory {
+  id                String           @id @default(cuid())
+  organizationId    String
+  jobId             String?
+  releaseDeliveryId String?
+  storeDeliveryId   String?
+  previousStatus    String?
+  status            String
+  message           String?
+  metadata          Json?
+  createdAt         DateTime         @default(now())
+  organization      Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  job               DistributionJob? @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  releaseDelivery   ReleaseDelivery? @relation(fields: [releaseDeliveryId], references: [id], onDelete: SetNull)
+  storeDelivery     StoreDelivery?   @relation(fields: [storeDeliveryId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([jobId, createdAt])
+}
+
+model ProviderHealthCheck {
+  id                      String                             @id @default(cuid())
+  organizationId          String?
+  providerConfigurationId String?
+  provider                DistributionProvider
+  environment             ProviderEnvironment
+  success                 Boolean
+  responseTimeMs          Int?
+  errorCode               String?
+  errorMessage            String?
+  checkedAt               DateTime                           @default(now())
+  createdAt               DateTime                           @default(now())
+  organization            Organization?                      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  providerConfiguration   DistributionProviderConfiguration? @relation(fields: [providerConfigurationId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, provider, checkedAt])
+}
+
+model SubscriptionPlan {
+  id            String         @id @default(cuid())
+  code          String         @unique
+  name          String
+  description   String?
+  active        Boolean        @default(true)
+  isPublic      Boolean        @default(true) @map("public")
+  sortOrder     Int            @default(0)
+  trialDays     Int            @default(0)
+  metadata      Json?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  features      PlanFeature[]
+  prices        PlanPrice[]
+  subscriptions Subscription[]
+  invoiceLines  InvoiceLine[]
+  coupons       Coupon[]
+
+  @@index([active, sortOrder])
+}
+
+model PlanPrice {
+  id                String             @id @default(cuid())
+  planId            String
+  currencyCode      CurrencyCode
+  amountMinor       BigInt
+  interval          BillingInterval
+  intervalCount     Int                @default(1)
+  provider          BillingProvider
+  externalPriceId   String?
+  active            Boolean            @default(true)
+  metadata          Json?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  plan              SubscriptionPlan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+  subscriptions     Subscription[]
+  subscriptionItems SubscriptionItem[]
+  invoiceLines      InvoiceLine[]
+
+  @@unique([planId, currencyCode, interval, intervalCount, provider])
+  @@unique([provider, externalPriceId])
+  @@index([planId, active])
+}
+
+model PlanFeature {
+  id           String               @id @default(cuid())
+  planId       String
+  featureKey   String
+  valueType    PlanFeatureValueType
+  booleanValue Boolean?
+  integerValue Int?
+  stringValue  String?
+  jsonValue    Json?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  plan         SubscriptionPlan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, featureKey])
+  @@index([featureKey])
+}
+
+model BillingCustomer {
+  id                  String               @id @default(cuid())
+  organizationId      String?
+  userId              String?
+  provider            BillingProvider
+  externalCustomerId  String
+  email               String
+  name                String
+  isActive            Boolean              @default(true)
+  metadata            Json?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  organization        Organization?        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  addresses           BillingAddress[]
+  billingEvents       BillingEvent[]
+  invoices            Invoice[]
+  paymentTransactions PaymentTransaction[]
+  subscriptions       Subscription[]
+
+  @@unique([provider, externalCustomerId])
+  @@unique([organizationId, provider])
+  @@unique([userId, provider])
+  @@index([organizationId, isActive])
+  @@index([userId, isActive])
+}
+
+model PaymentProviderConfig {
+  id                     String          @id @default(cuid())
+  organizationId         String?
+  provider               BillingProvider
+  active                 Boolean         @default(false)
+  displayName            String?
+  credentialsEncrypted   String?         @db.Text
+  publicMetadata         Json?
+  webhookSecretEncrypted String?         @db.Text
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+  organization           Organization?   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, provider])
+  @@index([provider, active])
+}
+
+model Subscription {
+  id                     String                 @id @default(cuid())
+  organizationId         String?
+  userId                 String?
+  planId                 String
+  priceId                String?
+  billingCustomerId      String?
+  scopeKey               String
+  activeScopeKey         String?                @unique
+  provider               BillingProvider
+  status                 SubscriptionStatus
+  billingInterval        BillingInterval
+  currencyCode           CurrencyCode
+  externalSubscriptionId String?
+  externalStatus         String?
+  cancelAtPeriodEnd      Boolean                @default(false)
+  startedAt              DateTime
+  trialStartsAt          DateTime?
+  trialEndsAt            DateTime?
+  currentPeriodStartsAt  DateTime?
+  currentPeriodEndsAt    DateTime?
+  cancelAt               DateTime?
+  cancelledAt            DateTime?
+  endedAt                DateTime?
+  metadata               Json?
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  organization           Organization?          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                   User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                   SubscriptionPlan       @relation(fields: [planId], references: [id], onDelete: Restrict)
+  price                  PlanPrice?             @relation(fields: [priceId], references: [id], onDelete: SetNull)
+  billingCustomer        BillingCustomer?       @relation(fields: [billingCustomerId], references: [id], onDelete: SetNull)
+  couponRedemptions      CouponRedemption[]
+  invoices               Invoice[]
+  items                  SubscriptionItem[]
+  manualPaymentRequests  ManualPaymentRequest[]
+  paymentTransactions    PaymentTransaction[]
+  refunds                Refund[]
+  usages                 SubscriptionUsage[]
+  billingEvents          BillingEvent[]
+
+  @@unique([provider, externalSubscriptionId])
+  @@index([organizationId, status])
+  @@index([userId, status])
+  @@index([scopeKey, status])
+}
+
+model SubscriptionItem {
+  id              String       @id @default(cuid())
+  subscriptionId  String
+  planPriceId     String
+  externalItemId  String?      @unique
+  quantity        Int          @default(1)
+  active          Boolean      @default(true)
+  featureSnapshot Json?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  subscription    Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  planPrice       PlanPrice    @relation(fields: [planPriceId], references: [id], onDelete: Restrict)
+
+  @@unique([subscriptionId, planPriceId])
+  @@index([subscriptionId, active])
+}
+
+model SubscriptionUsage {
+  id             String       @id @default(cuid())
+  subscriptionId String
+  featureKey     String
+  usageCount     BigInt
+  periodStart    DateTime
+  periodEnd      DateTime
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([subscriptionId, featureKey, periodStart, periodEnd])
+  @@index([featureKey, periodStart, periodEnd])
+}
+
+model Invoice {
+  id                    String                 @id @default(cuid())
+  organizationId        String?
+  userId                String?
+  subscriptionId        String?
+  billingCustomerId     String?
+  provider              BillingProvider
+  status                InvoiceStatus
+  currencyCode          CurrencyCode
+  externalInvoiceId     String?
+  invoiceNumber         String?
+  subtotalMinor         BigInt
+  discountMinor         BigInt                 @default(0)
+  taxMinor              BigInt                 @default(0)
+  totalMinor            BigInt
+  amountDueMinor        BigInt
+  amountPaidMinor       BigInt                 @default(0)
+  hostedInvoiceUrl      String?
+  pdfUrl                String?
+  metadata              Json?
+  issuedAt              DateTime               @default(now())
+  dueAt                 DateTime?
+  paidAt                DateTime?
+  voidedAt              DateTime?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  organization          Organization?          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                  User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription          Subscription?          @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  billingCustomer       BillingCustomer?       @relation(fields: [billingCustomerId], references: [id], onDelete: SetNull)
+  billingEvents         BillingEvent[]
+  couponRedemptions     CouponRedemption[]
+  lines                 InvoiceLine[]
+  manualPaymentRequests ManualPaymentRequest[]
+  paymentTransactions   PaymentTransaction[]
+  refunds               Refund[]
+
+  @@unique([provider, externalInvoiceId])
+  @@index([organizationId, status, issuedAt])
+  @@index([userId, status, issuedAt])
+}
+
+model InvoiceLine {
+  id              String            @id @default(cuid())
+  invoiceId       String
+  planId          String?
+  planPriceId     String?
+  description     String
+  quantity        Int               @default(1)
+  unitAmountMinor BigInt
+  subtotalMinor   BigInt
+  discountMinor   BigInt            @default(0)
+  taxMinor        BigInt            @default(0)
+  totalMinor      BigInt
+  metadata        Json?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  invoice         Invoice           @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  plan            SubscriptionPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  planPrice       PlanPrice?        @relation(fields: [planPriceId], references: [id], onDelete: SetNull)
+
+  @@index([invoiceId])
+}
+
+model Coupon {
+  id               String             @id @default(cuid())
+  name             String
+  description      String?
+  percentageOffBps Int?
+  amountOffMinor   BigInt?
+  currencyCode     CurrencyCode?
+  duration         CouponDuration
+  durationInMonths Int?
+  maxRedemptions   Int?
+  redeemedCount    Int                @default(0)
+  active           Boolean            @default(true)
+  startsAt         DateTime?
+  expiresAt        DateTime?
+  planId           String?
+  provider         BillingProvider?
+  externalCouponId String?
+  metadata         Json?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  plan             SubscriptionPlan?  @relation(fields: [planId], references: [id], onDelete: SetNull)
+  promotionCodes   PromotionCode[]
+  redemptions      CouponRedemption[]
+
+  @@unique([provider, externalCouponId])
+  @@index([active, startsAt, expiresAt])
+}
+
+model PromotionCode {
+  id                      String             @id @default(cuid())
+  couponId                String
+  code                    String             @unique
+  provider                BillingProvider?
+  externalPromotionCodeId String?
+  active                  Boolean            @default(true)
+  maxRedemptions          Int?
+  redeemedCount           Int                @default(0)
+  expiresAt               DateTime?
+  metadata                Json?
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
+  coupon                  Coupon             @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  redemptions             CouponRedemption[]
+
+  @@unique([provider, externalPromotionCodeId])
+  @@index([code, active])
+}
+
+model CouponRedemption {
+  id              String         @id @default(cuid())
+  couponId        String
+  promotionCodeId String?
+  subscriptionId  String?
+  organizationId  String?
+  userId          String?
+  invoiceId       String?
+  redeemedAt      DateTime       @default(now())
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  coupon          Coupon         @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  promotionCode   PromotionCode? @relation(fields: [promotionCodeId], references: [id], onDelete: SetNull)
+  subscription    Subscription?  @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  organization    Organization?  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user            User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoice         Invoice?       @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  @@index([couponId, redeemedAt])
+  @@index([organizationId, redeemedAt])
+  @@index([userId, redeemedAt])
+}
+
+model PaymentTransaction {
+  id                     String           @id @default(cuid())
+  organizationId         String?
+  userId                 String?
+  subscriptionId         String?
+  billingCustomerId      String?
+  invoiceId              String?
+  provider               BillingProvider
+  status                 PaymentStatus
+  currencyCode           CurrencyCode
+  amountMinor            BigInt
+  authorizedAmountMinor  BigInt           @default(0)
+  capturedAmountMinor    BigInt           @default(0)
+  refundedAmountMinor    BigInt           @default(0)
+  externalPaymentId      String?
+  externalCheckoutId     String?
+  externalInvoiceId      String?
+  externalSubscriptionId String?
+  description            String?
+  idempotencyKey         String           @unique
+  metadata               Json?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+  authorizedAt           DateTime?
+  paidAt                 DateTime?
+  failedAt               DateTime?
+  cancelledAt            DateTime?
+  organization           Organization?    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                   User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription           Subscription?    @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  billingCustomer        BillingCustomer? @relation(fields: [billingCustomerId], references: [id], onDelete: SetNull)
+  invoice                Invoice?         @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  attempts               PaymentAttempt[]
+  billingEvents          BillingEvent[]
+  refunds                Refund[]
+
+  @@unique([provider, externalPaymentId])
+  @@index([organizationId, status, createdAt])
+  @@index([userId, status, createdAt])
+  @@index([subscriptionId, createdAt])
+}
+
+model PaymentAttempt {
+  id                String             @id @default(cuid())
+  transactionId     String
+  provider          BillingProvider
+  status            PaymentStatus
+  externalAttemptId String?
+  failureCode       String?
+  failureMessage    String?
+  requestPayload    Json?
+  responsePayload   Json?
+  attemptedAt       DateTime           @default(now())
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  transaction       PaymentTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, externalAttemptId])
+  @@index([transactionId, attemptedAt])
+}
+
+model Refund {
+  id                   String             @id @default(cuid())
+  organizationId       String?
+  userId               String?
+  subscriptionId       String?
+  invoiceId            String?
+  paymentTransactionId String
+  provider             BillingProvider
+  status               RefundStatus
+  amountMinor          BigInt
+  currencyCode         CurrencyCode
+  externalRefundId     String?
+  reason               String?
+  metadata             Json?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  completedAt          DateTime?
+  failedAt             DateTime?
+  organization         Organization?      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                 User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription         Subscription?      @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  invoice              Invoice?           @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  paymentTransaction   PaymentTransaction @relation(fields: [paymentTransactionId], references: [id], onDelete: Restrict)
+
+  @@unique([provider, externalRefundId])
+  @@index([organizationId, createdAt])
+  @@index([userId, createdAt])
+}
+
+model TaxRate {
+  id            String   @id @default(cuid())
+  code          String   @unique
+  name          String
+  countryCode   String
+  percentageBps Int
+  inclusive     Boolean  @default(false)
+  active        Boolean  @default(true)
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([countryCode, active])
+}
+
+model BillingAddress {
+  id                String           @id @default(cuid())
+  billingCustomerId String?
+  organizationId    String?
+  userId            String?
+  fullName          String
+  companyName       String?
+  line1             String
+  line2             String?
+  city              String
+  state             String?
+  postalCode        String
+  countryCode       String
+  taxId             String?
+  isDefault         Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  billingCustomer   BillingCustomer? @relation(fields: [billingCustomerId], references: [id], onDelete: SetNull)
+  organization      Organization?    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user              User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, isDefault])
+  @@index([userId, isDefault])
+}
+
+model BillingEvent {
+  id                   String                       @id @default(cuid())
+  organizationId       String?
+  userId               String?
+  billingCustomerId    String?
+  subscriptionId       String?
+  invoiceId            String?
+  paymentTransactionId String?
+  provider             BillingProvider
+  eventType            String
+  normalizedType       String?
+  externalEventId      String
+  processingStatus     BillingEventProcessingStatus @default(PENDING)
+  payload              Json
+  errorMessage         String?
+  occurredAt           DateTime
+  processedAt          DateTime?
+  createdAt            DateTime                     @default(now())
+  updatedAt            DateTime                     @updatedAt
+  organization         Organization?                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                 User?                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  billingCustomer      BillingCustomer?             @relation(fields: [billingCustomerId], references: [id], onDelete: SetNull)
+  subscription         Subscription?                @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  invoice              Invoice?                     @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  paymentTransaction   PaymentTransaction?          @relation(fields: [paymentTransactionId], references: [id], onDelete: SetNull)
+
+  @@unique([provider, externalEventId])
+  @@index([organizationId, processingStatus, occurredAt])
+  @@index([userId, processingStatus, occurredAt])
+}
+
+model ManualPaymentRequest {
+  id                  String                     @id @default(cuid())
+  organizationId      String?
+  userId              String?
+  subscriptionId      String?
+  invoiceId           String?
+  processedByUserId   String?
+  amountMinor         BigInt
+  currencyCode        CurrencyCode
+  referenceCode       String                     @unique
+  status              ManualPaymentRequestStatus
+  paymentInstructions String?
+  submittedProofUrl   String?
+  notes               String?
+  expiresAt           DateTime?
+  processedAt         DateTime?
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+  organization        Organization?              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                User?                      @relation("ManualPaymentRequestUser", fields: [userId], references: [id], onDelete: Cascade)
+  subscription        Subscription?              @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  invoice             Invoice?                   @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  processedByUser     User?                      @relation("ManualPaymentRequestProcessedBy", fields: [processedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, status, createdAt])
+  @@index([userId, status, createdAt])
+}
+
+model TenantBranding {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  brandName      String
+  legalName      String?
+  logoUrl        String?
+  faviconUrl     String?
+  supportEmail   String?
+  primaryDomain  String?
+  socialLinks    Json?
+  seoDefaults    Json?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model ThemeConfig {
+  id               String           @id @default(cuid())
+  organizationId   String           @unique
+  primaryColor     String           @default("#E5484D")
+  secondaryColor   String           @default("#1B1B1F")
+  accentColor      String           @default("#F4B942")
+  backgroundColor  String           @default("#0B0B0F")
+  cardColor        String           @default("#15151C")
+  textColor        String           @default("#F7F7F8")
+  mutedTextColor   String           @default("#A1A1AA")
+  borderColor      String           @default("#2A2A34")
+  successColor     String           @default("#2DBA7C")
+  warningColor     String           @default("#F4B942")
+  errorColor       String           @default("#E5484D")
+  buttonBackground String           @default("#E5484D")
+  buttonText       String           @default("#FFFFFF")
+  linkColor        String           @default("#78A9FF")
+  sidebarColor     String           @default("#101014")
+  headerColor      String           @default("#101014")
+  playerColor      String           @default("#111118")
+  discoverColor    String           @default("#101014")
+  rankingColor     String           @default("#15151C")
+  popupColor       String           @default("#15151C")
+  borderRadius     Int              @default(16)
+  shadowIntensity  Int              @default(30)
+  fontFamily       String           @default("Geist")
+  containerWidth   String           @default("1200px")
+  density          ThemeDensity     @default(COMFORTABLE)
+  colorScheme      ThemeColorScheme @default(SYSTEM)
+  gradientsEnabled Boolean          @default(false)
+  customVariables  Json?
+  draft            Boolean          @default(true)
+  publishedAt      DateTime?
+  updatedByUserId  String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  organization     Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  versions         ThemeVersion[]
+
+  @@index([organizationId, draft])
+}
+
+model ThemeVersion {
+  id             String       @id @default(cuid())
+  themeConfigId  String
+  organizationId String
+  version        Int
+  snapshot       Json
+  publishedById  String?
+  createdAt      DateTime     @default(now())
+  themeConfig    ThemeConfig  @relation(fields: [themeConfigId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([themeConfigId, version])
+  @@index([organizationId, createdAt])
+}
+
+model TenantDomain {
+  id                 String             @id @default(cuid())
+  organizationId     String
+  domain             String
+  status             TenantDomainStatus @default(PENDING)
+  verificationToken  String             @unique
+  verificationMethod String             @default("DNS_TXT")
+  sslStatus          TenantSslStatus    @default(NOT_CONFIGURED)
+  verifiedAt         DateTime?
+  activatedAt        DateTime?
+  lastCheckedAt      DateTime?
+  lastError          String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  organization       Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, domain])
+  @@index([domain, status])
+  @@index([organizationId, status])
+}
+
+model SitePage {
+  id               String            @id @default(cuid())
+  organizationId   String
+  kind             SitePageKind
+  slug             String
+  title            String
+  status           SitePageStatus    @default(DRAFT)
+  publishedVersion Int?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sections         SiteSection[]
+  versions         SitePageVersion[]
+
+  @@unique([organizationId, kind, slug])
+  @@index([organizationId, status])
+}
+
+model SitePageVersion {
+  id             String       @id @default(cuid())
+  sitePageId     String
+  organizationId String
+  version        Int
+  snapshot       Json
+  publishedById  String?
+  createdAt      DateTime     @default(now())
+  sitePage       SitePage     @relation(fields: [sitePageId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([sitePageId, version])
+  @@index([organizationId, createdAt])
+}
+
+model SiteSection {
+  id               String                @id @default(cuid())
+  sitePageId       String
+  sectionType      String
+  sortOrder        Int                   @default(0)
+  active           Boolean               @default(true)
+  title            String?
+  subtitle         String?
+  description      String?               @db.Text
+  imageUrl         String?
+  background       String?
+  textAlign        String                @default("left")
+  maxItems         Int?
+  dataSource       SiteSectionDataSource @default(MANUAL)
+  ctaLabel         String?
+  ctaUrl           String?
+  responsiveConfig Json?
+  content          Json?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  sitePage         SitePage              @relation(fields: [sitePageId], references: [id], onDelete: Cascade)
+
+  @@unique([sitePageId, sortOrder])
+  @@index([sitePageId, active, sortOrder])
+}
+
+model DiscoverConfig {
+  id                    String       @id @default(cuid())
+  organizationId        String       @unique
+  enabled               Boolean      @default(true)
+  swipeEnabled          Boolean      @default(true)
+  gridEnabled           Boolean      @default(true)
+  listEnabled           Boolean      @default(true)
+  defaultView           String       @default("GRID")
+  cardTemplate          String       @default("PREMIUM")
+  backgroundColor       String       @default("#0B0B0F")
+  cardColor             String       @default("#15151C")
+  buttonColor           String       @default("#E5484D")
+  playerVisible         Boolean      @default(true)
+  commentsEnabled       Boolean      @default(true)
+  likesEnabled          Boolean      @default(true)
+  dislikesEnabled       Boolean      @default(false)
+  playlistEnabled       Boolean      @default(true)
+  sharingEnabled        Boolean      @default(true)
+  votingEnabled         Boolean      @default(true)
+  rewardCampaignEnabled Boolean      @default(false)
+  turkeyFilterEnabled   Boolean      @default(true)
+  globalFilterEnabled   Boolean      @default(true)
+  filters               Json?
+  scoringWeights        Json?
+  explicitPolicy        String       @default("SHOW")
+  minimumReleaseAgeDays Int          @default(0)
+  sponsorFrequency      Int          @default(0)
+  popupFrequency        Int          @default(0)
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+  organization          Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model ApiClient {
+  id             String       @id @default(cuid())
+  organizationId String
+  ownerUserId    String
+  name           String
+  description    String?
+  active         Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ownerUser      User         @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  apiKeys        ApiKey[]
+
+  @@index([organizationId, active])
+  @@index([ownerUserId])
+}
+
+model ApiKey {
+  id                 String           @id @default(cuid())
+  apiClientId        String?
+  organizationId     String
+  ownerUserId        String
+  name               String
+  prefix             String
+  keyHash            String           @unique
+  scopes             Json
+  rateLimitPerMinute Int              @default(60)
+  ipAllowlist        Json?
+  domainAllowlist    Json?
+  lastUsedAt         DateTime?
+  expiresAt          DateTime?
+  revokedAt          DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  apiClient          ApiClient?       @relation(fields: [apiClientId], references: [id], onDelete: SetNull)
+  organization       Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ownerUser          User             @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  usageRecords       ApiUsageRecord[]
+
+  @@index([organizationId, revokedAt])
+  @@index([prefix])
+  @@index([ownerUserId])
+}
+
+model ApiUsageRecord {
+  id             String       @id @default(cuid())
+  apiKeyId       String
+  organizationId String
+  requestId      String
+  method         String
+  path           String
+  statusCode     Int
+  responseTimeMs Int?
+  idempotencyKey String?
+  createdAt      DateTime     @default(now())
+  apiKey         ApiKey       @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([apiKeyId, idempotencyKey])
+  @@index([organizationId, createdAt])
+  @@index([requestId])
+}
+
+model WebhookEndpoint {
+  id              String                @id @default(cuid())
+  organizationId  String
+  ownerUserId     String
+  url             String                @db.Text
+  description     String?
+  secretEncrypted String                @db.Text
+  active          Boolean               @default(true)
+  apiVersion      String                @default("v1")
+  headers         Json?
+  failurePolicy   WebhookFailurePolicy  @default(RETRY)
+  maxAttempts     Int                   @default(8)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  organization    Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ownerUser       User                  @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  subscriptions   WebhookSubscription[]
+  deliveries      WebhookDelivery[]
+
+  @@index([organizationId, active])
+  @@index([ownerUserId])
+}
+
+model WebhookSubscription {
+  id                String          @id @default(cuid())
+  webhookEndpointId String
+  eventType         String
+  createdAt         DateTime        @default(now())
+  webhookEndpoint   WebhookEndpoint @relation(fields: [webhookEndpointId], references: [id], onDelete: Cascade)
+
+  @@unique([webhookEndpointId, eventType])
+  @@index([eventType])
+}
+
+model WebhookDelivery {
+  id                 String                @id @default(cuid())
+  webhookEndpointId  String
+  organizationId     String
+  eventType          String
+  idempotencyKey     String
+  payload            Json
+  status             WebhookDeliveryStatus @default(PENDING)
+  attemptCount       Int                   @default(0)
+  nextAttemptAt      DateTime?
+  responseStatusCode Int?
+  responseDurationMs Int?
+  lastError          String?               @db.Text
+  deliveredAt        DateTime?
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  webhookEndpoint    WebhookEndpoint       @relation(fields: [webhookEndpointId], references: [id], onDelete: Cascade)
+  organization       Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([webhookEndpointId, idempotencyKey])
+  @@index([organizationId, status, nextAttemptAt])
+  @@index([eventType, createdAt])
+}
+
+model OnboardingProgress {
+  id             String               @id @default(cuid())
+  organizationId String
+  stepKey        String
+  status         OnboardingStepStatus @default(NOT_STARTED)
+  completedAt    DateTime?
+  skippedAt      DateTime?
+  metadata       Json?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, stepKey])
+  @@index([organizationId, status])
+}
+
+model SystemHealthCheck {
+  id             String             @id @default(cuid())
+  organizationId String
+  checkKey       String
+  status         SystemHealthStatus
+  message        String?
+  checkedAt      DateTime           @default(now())
+  metadata       Json?
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, checkKey])
+  @@index([organizationId, status, checkedAt])
+}
+
+model License {
+  id               String              @id @default(cuid())
+  organizationId   String              @unique
+  licenseType      String
+  licenseKeyHash   String              @unique
+  domainLimit      Int?
+  tenantLimit      Int?
+  userLimit        Int?
+  featureLimits    Json?
+  validFrom        DateTime?
+  validUntil       DateTime?
+  maintenanceUntil DateTime?
+  status           LicenseStatus       @default(INVALID)
+  offlineGraceDays Int                 @default(0)
+  lastValidatedAt  DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  organization     Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  validations      LicenseValidation[]
+
+  @@index([status, validUntil])
+}
+
+model LicenseValidation {
+  id        String        @id @default(cuid())
+  licenseId String
+  status    LicenseStatus
+  message   String?
+  checkedAt DateTime      @default(now())
+  metadata  Json?
+  license   License       @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+
+  @@index([licenseId, checkedAt])
+}
+
+model Chart {
+  id             String          @id @default(cuid())
+  organizationId String
+  name           String
+  chartType      ChartType
+  period         ChartPeriod
+  entityType     ChartEntityType
+  countryCode    String?
+  genreSlug      String?
+  active         Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  rules          ChartRule[]
+  snapshots      ChartSnapshot[]
+
+  @@unique([organizationId, chartType, period, entityType, countryCode, genreSlug])
+  @@index([organizationId, chartType, period])
+}
+
+model ChartRule {
+  id              String       @id @default(cuid())
+  organizationId  String
+  chartId         String
+  version         Int          @default(1)
+  weights         Json
+  fraudPenalty    Decimal      @db.Decimal(8, 4)
+  diversityWeight Decimal      @db.Decimal(8, 4)
+  freshnessDays   Int          @default(30)
+  active          Boolean      @default(false)
+  createdById     String?
+  createdAt       DateTime     @default(now())
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  chart           Chart        @relation(fields: [chartId], references: [id], onDelete: Cascade)
+
+  @@unique([chartId, version])
+  @@index([organizationId, active])
+}
+
+model ChartSnapshot {
+  id             String       @id @default(cuid())
+  organizationId String
+  chartId        String
+  ruleVersion    Int
+  periodStart    DateTime
+  periodEnd      DateTime
+  calculatedAt   DateTime     @default(now())
+  immutableHash  String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  chart          Chart        @relation(fields: [chartId], references: [id], onDelete: Cascade)
+  entries        ChartEntry[]
+
+  @@unique([chartId, periodStart, periodEnd])
+  @@index([organizationId, calculatedAt])
+}
+
+model ChartEntry {
+  id              String          @id @default(cuid())
+  snapshotId      String
+  organizationId  String
+  rank            Int
+  previousRank    Int?
+  peakRank        Int?
+  entityId        String
+  entityType      ChartEntityType
+  countryCode     String?
+  score           Decimal         @db.Decimal(18, 6)
+  validStreams    BigInt          @default(0)
+  uniqueListeners BigInt          @default(0)
+  votes           BigInt          @default(0)
+  likes           BigInt          @default(0)
+  rewardStatus    String?
+  createdAt       DateTime        @default(now())
+  snapshot        ChartSnapshot   @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([snapshotId, rank])
+  @@index([organizationId, entityId, entityType])
+  @@index([countryCode, rank])
+}
+
+model VoteCampaign {
+  id                        String          @id @default(cuid())
+  organizationId            String
+  name                      String
+  slug                      String
+  description               String?         @db.Text
+  startsAt                  DateTime
+  endsAt                    DateTime
+  entityType                ChartEntityType
+  voteType                  VoteType
+  countryCode               String?
+  minimumAge                Int?
+  loginRequired             Boolean         @default(true)
+  emailVerificationRequired Boolean         @default(false)
+  phoneVerificationRequired Boolean         @default(false)
+  dailyVoteLimit            Int?
+  totalVoteLimit            Int?
+  fraudProtection           Boolean         @default(true)
+  rewardCampaignId          String?
+  sponsorName               String?
+  imageUrl                  String?
+  rules                     String          @db.Text
+  active                    Boolean         @default(false)
+  resultsPublishedAt        DateTime?
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
+  organization              Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  votes                     Vote[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, active, startsAt, endsAt])
+}
+
+model Vote {
+  id             String            @id @default(cuid())
+  campaignId     String
+  organizationId String
+  userId         String
+  entityId       String
+  entityType     ChartEntityType
+  status         VoteStatus        @default(VALID)
+  idempotencyKey String
+  ipHash         String?
+  deviceHash     String?
+  createdAt      DateTime          @default(now())
+  campaign       VoteCampaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fraudSignals   VoteFraudSignal[]
+
+  @@unique([campaignId, idempotencyKey])
+  @@index([organizationId, userId, campaignId, createdAt])
+  @@index([campaignId, entityId, status])
+}
+
+model VoteFraudSignal {
+  id        String   @id @default(cuid())
+  voteId    String
+  signal    String
+  score     Decimal  @db.Decimal(8, 4)
+  metadata  Json?
+  createdAt DateTime @default(now())
+  vote      Vote     @relation(fields: [voteId], references: [id], onDelete: Cascade)
+
+  @@index([voteId, createdAt])
+}
+
+model RewardCampaign {
+  id             String         @id @default(cuid())
+  organizationId String
+  name           String
+  slug           String
+  status         RewardStatus   @default(DRAFT)
+  rulesSnapshot  Json
+  tiePolicy      String
+  winnerCount    Int            @default(1)
+  startsAt       DateTime
+  endsAt         DateTime
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  rewards        Reward[]
+  winners        RewardWinner[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, status, startsAt, endsAt])
+}
+
+model Reward {
+  id               String         @id @default(cuid())
+  rewardCampaignId String
+  type             RewardType
+  title            String
+  amountMinor      BigInt?
+  currencyCode     String?
+  legalDisclosure  String?        @db.Text
+  paymentMethod    String?
+  status           RewardStatus   @default(DRAFT)
+  fulfillmentNote  String?        @db.Text
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  rewardCampaign   RewardCampaign @relation(fields: [rewardCampaignId], references: [id], onDelete: Cascade)
+  winners          RewardWinner[]
+
+  @@index([rewardCampaignId, status])
+}
+
+model RewardWinner {
+  id               String         @id @default(cuid())
+  rewardCampaignId String
+  rewardId         String
+  userId           String
+  status           RewardStatus   @default(WINNER_PENDING)
+  confirmedAt      DateTime?
+  fulfilledAt      DateTime?
+  note             String?        @db.Text
+  createdAt        DateTime       @default(now())
+  rewardCampaign   RewardCampaign @relation(fields: [rewardCampaignId], references: [id], onDelete: Cascade)
+  reward           Reward         @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([rewardCampaignId, rewardId, userId])
+  @@index([userId, status])
+}
+
+model AdCampaign {
+  id             String           @id @default(cuid())
+  organizationId String
+  name           String
+  status         AdCampaignStatus @default(DRAFT)
+  startsAt       DateTime?
+  endsAt         DateTime?
+  targeting      Json?
+  frequencyCap   Json?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  creatives      AdCreative[]
+  placements     AdPlacement[]
+  impressions    AdImpression[]
+  clicks         AdClick[]
+
+  @@index([organizationId, status, startsAt, endsAt])
+}
+
+model AdCreative {
+  id           String     @id @default(cuid())
+  campaignId   String
+  type         AdType
+  imageUrl     String?
+  title        String
+  description  String?
+  ctaLabel     String?
+  ctaUrl       String?
+  closeable    Boolean    @default(true)
+  delaySeconds Int        @default(0)
+  variant      String     @default("A")
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  campaign     AdCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, type, variant])
+}
+
+model AdPlacement {
+  id         String          @id @default(cuid())
+  campaignId String
+  placement  AdPlacementSlot
+  active     Boolean         @default(true)
+  createdAt  DateTime        @default(now())
+  campaign   AdCampaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, placement])
+}
+
+model AdImpression {
+  id             String          @id @default(cuid())
+  campaignId     String
+  organizationId String
+  creativeId     String?
+  eventKey       String
+  userId         String?
+  placement      AdPlacementSlot
+  countryCode    String?
+  deviceType     String?
+  bot            Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  campaign       AdCampaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, eventKey])
+  @@index([organizationId, placement, createdAt])
+}
+
+model AdClick {
+  id             String          @id @default(cuid())
+  campaignId     String
+  organizationId String
+  creativeId     String?
+  eventKey       String
+  userId         String?
+  placement      AdPlacementSlot
+  countryCode    String?
+  deviceType     String?
+  bot            Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  campaign       AdCampaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, eventKey])
+  @@index([organizationId, placement, createdAt])
+}
+
+model LegalDocument {
+  id             String                 @id @default(cuid())
+  organizationId String
+  type           LegalDocumentType
+  slug           String
+  title          String
+  locale         String                 @default("tr-TR")
+  required       Boolean                @default(false)
+  usage          String?
+  status         LegalDocumentStatus    @default(DRAFT)
+  publishedAt    DateTime?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  organization   Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  versions       LegalDocumentVersion[]
+  userConsents   UserConsent[]
+
+  @@unique([organizationId, slug, locale])
+  @@index([organizationId, type, status])
+}
+
+model LegalDocumentVersion {
+  id             String        @id @default(cuid())
+  documentId     String
+  organizationId String
+  version        Int
+  content        String        @db.Text
+  changeSummary  String?       @db.Text
+  effectiveAt    DateTime?
+  publishedAt    DateTime?
+  createdAt      DateTime      @default(now())
+  document       LegalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userConsents   UserConsent[]
+
+  @@unique([documentId, version])
+  @@index([organizationId, publishedAt])
+}
+
+model UserConsent {
+  id             String               @id @default(cuid())
+  organizationId String
+  userId         String
+  documentId     String
+  versionId      String
+  accepted       Boolean              @default(false)
+  acceptedAt     DateTime?
+  revokedAt      DateTime?
+  ipHash         String?
+  userAgentHash  String?
+  createdAt      DateTime             @default(now())
+  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document       LegalDocument        @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  version        LegalDocumentVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, documentId, versionId])
+  @@index([organizationId, userId, accepted])
+}
+
+model CookieConsent {
+  id             String          @id @default(cuid())
+  organizationId String
+  userId         String?
+  sessionId      String?
+  version        String
+  category       ConsentCategory
+  granted        Boolean         @default(false)
+  grantedAt      DateTime?
+  revokedAt      DateTime?
+  ipHash         String?
+  userAgentHash  String?
+  createdAt      DateTime        @default(now())
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, sessionId, version])
+  @@index([userId, version])
+}
+
+model InstallationState {
+  id             String             @id @default(cuid())
+  organizationId String             @unique
+  status         InstallationStatus @default(NOT_STARTED)
+  currentStep    String?
+  completedAt    DateTime?
+  lockedAt       DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model SystemRequirementCheck {
+  id             String             @id @default(cuid())
+  organizationId String
+  checkKey       String
+  status         SystemHealthStatus
+  value          String?
+  message        String?
+  checkedAt      DateTime           @default(now())
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, checkKey])
+  @@index([organizationId, status])
+}
+
+model BackupJob {
+  id             String       @id @default(cuid())
+  organizationId String
+  requestedById  String?
+  status         BackupStatus @default(PENDING)
+  storageKey     String?
+  encrypted      Boolean      @default(true)
+  includesAudio  Boolean      @default(false)
+  startedAt      DateTime?
+  completedAt    DateTime?
+  expiresAt      DateTime?
+  errorMessage   String?      @db.Text
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status, createdAt])
+}
+
+model UpdateJob {
+  id             String       @id @default(cuid())
+  organizationId String
+  requestedById  String?
+  targetVersion  String
+  status         UpdateStatus @default(PENDING)
+  backupJobId    String?
+  migrationNames Json?
+  releaseNotes   String?      @db.Text
+  errorMessage   String?      @db.Text
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status, createdAt])
 }

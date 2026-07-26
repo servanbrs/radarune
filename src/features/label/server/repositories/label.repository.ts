@@ -63,6 +63,26 @@ export class LabelRepository {
       },
     });
   }
+
+  async findByOrganizationAndSlugs(organizationId: string, slugs: string[]) {
+    if (slugs.length === 0) {
+      return [];
+    }
+
+    return prisma.label.findMany({
+      where: {
+        organizationId,
+        slug: {
+          in: slugs,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+      },
+    });
+  }
 }
 
 export const labelRepository = new LabelRepository();

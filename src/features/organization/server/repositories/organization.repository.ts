@@ -54,6 +54,7 @@ export class OrganizationRepository {
         data: {
           name: input.name,
           slug: input.slug,
+          ownerUserId: userId,
         },
         select: {
           id: true,
@@ -68,11 +69,21 @@ export class OrganizationRepository {
         data: {
           organizationId: organization.id,
           role: "OWNER",
+          tenantRole: "OWNER",
+          joinedAt: new Date(),
           userId,
         },
       });
 
       return organization;
+    });
+  }
+
+  async countMembershipsByOrganizationId(organizationId: string) {
+    return prisma.organizationMembership.count({
+      where: {
+        organizationId,
+      },
     });
   }
 }

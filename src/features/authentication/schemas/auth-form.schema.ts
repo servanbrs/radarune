@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { passwordPolicySchema } from "@/features/authentication/schemas/password-policy.schema";
 
 export const signInFormSchema = z.object({
   email: z.email("Enter a valid email address."),
-  password: z.string().min(8, "Password must be at least 8 characters."),
+  password: passwordPolicySchema,
 });
 
 export const signUpFormSchema = z
@@ -13,11 +14,8 @@ export const signUpFormSchema = z
       .min(2, "Name must be at least 2 characters.")
       .max(80, "Name must be 80 characters or less."),
     email: z.email("Enter a valid email address."),
-    password: z
-      .string()
-      .min(12, "Password must be at least 12 characters.")
-      .max(128, "Password must be 128 characters or less."),
-    confirmPassword: z.string().min(12, "Confirm your password."),
+    password: passwordPolicySchema,
+    confirmPassword: passwordPolicySchema,
   })
   .refine((value) => value.password === value.confirmPassword, {
     message: "Passwords do not match.",

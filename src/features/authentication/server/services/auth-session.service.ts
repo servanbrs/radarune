@@ -6,6 +6,14 @@ import { auth } from "@/features/authentication/server/auth";
 import { organizationService } from "@/features/organization/server/services/organization.service";
 import { userAuthRepository } from "@/features/authentication/server/repositories/user-auth.repository";
 
+type DashboardUser = NonNullable<
+  Awaited<ReturnType<typeof userAuthRepository.findDashboardUserById>>
+>;
+type DashboardOrganizationContext = Awaited<
+  ReturnType<typeof organizationService.getRequiredOrganizationContext>
+>;
+type DashboardSession = NonNullable<Awaited<ReturnType<typeof getSession>>>;
+
 const getSession = cache(async () => {
   return auth.api.getSession({
     headers: await headers(),
@@ -27,21 +35,25 @@ class AuthSessionService {
     return session;
   }
 
-  async getDashboardContext() {
+  async getDashboardContext(): Promise<{
+    organization: DashboardOrganizationContext;
+    session: DashboardSession;
+    user: DashboardUser;
+  }> {
     const session = await this.getRequiredSession();
-    const user = await userAuthRepository.findDashboardUserById(session.user.id);
+    const dashboardUser = await userAuthRepository.findDashboardUserById(session.user.id);
     const organization = await organizationService.getRequiredOrganizationContext(
       session.user.id,
     );
 
-    if (!user) {
+    if (!dashboardUser) {
       redirect("/sign-in");
     }
 
     return {
       organization,
       session,
-      user,
+      user: dashboardUser,
     };
   }
 }
