@@ -161,6 +161,8 @@ const rolePermissions: Record<MembershipRole, readonly AppPermission[]> = {
     "site-builder:manage",
     "homepage:manage",
     "discover:manage",
+    "auth.social.view",
+    "auth.social.manage",
     "api-keys:view",
     "api-keys:manage",
     "webhooks:view",

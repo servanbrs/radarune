@@ -14,6 +14,7 @@ const adminLinks = [
   { href: "/admin/settings", label: "Ayarlar" },
   { href: "/admin/finance", label: "Finans" },
   { href: "/admin/intelligence", label: "AI Intelligence" },
+  { href: "/admin/social/playlists", label: "Global playlistler" },
   { href: "/admin/site-builder", label: "Site Builder" },
   { href: "/admin/api-keys", label: "Public API" },
   { href: "/admin/webhooks", label: "Webhooks" },

@@ -4,6 +4,8 @@ import { GlobalPlayer } from "@/features/growth/components/global-player";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { toAdminActor } from "@/features/admin/server/admin-context";
 import { discoverService } from "@/features/growth/server/services/discover.service";
+import { globalPlaylistService } from "@/features/growth/server/services/global-playlist.service";
+import { GlobalPlaylistVoteCard } from "@/features/growth/components/global-playlist-vote-card";
 
 export default async function DiscoverPage() {
   const { organization, user } = await authSessionService.getDashboardContext();
@@ -13,7 +15,10 @@ export default async function DiscoverPage() {
     systemRole: user.systemRole,
     userId: user.id,
   });
-  const candidates = await discoverService.getCandidates(actor);
+  const [candidates, globalPlaylists] = await Promise.all([
+    discoverService.getCandidates(actor),
+    globalPlaylistService.listForDiscover(organization.organization.id),
+  ]);
 
   return (
     <main className="page-shell pb-28">
@@ -41,6 +46,11 @@ export default async function DiscoverPage() {
             ))}
           </div>
         </div>
+      </section>
+
+      <section className="mt-8">
+        <div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">Radarune editoryal alanı</p><h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em]">Global playlistler</h2></div><p className="text-sm text-muted">Gerçek oylarla şekillenen listeler</p></div>
+        {globalPlaylists.length > 0 ? <div className="mt-5 grid gap-5 lg:grid-cols-2">{globalPlaylists.map((playlist) => <GlobalPlaylistVoteCard key={playlist.id} playlist={{ id: playlist.id, name: playlist.name, slug: playlist.slug, description: playlist.description, featured: playlist.featured, tracks: playlist.tracks.map((item) => ({ track: { id: item.track.id, title: item.track.title }, release: item.release })), campaign: playlist.campaign ? { slug: playlist.campaign.slug, active: playlist.campaign.active, endsAt: playlist.campaign.endsAt.toISOString(), voteCount: playlist.campaign.voteCount } : null }} />)}</div> : <div className="mt-5 rounded-[1.5rem] border border-dashed border-line bg-surface p-8 text-sm text-muted">Henüz global playlist yayınlanmadı.</div>}
       </section>
 
       <section className="mt-8 flex flex-wrap items-center justify-between gap-4">

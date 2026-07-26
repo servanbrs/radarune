@@ -146,6 +146,33 @@ export const createPlaylistSchema = z.object({
   public: z.boolean().default(false),
 });
 
+const globalPlaylistFields = z.object({
+  name: z.string().trim().min(2, "Playlist adı en az 2 karakter olmalı.").max(120).transform(stripHtml),
+  slug: slugSchema,
+  description: z.string().trim().max(2000).transform(stripHtml).optional(),
+  featured: z.boolean().default(false),
+  votingEnabled: z.boolean().default(true),
+  voteEndsAt: z.coerce.date(),
+});
+
+function validateGlobalPlaylistVoteDate(value: { voteEndsAt?: Date | undefined }, ctx: z.RefinementCtx) {
+  if (value.voteEndsAt !== undefined && value.voteEndsAt <= new Date()) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Oylama bitiş tarihi gelecekte olmalı.", path: ["voteEndsAt"] });
+  }
+}
+
+export const globalPlaylistCreateSchema = globalPlaylistFields.superRefine((value, ctx) => {
+  if (value.voteEndsAt <= new Date()) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Oylama bitiş tarihi gelecekte olmalı.", path: ["voteEndsAt"] });
+  }
+});
+
+export const globalPlaylistUpdateSchema = globalPlaylistFields.partial().superRefine(validateGlobalPlaylistVoteDate);
+
+export const globalPlaylistTrackSchema = z.object({
+  trackId: z.string().cuid(),
+});
+
 export const discoverEventSchema = z.object({
   trackId: z.string().min(1),
   eventType: z.enum([
@@ -174,3 +201,6 @@ export type CreatePreSaveCampaignInput = z.infer<typeof createPreSaveCampaignSch
 export type PreSaveEmailSubscribeInput = z.infer<typeof preSaveEmailSubscribeSchema>;
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 export type CreatePlaylistInput = z.infer<typeof createPlaylistSchema>;
+export type GlobalPlaylistCreateInput = z.infer<typeof globalPlaylistCreateSchema>;
+export type GlobalPlaylistUpdateInput = z.infer<typeof globalPlaylistUpdateSchema>;
+export type GlobalPlaylistTrackInput = z.infer<typeof globalPlaylistTrackSchema>;

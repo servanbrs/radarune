@@ -78,7 +78,7 @@ export function SignUpForm() {
 
       <Field
         error={form.formState.errors.password?.message}
-        hint="En az 12 karakter kullanın."
+        hint="En az 6 karakter kullanın."
         htmlFor="sign-up-password"
         label="Şifre"
       >
