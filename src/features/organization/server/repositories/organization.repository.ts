@@ -7,6 +7,7 @@ export class OrganizationRepository {
     return prisma.organizationMembership.findFirst({
       where: {
         userId,
+        status: "ACTIVE",
       },
       orderBy: [
         {
@@ -24,6 +25,7 @@ export class OrganizationRepository {
             id: true,
             name: true,
             slug: true,
+            tenantStatus: true,
             createdAt: true,
             updatedAt: true,
             _count: {
@@ -50,16 +52,21 @@ export class OrganizationRepository {
 
   async createOrganizationForOwner(userId: string, input: CreateOrganizationInput) {
     return prisma.$transaction(async (tx) => {
+      const now = new Date();
       const organization = await tx.organization.create({
         data: {
           name: input.name,
           slug: input.slug,
           ownerUserId: userId,
+          tenantStatus: "ACTIVE",
+          onboardingCompletedAt: now,
         },
         select: {
           id: true,
           name: true,
           slug: true,
+          tenantStatus: true,
+          onboardingCompletedAt: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -70,7 +77,8 @@ export class OrganizationRepository {
           organizationId: organization.id,
           role: "OWNER",
           tenantRole: "OWNER",
-          joinedAt: new Date(),
+          status: "ACTIVE",
+          joinedAt: now,
           userId,
         },
       });
@@ -78,8 +86,10 @@ export class OrganizationRepository {
       await tx.installationState.create({
         data: {
           organizationId: organization.id,
-          status: "IN_PROGRESS",
-          currentStep: "SETTINGS",
+          status: "COMPLETED",
+          currentStep: "COMPLETED",
+          completedAt: now,
+          lockedAt: now,
         },
       });
 
