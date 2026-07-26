@@ -53,6 +53,7 @@ The VPS scripts above are not executed automatically by a Hostinger Web App depl
 
 - Build command: `npm ci && npm run prisma:generate && npm run validate:production && npm run prisma:migrate:deploy && npm run build`
 - Start command: `npm run start`
+- Entry file: `app.js` (it forwards to the production server in `server.js`)
 - Node.js: 20 or newer
 - Application port: use the `PORT` value supplied by Hostinger
 
