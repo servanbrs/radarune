@@ -1,5 +1,6 @@
 const port = Number.parseInt(process.env.PORT ?? "3000", 10) || 3000;
-const hostname = process.env.HOSTNAME ?? "0.0.0.0";
+// Hostinger forwards traffic to the process over the container network.
+const hostname = "0.0.0.0";
 process.env.NODE_ENV = "production";
 
 async function startServer() {

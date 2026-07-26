@@ -46,3 +46,16 @@ To verify and restore a backup, run `sha256sum -c SHA256SUMS`, then restore the 
 ## Web App limitation
 
 Do not use LOCAL storage on a Web App profile unless Hostinger confirms persistent storage outside the release directory. If persistence, workers or cron are unavailable, configure S3/R2 and run the workers elsewhere.
+
+## Hostinger Web App profile
+
+The VPS scripts above are not executed automatically by a Hostinger Web App deployment. Configure the Web App with the following commands and environment values:
+
+- Build command: `npm ci && npm run prisma:generate && npm run validate:production && npm run prisma:migrate:deploy && npm run build`
+- Start command: `npm run start`
+- Node.js: 20 or newer
+- Application port: use the `PORT` value supplied by Hostinger
+
+The Web App environment must contain `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_URL`, `ENCRYPTION_KEY`, `CRON_SECRET`, `WEBHOOK_SIGNING_SECRET`, `API_KEY_PEPPER`, `IP_HASH_SALT`, `STORAGE_PROVIDER`, `STORAGE_ALLOW_LOCAL_IN_PRODUCTION` and `STORAGE_LOCAL_ROOT`. Never commit these values to GitHub.
+
+If the Web App returns Hostinger's HTML `503 Service Unavailable` page on `/api/health/live`, the Node process is not listening. Check the deployment build log first, then restart the Web App after correcting the environment. A healthy application returns `{"status":"ok"}` from that route.
