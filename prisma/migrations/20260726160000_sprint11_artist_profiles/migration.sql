@@ -1,8 +1,8 @@
 -- Sprint 11: editable artist profiles, team roles and draft storage
 ALTER TABLE `Artist`
-    ADD COLUMN `youtubeProfileUrl` VARCHAR(2048) NULL,
-    ADD COLUMN `profileImageUrl` VARCHAR(2048) NULL,
-    ADD COLUMN `coverImageUrl` VARCHAR(2048) NULL,
+    ADD COLUMN `youtubeProfileUrl` TEXT NULL,
+    ADD COLUMN `profileImageUrl` TEXT NULL,
+    ADD COLUMN `coverImageUrl` TEXT NULL,
     ADD COLUMN `shortBiography` VARCHAR(500) NULL,
     ADD COLUMN `biography` TEXT NULL,
     ADD COLUMN `country` VARCHAR(100) NULL,
@@ -11,18 +11,18 @@ ALTER TABLE `Artist`
     ADD COLUMN `subgenre` VARCHAR(100) NULL,
     ADD COLUMN `language` VARCHAR(50) NULL,
     ADD COLUMN `foundedYear` INTEGER NULL,
-    ADD COLUMN `tiktokProfileUrl` VARCHAR(2048) NULL,
-    ADD COLUMN `instagramProfileUrl` VARCHAR(2048) NULL,
-    ADD COLUMN `xProfileUrl` VARCHAR(2048) NULL,
-    ADD COLUMN `facebookProfileUrl` VARCHAR(2048) NULL,
-    ADD COLUMN `soundcloudProfileUrl` VARCHAR(2048) NULL,
-    ADD COLUMN `deezerProfileUrl` VARCHAR(2048) NULL,
-    ADD COLUMN `websiteUrl` VARCHAR(2048) NULL,
+    ADD COLUMN `tiktokProfileUrl` TEXT NULL,
+    ADD COLUMN `instagramProfileUrl` TEXT NULL,
+    ADD COLUMN `xProfileUrl` TEXT NULL,
+    ADD COLUMN `facebookProfileUrl` TEXT NULL,
+    ADD COLUMN `soundcloudProfileUrl` TEXT NULL,
+    ADD COLUMN `deezerProfileUrl` TEXT NULL,
+    ADD COLUMN `websiteUrl` TEXT NULL,
     ADD COLUMN `bookingEmail` VARCHAR(320) NULL,
     ADD COLUMN `managementEmail` VARCHAR(320) NULL,
     ADD COLUMN `seoTitle` VARCHAR(160) NULL,
     ADD COLUMN `seoDescription` VARCHAR(320) NULL,
-    ADD COLUMN `ogImageUrl` VARCHAR(2048) NULL,
+    ADD COLUMN `ogImageUrl` TEXT NULL,
     ADD COLUMN `profilePublishedAt` DATETIME(3) NULL;
 
 CREATE TABLE `ArtistTeamMember` (

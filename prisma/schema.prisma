@@ -1509,9 +1509,9 @@ model Artist {
   type                 ArtistType
   spotifyProfileUrl    String?
   appleMusicProfileUrl String?
-  youtubeProfileUrl    String?               @db.VarChar(2048)
-  profileImageUrl      String?               @db.VarChar(2048)
-  coverImageUrl        String?               @db.VarChar(2048)
+  youtubeProfileUrl    String?               @db.Text
+  profileImageUrl      String?               @db.Text
+  coverImageUrl        String?               @db.Text
   shortBiography       String?               @db.VarChar(500)
   biography            String?               @db.Text
   country              String?               @db.VarChar(100)
@@ -1520,18 +1520,18 @@ model Artist {
   subgenre             String?               @db.VarChar(100)
   language             String?               @db.VarChar(50)
   foundedYear          Int?
-  tiktokProfileUrl     String?               @db.VarChar(2048)
-  instagramProfileUrl  String?               @db.VarChar(2048)
-  xProfileUrl          String?               @db.VarChar(2048)
-  facebookProfileUrl   String?               @db.VarChar(2048)
-  soundcloudProfileUrl String?               @db.VarChar(2048)
-  deezerProfileUrl     String?               @db.VarChar(2048)
-  websiteUrl           String?               @db.VarChar(2048)
+  tiktokProfileUrl     String?               @db.Text
+  instagramProfileUrl  String?               @db.Text
+  xProfileUrl          String?               @db.Text
+  facebookProfileUrl   String?               @db.Text
+  soundcloudProfileUrl String?               @db.Text
+  deezerProfileUrl     String?               @db.Text
+  websiteUrl           String?               @db.Text
   bookingEmail         String?               @db.VarChar(320)
   managementEmail      String?               @db.VarChar(320)
   seoTitle             String?               @db.VarChar(160)
   seoDescription       String?               @db.VarChar(320)
-  ogImageUrl           String?               @db.VarChar(2048)
+  ogImageUrl           String?               @db.Text
   profilePublishedAt   DateTime?
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
