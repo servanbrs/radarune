@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "prebuild": "prisma generate",
     "start": "NODE_ENV=production tsx scripts/validate-production-env.ts && NODE_ENV=production next start",
     "lint": "eslint .",
     "test": "vitest run",
