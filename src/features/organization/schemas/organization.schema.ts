@@ -6,16 +6,16 @@ export const createOrganizationSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, "Organization name must be at least 2 characters.")
-    .max(120, "Organization name must be 120 characters or less."),
+    .min(2, "Çalışma alanı adı en az 2 karakter olmalı.")
+    .max(120, "Çalışma alanı adı 120 karakteri aşamaz."),
   slug: z
     .string()
     .trim()
-    .min(3, "Organization slug must be at least 3 characters.")
-    .max(60, "Organization slug must be 60 characters or less.")
+    .min(3, "Kısa ad en az 3 karakter olmalı.")
+    .max(60, "Kısa ad 60 karakteri aşamaz.")
     .regex(
       organizationSlugPattern,
-      "Slug can only contain lowercase letters, numbers, and single hyphens.",
+      "Kısa ad yalnızca küçük harf, rakam ve tek tire içerebilir.",
     ),
 });
 

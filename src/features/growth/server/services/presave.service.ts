@@ -18,6 +18,10 @@ export class PreSaveService {
     return growthRepository.listPreSaves(actor.organizationId);
   }
 
+  async getById(actor: FinanceActorContext, id: string) {
+    return growthRepository.findPreSaveById(actor.organizationId, id);
+  }
+
   async create(actor: FinanceActorContext, input: CreatePreSaveCampaignInput) {
     const parsed = createPreSaveCampaignSchema.parse(input);
     await entitlementService.assertFeatureEnabled({ organizationId: actor.organizationId }, "presave.enabled");

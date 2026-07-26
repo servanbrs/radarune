@@ -12,12 +12,12 @@ export default async function SignUpPage() {
 
   return (
     <AuthShell
-      description="Create the first Radarune workspace user and establish the authentication layer for the platform."
-      eyebrow="Platform onboarding"
+      description="Radarune çalışma alanınızı oluşturun ve müzik dağıtım operasyonunuzu güvenli biçimde başlatın."
+      eyebrow="Platform başlangıcı"
       footerHref="/sign-in"
-      footerLinkLabel="Sign in"
-      footerText="Already onboarded?"
-      title="Create account"
+      footerLinkLabel="Giriş yap"
+      footerText="Zaten hesabınız var mı?"
+      title="Hesap oluştur"
     >
       <SignUpForm />
     </AuthShell>

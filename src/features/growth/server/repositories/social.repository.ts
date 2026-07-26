@@ -97,6 +97,20 @@ export class SocialRepository {
     });
   }
 
+  async findPlaylistByIdForViewer(id: string, userId: string) {
+    return prisma.playlist.findFirst({
+      where: { id, OR: [{ public: true }, { ownerUserId: userId }] },
+      include: {
+        ownerUser: { select: { name: true } },
+        artist: { select: { name: true, slug: true } },
+        tracks: {
+          orderBy: { sortOrder: "asc" },
+          include: { track: true, release: true },
+        },
+      },
+    });
+  }
+
   async activeStories() {
     return prisma.story.findMany({
       where: {

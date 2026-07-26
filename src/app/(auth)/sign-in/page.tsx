@@ -12,12 +12,12 @@ export default async function SignInPage() {
 
   return (
     <AuthShell
-      description="Access your release operations workspace, provider routing controls, and catalog governance tools."
-      eyebrow="Radarune access"
+      description="Yayın operasyonu çalışma alanınıza, provider yönlendirmelerine ve katalog yönetim araçlarına erişin."
+      eyebrow="Radarune erişimi"
       footerHref="/sign-up"
-      footerLinkLabel="Create account"
-      footerText="No account yet?"
-      title="Sign in"
+      footerLinkLabel="Hesap oluştur"
+      footerText="Henüz hesabınız yok mu?"
+      title="Giriş yap"
     >
       <SignInForm />
     </AuthShell>

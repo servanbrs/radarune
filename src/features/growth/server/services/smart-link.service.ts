@@ -12,6 +12,10 @@ export class SmartLinkService {
     return growthRepository.listSmartLinks(actor.organizationId);
   }
 
+  async getById(actor: FinanceActorContext, id: string) {
+    return growthRepository.findSmartLinkById(actor.organizationId, id);
+  }
+
   async create(actor: FinanceActorContext, input: CreateSmartLinkInput) {
     const parsed = createSmartLinkSchema.parse(input);
     await entitlementService.assertFeatureEnabled({ organizationId: actor.organizationId }, "smart_links.enabled");

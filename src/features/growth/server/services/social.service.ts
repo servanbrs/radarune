@@ -88,6 +88,10 @@ export class SocialService {
     });
   }
 
+  async getPlaylistById(userId: string, id: string) {
+    return socialRepository.findPlaylistByIdForViewer(id, userId);
+  }
+
   async report(actor: FinanceActorContext, input: unknown) {
     const parsed = contentReportSchema.parse(input);
     return socialRepository.reportContent({

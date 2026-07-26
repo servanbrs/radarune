@@ -39,7 +39,7 @@ export function SignUpForm() {
       });
 
       if (result.error) {
-        setRootError(result.error.message ?? "Unable to create your account.");
+        setRootError(result.error.message ?? "Hesap oluşturulamadı.");
         return;
       }
 
@@ -53,7 +53,7 @@ export function SignUpForm() {
       <Field
         error={form.formState.errors.name?.message}
         htmlFor="sign-up-name"
-        label="Full name"
+        label="Ad soyad"
       >
         <Input
           autoComplete="name"
@@ -66,7 +66,7 @@ export function SignUpForm() {
       <Field
         error={form.formState.errors.email?.message}
         htmlFor="sign-up-email"
-        label="Work email"
+        label="E-posta"
       >
         <Input
           autoComplete="email"
@@ -78,14 +78,14 @@ export function SignUpForm() {
 
       <Field
         error={form.formState.errors.password?.message}
-        hint="Use at least 12 characters."
+        hint="En az 12 karakter kullanın."
         htmlFor="sign-up-password"
-        label="Password"
+        label="Şifre"
       >
         <Input
           autoComplete="new-password"
           id="sign-up-password"
-          placeholder="Create a strong password"
+          placeholder="Güçlü bir şifre oluşturun"
           type="password"
           {...form.register("password")}
         />
@@ -94,12 +94,12 @@ export function SignUpForm() {
       <Field
         error={form.formState.errors.confirmPassword?.message}
         htmlFor="sign-up-confirm-password"
-        label="Confirm password"
+        label="Şifre tekrarı"
       >
         <Input
           autoComplete="new-password"
           id="sign-up-confirm-password"
-          placeholder="Re-enter your password"
+          placeholder="Şifrenizi tekrar girin"
           type="password"
           {...form.register("confirmPassword")}
         />
@@ -112,11 +112,11 @@ export function SignUpForm() {
       ) : null}
 
       <Button className="mt-2 w-full" disabled={isPending} type="submit">
-        {isPending ? "Creating account..." : "Create account"}
+        {isPending ? "Hesap oluşturuluyor..." : "Hesap oluştur"}
       </Button>
 
       <Link className="text-sm font-medium text-muted hover:text-foreground" href="/sign-in">
-        Already have access? Sign in here.
+        Zaten hesabınız var mı? Giriş yapın.
       </Link>
     </form>
   );

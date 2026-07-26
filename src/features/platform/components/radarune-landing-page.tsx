@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowUpRight, Check, ChevronRight, CircleDot, Gauge, Layers3, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, Check, ChevronRight, CircleDot, Compass, Gauge, Headphones, Layers3, ShieldCheck } from "lucide-react";
+import type { PublicDiscoverCandidate } from "@/features/growth/server/services/discover.service";
 import { StructuredData } from "@/features/seo/components/structured-data";
 
 const capabilities = [
@@ -25,7 +26,7 @@ const capabilities = [
 
 const workflowSteps = ["Hazırla", "Doğrula", "Dağıt", "Ölç"] as const;
 
-export function RadaruneLandingPage() {
+export function RadaruneLandingPage({ discoverReleases = [] }: { discoverReleases?: PublicDiscoverCandidate[] }) {
   return (
     <main className="min-h-screen overflow-hidden bg-[#090b0f] text-white">
       <StructuredData
@@ -50,6 +51,7 @@ export function RadaruneLandingPage() {
           <nav className="hidden items-center gap-8 text-sm text-white/60 md:flex" aria-label="Ana navigasyon">
             <Link className="hover:text-white" href="#capabilities">Platform</Link>
             <Link className="hover:text-white" href="#workflow">Akış</Link>
+            <Link className="hover:text-white" href="#discover">Keşfet</Link>
             <Link className="hover:text-white" href="/product">Ürün</Link>
           </nav>
           <div className="flex items-center gap-3">
@@ -156,6 +158,35 @@ export function RadaruneLandingPage() {
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="relative z-10 mx-auto max-w-7xl px-5 pb-24 md:px-10 md:pb-32" id="discover">
+        <div className="flex flex-wrap items-end justify-between gap-5">
+          <div>
+            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-[#efb848]"><Compass className="h-4 w-4" aria-hidden="true" /> Radarune Keşfet</p>
+            <h2 className="mt-5 max-w-2xl text-4xl font-semibold leading-tight tracking-[-0.04em] md:text-6xl">Yayınlanan müzikleri keşfedin.</h2>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-white/55">Radarune&apos;da canlıya alınan yayınları inceleyin. Bu vitrin yalnızca gerçek katalog verilerini gösterir.</p>
+          </div>
+          <Link className="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-3 text-sm font-semibold text-white/80 hover:border-[#efb848]/60 hover:text-white" href="/sign-up">Kataloğunuzu yayınlayın <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>
+        </div>
+        {discoverReleases.length > 0 ? (
+          <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {discoverReleases.map((release) => {
+              const artist = release.artists[0]?.artist;
+              return (
+                <article className="group overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#11151b] transition hover:-translate-y-1 hover:border-[#efb848]/50" key={release.id}>
+                  <div className="relative flex aspect-[1.5/1] flex-col justify-between overflow-hidden bg-[radial-gradient(circle_at_75%_20%,rgba(239,184,72,0.32),transparent_25%),linear-gradient(135deg,#1b2731,#11151b)] p-6">
+                    <div className="flex items-start justify-between gap-3"><span className="rounded-full border border-white/15 bg-black/20 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/60">{release.primaryGenre}</span><span className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-white"><Headphones className="h-4 w-4" aria-hidden="true" /></span></div>
+                    <div><p className="text-xs uppercase tracking-[0.18em] text-white/40">Canlı katalog</p><h3 className="mt-2 text-2xl font-semibold leading-tight text-white">{release.title}</h3></div>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 p-5"><p className="text-sm text-white/55">{artist?.name ?? "Radarune sanatçısı"}</p>{artist ? <Link className="inline-flex items-center gap-1 text-sm font-semibold text-[#efb848]" href={`/artist/${artist.slug}`}>Profili aç <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link> : null}</div>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="mt-10 rounded-[1.75rem] border border-dashed border-white/15 bg-white/[0.03] px-6 py-12 text-center md:px-10"><Compass className="mx-auto h-8 w-8 text-[#efb848]" aria-hidden="true" /><h3 className="mt-5 text-2xl font-semibold">İlk yayınlarınızı bekliyor.</h3><p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-white/50">Canlı katalog oluştuğunda yayınlar burada görünecek. Radarune sahte içerik üretmez.</p></div>
+        )}
       </section>
 
       <section className="relative z-10 mx-5 mb-8 overflow-hidden rounded-[2rem] bg-[#efb848] px-6 py-14 text-[#090b0f] md:mx-auto md:max-w-7xl md:px-12 md:py-20">

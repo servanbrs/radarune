@@ -32,34 +32,32 @@ export function AuthShell({
               </span>
               <div className="space-y-4">
                 <h1 className="max-w-xl text-4xl leading-tight font-semibold md:text-6xl">
-                  Music operations, rights data, and distribution in one control
-                  plane.
+                  Müzik operasyonu, hak verisi ve dağıtım tek kontrol merkezinde.
                 </h1>
                 <p className="max-w-xl text-base leading-8 text-muted md:text-lg">
-                  Radarune is built for labels and catalog teams that need
-                  release readiness, distribution governance, and provider
-                  routing without spreadsheet drift.
+                  Radarune; yayın hazırlığı, dağıtım yönetimi ve provider akışını
+                  dağınık tablolar yerine tek bir üretim alanında toplar.
                 </p>
               </div>
             </div>
             <div className="grid gap-4 md:grid-cols-3">
               <div className="rounded-[1.5rem] border bg-white/70 p-5">
                 <p className="text-xs uppercase tracking-[0.24em] text-muted">
-                  Providers
+                  Sağlayıcılar
                 </p>
-                <p className="mt-3 text-2xl font-semibold">5 adapters</p>
+                  <p className="mt-3 text-2xl font-semibold">5 adaptör</p>
               </div>
               <div className="rounded-[1.5rem] border bg-white/70 p-5">
                 <p className="text-xs uppercase tracking-[0.24em] text-muted">
                   Metadata
                 </p>
-                <p className="mt-3 text-2xl font-semibold">ISRC / UPC aware</p>
+                  <p className="mt-3 text-2xl font-semibold">ISRC / UPC uyumlu</p>
               </div>
               <div className="rounded-[1.5rem] border bg-white/70 p-5">
                 <p className="text-xs uppercase tracking-[0.24em] text-muted">
                   Architecture
                 </p>
-                <p className="mt-3 text-2xl font-semibold">Clean, modular</p>
+                  <p className="mt-3 text-2xl font-semibold">Temiz, modüler</p>
               </div>
             </div>
           </div>

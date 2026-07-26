@@ -77,6 +77,18 @@ export class GrowthRepository {
     });
   }
 
+  async findSmartLinkById(organizationId: string, id: string) {
+    return prisma.smartLink.findFirst({
+      where: { id, organizationId },
+      include: {
+        artist: true,
+        release: true,
+        platforms: { orderBy: { sortOrder: "asc" } },
+        _count: { select: { views: true, clicks: true } },
+      },
+    });
+  }
+
   async recordSmartLinkView(input: {
     organizationId: string;
     smartLinkId: string;
@@ -154,6 +166,18 @@ export class GrowthRepository {
       where: { organizationId },
       orderBy: { createdAt: "desc" },
       include: { artist: true, release: true },
+    });
+  }
+
+  async findPreSaveById(organizationId: string, id: string) {
+    return prisma.preSaveCampaign.findFirst({
+      where: { id, organizationId },
+      include: {
+        artist: true,
+        release: true,
+        providers: true,
+        _count: { select: { subscribers: true, conversions: true } },
+      },
     });
   }
 

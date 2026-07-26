@@ -5,7 +5,64 @@ import { recommendationService } from "@/features/growth/server/services/recomme
 import { prisma } from "@/server/prisma/prisma";
 import type { FinanceActorContext } from "@/features/finance/server/services/finance-access.service";
 
+export type PublicDiscoverCandidate = {
+  id: string;
+  title: string;
+  primaryGenre: string;
+  liveAt: Date | null;
+  artists: Array<{
+    artist: {
+      id: string;
+      name: string;
+      slug: string;
+    };
+  }>;
+  score: number;
+};
+
 export class DiscoverService {
+  async getPublicCandidates(): Promise<PublicDiscoverCandidate[]> {
+    const candidates = await prisma.release.findMany({
+      where: {
+        status: "LIVE",
+        tracks: { some: {} },
+      },
+      orderBy: { liveAt: "desc" },
+      take: 40,
+      select: {
+        id: true,
+        title: true,
+        primaryGenre: true,
+        liveAt: true,
+        createdAt: true,
+        artists: {
+          orderBy: { sortOrder: "asc" },
+          take: 3,
+          select: { artist: { select: { id: true, name: true, slug: true } } },
+        },
+        tracks: { select: { id: true, title: true, trackNumber: true }, take: 3 },
+        _count: { select: { releaseLikes: true } },
+      },
+    });
+
+    return recommendationService
+      .diversifyResults(
+        candidates.map((candidate) => ({
+          ...candidate,
+          score: recommendationService.scoreCandidate(candidate),
+        })),
+      )
+      .slice(0, 6)
+      .map(({ id, title, primaryGenre, liveAt, artists, score }) => ({
+        id,
+        title,
+        primaryGenre,
+        liveAt: liveAt ?? null,
+        artists,
+        score,
+      }));
+  }
+
   async getCandidates(actor?: FinanceActorContext) {
     const seenTrackIds = actor
       ? (

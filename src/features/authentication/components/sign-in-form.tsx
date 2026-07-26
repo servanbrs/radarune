@@ -33,7 +33,7 @@ export function SignInForm() {
       const result = await authClient.signIn.email(values);
 
       if (result.error) {
-        setRootError(result.error.message ?? "Unable to sign in.");
+        setRootError(result.error.message ?? "Giriş yapılamadı.");
         return;
       }
 
@@ -47,7 +47,7 @@ export function SignInForm() {
       <Field
         error={form.formState.errors.email?.message}
         htmlFor="sign-in-email"
-        label="Work email"
+        label="E-posta"
       >
         <Input
           autoComplete="email"
@@ -60,12 +60,12 @@ export function SignInForm() {
       <Field
         error={form.formState.errors.password?.message}
         htmlFor="sign-in-password"
-        label="Password"
+        label="Şifre"
       >
         <Input
           autoComplete="current-password"
           id="sign-in-password"
-          placeholder="Enter your password"
+          placeholder="Şifrenizi girin"
           type="password"
           {...form.register("password")}
         />
@@ -78,11 +78,11 @@ export function SignInForm() {
       ) : null}
 
       <Button className="mt-2 w-full" disabled={isPending} type="submit">
-        {isPending ? "Signing in..." : "Sign in"}
+        {isPending ? "Giriş yapılıyor..." : "Giriş yap"}
       </Button>
 
       <Link className="text-sm font-medium text-muted hover:text-foreground" href="/sign-up">
-        Need an account? Create one here.
+        Hesabınız yok mu? Kayıt olun.
       </Link>
     </form>
   );

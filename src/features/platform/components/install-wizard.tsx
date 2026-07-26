@@ -37,7 +37,7 @@ export function InstallWizard({ status }: { status: BootstrapStatus }) {
       <div className="mx-auto max-w-5xl">
         <header className="mb-10 flex items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">Radarune setup</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">Radarune kurulumu</p>
             <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em] md:text-5xl">İlk kurulumu tamamlayın.</h1>
             <p className="mt-4 max-w-2xl text-muted">Sistem bağlantılarını kontrol edin, ilk yönetici hesabını oluşturun ve çalışma alanınızı başlatın.</p>
           </div>

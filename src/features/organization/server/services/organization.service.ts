@@ -31,7 +31,7 @@ export class OrganizationService {
 
       return {
         success: false as const,
-        message: firstError ?? "Invalid organization details.",
+        message: firstError ?? "Çalışma alanı bilgileri geçersiz.",
       };
     }
 
@@ -42,7 +42,7 @@ export class OrganizationService {
     if (existingOrganization) {
       return {
         success: false as const,
-        message: "This organization slug is already in use.",
+        message: "Bu çalışma alanı kısa adı zaten kullanılıyor.",
       };
     }
 

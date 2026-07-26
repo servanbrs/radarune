@@ -56,12 +56,12 @@ export function CreateOrganizationForm() {
       <Field
         error={form.formState.errors.name?.message}
         htmlFor="organization-name"
-        label="Organization name"
+        label="Çalışma alanı adı"
       >
         <Input
           autoComplete="organization"
           id="organization-name"
-          placeholder="Northwind Records"
+          placeholder="Radarune Records"
           {...form.register("name", {
             onChange: (event) => {
               const nextName = event.target.value as string;
@@ -82,15 +82,15 @@ export function CreateOrganizationForm() {
 
       <Field
         error={form.formState.errors.slug?.message}
-        hint="Used in internal routing and workspace URLs."
+        hint="Çalışma alanı adreslerinde kullanılacak kısa ad."
         htmlFor="organization-slug"
-        label="Workspace slug"
+        label="Çalışma alanı kısa adı"
       >
         <Input
           autoCapitalize="none"
           autoCorrect="off"
           id="organization-slug"
-          placeholder="northwind-records"
+          placeholder="radarune-records"
           {...form.register("slug", {
             onChange: (event) => {
               form.setValue("slug", normalizeSlug(event.target.value as string), {
@@ -109,7 +109,7 @@ export function CreateOrganizationForm() {
       ) : null}
 
       <Button className="mt-2 w-full" disabled={isPending} type="submit">
-        {isPending ? "Creating workspace..." : "Create workspace"}
+        {isPending ? "Çalışma alanı oluşturuluyor..." : "Çalışma alanı oluştur"}
       </Button>
     </form>
   );

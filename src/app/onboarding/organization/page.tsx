@@ -16,12 +16,12 @@ export default async function OrganizationOnboardingPage() {
 
   return (
     <AuthShell
-      description="Create the first organization workspace. This becomes the tenant boundary for labels, artists, releases, and permissions."
-      eyebrow="Organization setup"
-      footerHref="/dashboard"
-      footerLinkLabel="Go to dashboard"
-      footerText="Already set up?"
-      title="Create your workspace"
+      description="Sanatçı, label, yayın ve dağıtım operasyonlarınızı güvenli bir çalışma alanında başlatın."
+      eyebrow="Çalışma alanı kurulumu"
+      footerHref="/sign-in"
+      footerLinkLabel="Giriş sayfasına dön"
+      footerText="Hesabınız var mı?"
+      title="Çalışma alanınızı oluşturun"
     >
       <CreateOrganizationForm />
     </AuthShell>

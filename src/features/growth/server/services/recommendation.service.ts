@@ -3,6 +3,7 @@ export type RecommendationCandidate = {
   title: string;
   primaryGenre: string;
   createdAt: Date;
+  liveAt?: Date | null;
   tracks: Array<{ id: string; title: string; trackNumber: number }>;
   artists: Array<{ artist: { id: string; name: string; slug: string } }>;
   _count: { releaseLikes: number };

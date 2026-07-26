@@ -6,6 +6,7 @@ import { organizationService } from "@/features/organization/server/services/org
 import { tenantContextService } from "@/features/platform/server/services/tenant-context.service";
 import { siteBuilderService } from "@/features/platform/server/services/site-builder.service";
 import { RadaruneLandingPage } from "@/features/platform/components/radarune-landing-page";
+import { discoverService } from "@/features/growth/server/services/discover.service";
 import { prisma } from "@/server/prisma/prisma";
 
 function renderValue(value: string | null | undefined) {
@@ -17,7 +18,10 @@ export default async function HomePage() {
 
   if (!session) {
     const tenant = await tenantContextService.resolveFromRequest();
-    if (!tenant) return <RadaruneLandingPage />;
+    if (!tenant) {
+      const discoverReleases = await discoverService.getPublicCandidates();
+      return <RadaruneLandingPage discoverReleases={discoverReleases} />;
+    }
     const page = await siteBuilderService.getHomepage(tenant.id);
     const sections = page?.sections.filter((section) => section.active).sort((a, b) => a.sortOrder - b.sortOrder) ?? [];
     const theme = await prisma.themeConfig.findFirst({ where: { organizationId: tenant.id, draft: false } });
