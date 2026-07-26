@@ -9,6 +9,7 @@ import type { FinanceActorContext } from "@/features/finance/server/services/fin
 
 const defaults: Array<{ key: UpdateAdminSettingInput["key"]; value: string | boolean | number }> = [
   { key: "PLATFORM_NAME", value: "Radarune" },
+  { key: "LOGO_URL", value: "" },
   { key: "SUPPORT_EMAIL", value: "support@radarune.com" },
   { key: "DEFAULT_DISTRIBUTION_PROVIDER", value: "INTERNAL" },
   { key: "AUTO_DISTRIBUTION_ENABLED", value: false },
