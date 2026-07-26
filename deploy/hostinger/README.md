@@ -23,6 +23,16 @@ Recommended paths:
 7. Install the Nginx example after replacing certificate paths, then run `nginx -t`.
 8. Run `pm2 startup` and `pm2 save` as the `radarune` user.
 
+For a fresh server, run `first-install.sh` once from the deploy user after the shared env file is complete:
+
+```bash
+REPO_URL=https://github.com/servanbrs/radarunev.git \
+ENV_FILE=/var/www/radarune/shared/.env \
+./deploy/hostinger/first-install.sh
+```
+
+The script clones the complete Git repository, installs dependencies, generates Prisma, validates production env, runs typecheck/lint/tests/build, applies migrations and starts the existing PM2 processes. Then open `/install` to complete the first workspace setup. Never place `.env` in Git.
+
 ## Deploy and rollback
 
 Run `deploy.sh` from a trusted deployment host. It builds in a new release directory, runs checks, applies migrations, switches the `current` symlink only after a successful build, reloads the existing worker processes and checks both health endpoints. It never copies `.env` into Git and does not print secrets.

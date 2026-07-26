@@ -15,8 +15,8 @@ const monoFont = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Radarune",
-  description: "Radarune music distribution platform",
+  title: "Radarune | Müzik operasyon platformu",
+  description: "Sanatçılar ve label ekipleri için release, dağıtım, royalty ve keşif operasyonları.",
 };
 
 export default function RootLayout({
@@ -26,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="tr"
       className={`${headingFont.variable} ${monoFont.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>

@@ -75,6 +75,14 @@ export class OrganizationRepository {
         },
       });
 
+      await tx.installationState.create({
+        data: {
+          organizationId: organization.id,
+          status: "IN_PROGRESS",
+          currentStep: "SETTINGS",
+        },
+      });
+
       return organization;
     });
   }

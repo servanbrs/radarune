@@ -5,6 +5,7 @@ import { authSessionService } from "@/features/authentication/server/services/au
 import { organizationService } from "@/features/organization/server/services/organization.service";
 import { tenantContextService } from "@/features/platform/server/services/tenant-context.service";
 import { siteBuilderService } from "@/features/platform/server/services/site-builder.service";
+import { RadaruneLandingPage } from "@/features/platform/components/radarune-landing-page";
 import { prisma } from "@/server/prisma/prisma";
 
 function renderValue(value: string | null | undefined) {
@@ -16,7 +17,7 @@ export default async function HomePage() {
 
   if (!session) {
     const tenant = await tenantContextService.resolveFromRequest();
-    if (!tenant) redirect("/sign-in");
+    if (!tenant) return <RadaruneLandingPage />;
     const page = await siteBuilderService.getHomepage(tenant.id);
     const sections = page?.sections.filter((section) => section.active).sort((a, b) => a.sortOrder - b.sortOrder) ?? [];
     const theme = await prisma.themeConfig.findFirst({ where: { organizationId: tenant.id, draft: false } });
