@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { socialRepository } from "@/features/growth/server/repositories/social.repository";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function PlaylistsPage() {
   const playlists = await socialRepository.listPublicPlaylists();
   return (
