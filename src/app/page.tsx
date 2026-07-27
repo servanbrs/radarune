@@ -2,7 +2,6 @@
 import { redirect } from "next/navigation";
 import type { CSSProperties } from "react";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
-import { organizationService } from "@/features/organization/server/services/organization.service";
 import { tenantContextService } from "@/features/platform/server/services/tenant-context.service";
 import { siteBuilderService } from "@/features/platform/server/services/site-builder.service";
 import { RadaruneLandingPage } from "@/features/platform/components/radarune-landing-page";
@@ -63,9 +62,5 @@ export default async function HomePage() {
     );
   }
 
-  const organization = await organizationService.getOptionalOrganizationContext(
-    session.user.id,
-  );
-
-  redirect(organization ? "/dashboard" : "/onboarding/organization");
+  redirect("/dashboard");
 }

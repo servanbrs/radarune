@@ -11,11 +11,28 @@ export class OrganizationService {
     return organizationRepository.findPrimaryMembershipByUserId(userId);
   }
 
+  async ensurePersonalOrganizationContext(
+    userId: string,
+    userName: string,
+  ) {
+    const existingOrganization =
+      await this.getOptionalOrganizationContext(userId);
+
+    if (existingOrganization) {
+      return existingOrganization;
+    }
+
+    return organizationRepository.ensurePersonalOrganizationForUser(
+      userId,
+      userName,
+    );
+  }
+
   async getRequiredOrganizationContext(userId: string) {
     const membership = await this.getOptionalOrganizationContext(userId);
 
     if (!membership) {
-      redirect("/onboarding/organization");
+      redirect("/dashboard");
     }
 
     return membership;

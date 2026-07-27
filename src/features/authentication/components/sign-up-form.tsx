@@ -43,7 +43,7 @@ export function SignUpForm() {
         return;
       }
 
-      router.replace("/onboarding/organization");
+      router.replace("/dashboard");
       router.refresh();
     });
   });

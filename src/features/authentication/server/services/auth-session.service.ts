@@ -10,7 +10,7 @@ type DashboardUser = NonNullable<
   Awaited<ReturnType<typeof userAuthRepository.findDashboardUserById>>
 >;
 type DashboardOrganizationContext = Awaited<
-  ReturnType<typeof organizationService.getRequiredOrganizationContext>
+  ReturnType<typeof organizationService.ensurePersonalOrganizationContext>
 >;
 type DashboardSession = NonNullable<Awaited<ReturnType<typeof getSession>>>;
 
@@ -41,14 +41,18 @@ class AuthSessionService {
     user: DashboardUser;
   }> {
     const session = await this.getRequiredSession();
-    const dashboardUser = await userAuthRepository.findDashboardUserById(session.user.id);
-    const organization = await organizationService.getRequiredOrganizationContext(
-      session.user.id,
-    );
+    const dashboardUser =
+      await userAuthRepository.findDashboardUserById(session.user.id);
 
     if (!dashboardUser) {
       redirect("/sign-in");
     }
+
+    const organization =
+      await organizationService.ensurePersonalOrganizationContext(
+        dashboardUser.id,
+        dashboardUser.name,
+      );
 
     return {
       organization,

@@ -12,8 +12,8 @@ export default async function SignUpPage() {
 
   return (
     <AuthShell
-      description="Radarune çalışma alanınızı oluşturun ve müzik dağıtım operasyonunuzu güvenli biçimde başlatın."
-      eyebrow="Platform başlangıcı"
+      description="Radarune hesabınızı oluşturun, yeni müzikleri keşfedin ve sanatçı başvurunuzu yönetin."
+      eyebrow="Radarune üyeliği"
       footerHref="/sign-in"
       footerLinkLabel="Giriş yap"
       footerText="Zaten hesabınız var mı?"
