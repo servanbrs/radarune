@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { releaseValidatorService } from "@/features/releases/server/services/release-validator.service";
 
+const validContributors = [
+  { role: "COMPOSER" },
+  { role: "LYRICIST" },
+];
+
 const validRelease = {
   type: "SINGLE" as const,
   previouslyReleased: false,
@@ -10,9 +15,11 @@ const validRelease = {
   tracks: [
     {
       id: "track_1",
+      instrumental: false,
       previouslyReleased: false,
       isrc: null,
       audioUploadId: "audio_1",
+      contributors: validContributors,
     },
   ],
 };
@@ -43,9 +50,11 @@ describe("releaseValidatorService", () => {
       tracks: [
         {
           id: "track_1",
+          instrumental: false,
           previouslyReleased: true,
           isrc: null,
           audioUploadId: "audio_1",
+          contributors: validContributors,
         },
       ],
     });
@@ -60,14 +69,35 @@ describe("releaseValidatorService", () => {
       tracks: [
         {
           id: "track_1",
+          instrumental: false,
           previouslyReleased: false,
           isrc: null,
           audioUploadId: null,
+          contributors: validContributors,
         },
       ],
     });
 
     expect(issues.some((issue) => issue.code === "ARTWORK_REQUIRED")).toBe(true);
     expect(issues.some((issue) => issue.code === "AUDIO_REQUIRED")).toBe(true);
+  });
+
+  it("besteci ve söz yazarı eksiklerini bildirir", () => {
+    const issues = releaseValidatorService.validateForSubmit({
+      ...validRelease,
+      tracks: [
+        {
+          id: "track_1",
+          instrumental: false,
+          previouslyReleased: false,
+          isrc: null,
+          audioUploadId: "audio_1",
+          contributors: [],
+        },
+      ],
+    });
+
+    expect(issues.some((issue) => issue.code === "COMPOSER_REQUIRED")).toBe(true);
+    expect(issues.some((issue) => issue.code === "LYRICIST_REQUIRED")).toBe(true);
   });
 });

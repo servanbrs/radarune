@@ -76,7 +76,7 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
         <section className="rounded-3xl border border-line bg-surface p-6">
           <h2 className="text-xl font-semibold">Dağıtım</h2>
           <dl className="mt-5 grid gap-4 text-sm">
-            <DetailItem label="Provider" value={release.distributionProvider ?? "INTERNAL"} />
+            <DetailItem label="Dağıtım hizmeti" value="Radarune Dağıtımı" />
             <DetailItem label="Mağazalar" value={release.stores.map((store) => storeLabels[store.storeCode as ReleaseStoreValue] ?? store.storeCode).join(", ") || "Seçilmedi"} />
             <DetailItem label="Bölgeler" value={release.worldwideDistribution ? "Dünya geneli" : release.territories.map((territory) => territory.territoryCode).join(", ")} />
           </dl>
@@ -101,10 +101,9 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
         <h2 className="text-xl font-semibold">Dağıtım durumu</h2>
         <div className="mt-5 divide-y divide-line rounded-2xl border border-line bg-white">
           {deliveries.map((delivery) => (
-            <article className="grid gap-3 px-5 py-4 text-sm md:grid-cols-[0.6fr_0.6fr_1fr]" key={delivery.id}>
-              <span className="font-semibold">{delivery.provider}</span>
-              <span>{delivery.status}</span>
-              <span>{delivery.failureReason ?? delivery.externalReleaseId ?? "Provider yanıtı bekleniyor"}</span>
+            <article className="grid gap-3 px-5 py-4 text-sm md:grid-cols-[0.6fr_1fr]" key={delivery.id}>
+              <span className="font-semibold">{delivery.status}</span>
+              <span>{delivery.failureReason ?? delivery.externalReleaseId ?? "Radarune dağıtım işlemi devam ediyor"}</span>
             </article>
           ))}
           {deliveries.length === 0 ? (

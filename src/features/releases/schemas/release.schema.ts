@@ -1,7 +1,6 @@
 import { z } from "zod";
 import {
   contributorRoleValues,
-  distributionProviderValues,
   releaseArtistRoleValues,
   releaseStoreValues,
   releaseTypeValues,
@@ -71,11 +70,9 @@ export const releaseDraftBaseSchema = z.object({
     upc: upcSchema,
     artists: z.array(releaseArtistInputSchema).min(1, "En az bir yayın sanatçısı seçilmelidir."),
     tracks: z.array(trackInputSchema).default([]),
-    provider: z.enum(distributionProviderValues).optional(),
     stores: z.array(z.enum(releaseStoreValues)).default([]),
     worldwideDistribution: z.boolean().default(true),
     territories: z.array(z.string().trim().length(2, "Bölge kodu ISO-2 formatında olmalıdır.")).default([]),
-    releaseDate: z.coerce.date().optional(),
     presaveEnabled: z.boolean().default(false),
     dolbyAtmosEnabled: z.boolean().default(false),
     contentIdEnabled: z.boolean().default(false),

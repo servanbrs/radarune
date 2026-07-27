@@ -92,6 +92,38 @@ export class ReleaseService {
       await releaseRepository.replaceDistribution(releaseId, parsed.data, tx);
 
       if (parsed.data.tracks) {
+        const incomingTrackIds = parsed.data.tracks.flatMap((track) =>
+          track.id ? [track.id] : [],
+        );
+
+        if (incomingTrackIds.length > 0) {
+          const ownedTrackCount = await tx.track.count({
+            where: {
+              releaseId,
+              id: {
+                in: incomingTrackIds,
+              },
+            },
+          });
+
+          if (ownedTrackCount !== incomingTrackIds.length) {
+            throw new Error("Yayın içindeki parça kimlikleri geçerli değil.");
+          }
+        }
+
+        await tx.track.deleteMany({
+          where: {
+            releaseId,
+            ...(incomingTrackIds.length > 0
+              ? {
+                  id: {
+                    notIn: incomingTrackIds,
+                  },
+                }
+              : {}),
+          },
+        });
+
         for (const track of parsed.data.tracks) {
           await releaseRepository.upsertTrack(
             {
@@ -227,9 +259,13 @@ export class ReleaseService {
       stores: release.stores,
       tracks: release.tracks.map((track) => ({
         id: track.id,
+        instrumental: track.instrumental,
         previouslyReleased: track.previouslyReleased,
         isrc: track.isrc,
         audioUploadId: track.audioUploadId,
+        contributors: track.contributors.map((item) => ({
+          role: item.role,
+        })),
       })),
     });
 
@@ -275,9 +311,13 @@ export class ReleaseService {
         stores: release.stores,
         tracks: release.tracks.map((track) => ({
           id: track.id,
+          instrumental: track.instrumental,
           previouslyReleased: track.previouslyReleased,
           isrc: track.isrc,
           audioUploadId: track.audioUploadId,
+          contributors: track.contributors.map((item) => ({
+            role: item.role,
+          })),
         })),
       });
 

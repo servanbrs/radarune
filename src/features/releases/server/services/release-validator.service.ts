@@ -17,9 +17,13 @@ type ValidationRelease = {
   stores: Array<{ storeCode: string }>;
   tracks: Array<{
     id: string;
+    instrumental: boolean;
     previouslyReleased: boolean;
     isrc: string | null;
     audioUploadId: string | null;
+    contributors: Array<{
+      role: string;
+    }>;
   }>;
 };
 
@@ -131,6 +135,32 @@ export class ReleaseValidatorService {
           step: "tracks",
           code: "ISRC_INVALID",
           message: `${index + 1}. parçanın ISRC biçimi geçerli değil.`,
+          severity: "ERROR",
+          trackId: track.id,
+        });
+      }
+
+      const contributorRoles = new Set(
+        track.contributors.map((contributor) => contributor.role),
+      );
+
+      if (!contributorRoles.has("COMPOSER")) {
+        issues.push({
+          fieldPath: `${prefix}.contributors`,
+          step: "rights",
+          code: "COMPOSER_REQUIRED",
+          message: `${index + 1}. parça için en az bir besteci eklenmelidir.`,
+          severity: "ERROR",
+          trackId: track.id,
+        });
+      }
+
+      if (!track.instrumental && !contributorRoles.has("LYRICIST")) {
+        issues.push({
+          fieldPath: `${prefix}.contributors`,
+          step: "rights",
+          code: "LYRICIST_REQUIRED",
+          message: `${index + 1}. sözlü parça için en az bir söz yazarı eklenmelidir.`,
           severity: "ERROR",
           trackId: track.id,
         });

@@ -253,7 +253,6 @@ export class ReleaseRepository {
         ...(input.originalReleaseDate !== undefined ? { originalReleaseDate: input.originalReleaseDate ?? null } : {}),
         ...(input.previouslyReleased !== undefined ? { previouslyReleased: input.previouslyReleased } : {}),
         ...(input.upc !== undefined ? { upc: input.upc ?? null } : {}),
-        ...(input.provider !== undefined ? { distributionProvider: input.provider ?? null } : {}),
         ...(input.worldwideDistribution !== undefined ? { worldwideDistribution: input.worldwideDistribution } : {}),
         ...(input.presaveEnabled !== undefined ? { presaveEnabled: input.presaveEnabled } : {}),
         ...(input.dolbyAtmosEnabled !== undefined ? { dolbyAtmosEnabled: input.dolbyAtmosEnabled } : {}),
@@ -282,31 +281,6 @@ export class ReleaseRepository {
   }
 
   async replaceDistribution(releaseId: string, input: UpdateReleaseInput, client: DatabaseClient = prisma) {
-    if (input.provider !== undefined) {
-      await client.distributionSelection.upsert({
-        where: {
-          releaseId,
-        },
-        create: {
-          releaseId,
-          provider: input.provider ?? "INTERNAL",
-          releaseDate: input.releaseDate ?? null,
-          worldwideDistribution: input.worldwideDistribution ?? true,
-          presaveEnabled: input.presaveEnabled ?? false,
-          dolbyAtmosEnabled: input.dolbyAtmosEnabled ?? false,
-          contentIdEnabled: input.contentIdEnabled ?? false,
-        },
-        update: {
-          provider: input.provider ?? "INTERNAL",
-          releaseDate: input.releaseDate ?? null,
-          worldwideDistribution: input.worldwideDistribution ?? true,
-          presaveEnabled: input.presaveEnabled ?? false,
-          dolbyAtmosEnabled: input.dolbyAtmosEnabled ?? false,
-          contentIdEnabled: input.contentIdEnabled ?? false,
-        },
-      });
-    }
-
     if (input.stores) {
       await client.releaseStore.deleteMany({ where: { releaseId } });
       await client.releaseStore.createMany({
@@ -357,6 +331,55 @@ export class ReleaseRepository {
         sortOrder: artist.sortOrder,
       })),
     });
+
+    const existingContributorLinks = await client.trackContributor.findMany({
+      where: {
+        trackId: track.id,
+      },
+      select: {
+        contributorId: true,
+      },
+    });
+
+    await client.trackContributor.deleteMany({
+      where: {
+        trackId: track.id,
+      },
+    });
+
+    if (existingContributorLinks.length > 0) {
+      await client.contributor.deleteMany({
+        where: {
+          id: {
+            in: existingContributorLinks.map((item) => item.contributorId),
+          },
+          tracks: {
+            none: {},
+          },
+        },
+      });
+    }
+
+    for (const contributorInput of params.input.contributors) {
+      const contributor = await client.contributor.create({
+        data: {
+          releaseId: params.releaseId,
+          name: contributorInput.name,
+          role: contributorInput.role,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      await client.trackContributor.create({
+        data: {
+          trackId: track.id,
+          contributorId: contributor.id,
+          role: contributorInput.role,
+        },
+      });
+    }
 
     return track;
   }

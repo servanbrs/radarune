@@ -52,6 +52,10 @@ export default async function EditReleasePage({ params }: EditReleasePageProps) 
               role: artist.role,
               sortOrder: artist.sortOrder,
             })),
+            contributors: track.contributors.map((item) => ({
+              name: item.contributor.name,
+              role: item.role,
+            })),
           })),
         }}
         labels={labels.map((label) => ({ id: label.id, name: label.name }))}

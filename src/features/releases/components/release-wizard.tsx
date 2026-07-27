@@ -1,32 +1,54 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Save, Send, Upload } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  Save,
+  Send,
+  Upload,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { useFieldArray, useForm, useWatch } from "react-hook-form";
+import {
+  useFieldArray,
+  useForm,
+  useWatch,
+  type FieldPath,
+} from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
+
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import {
-  distributionProviderValues,
   releaseStoreValues,
   releaseTypeLabels,
   releaseTypeValues,
   storeLabels,
 } from "@/features/releases/constants/release.constants";
-import { updateReleaseSchema } from "@/features/releases/schemas/release.schema";
 import { TrackEditor } from "@/features/releases/components/track-editor";
+import { TrackRightsEditor } from "@/features/releases/components/track-rights-editor";
 import { ValidationSummary } from "@/features/releases/components/validation-summary";
-import { WizardStepNavigation, type WizardStep } from "@/features/releases/components/wizard-step-navigation";
+import {
+  WizardStepNavigation,
+  type WizardStep,
+} from "@/features/releases/components/wizard-step-navigation";
+import { updateReleaseSchema } from "@/features/releases/schemas/release.schema";
 
 type SelectOption = {
   id: string;
   name: string;
+};
+
+type ReleaseIssue = {
+  id?: string;
+  fieldPath: string;
+  message: string;
+  severity: "ERROR" | "WARNING" | "INFO" | "CRITICAL";
 };
 
 type InitialRelease = {
@@ -45,7 +67,7 @@ type InitialRelease = {
   originalReleaseDate: Date | string | null;
   previouslyReleased: boolean;
   upc: string | null;
-  distributionProvider: "ONE_RPM" | "FUGA" | "SYMPHONIC" | "REVELATOR" | "INTERNAL" | null;
+  artworkUploadId?: string | null;
   worldwideDistribution: boolean;
   presaveEnabled: boolean;
   dolbyAtmosEnabled: boolean;
@@ -72,6 +94,7 @@ type InitialRelease = {
     instrumental: boolean;
     previouslyReleased: boolean;
     isrc: string | null;
+    audioUploadId?: string | null;
     lyrics: string | null;
     previewStartSeconds: number | null;
     artists: Array<{
@@ -79,26 +102,56 @@ type InitialRelease = {
       role: "PRIMARY_ARTIST" | "FEATURED_ARTIST" | "REMIXER" | "PRODUCER";
       sortOrder: number;
     }>;
+    contributors?: Array<{
+      name: string;
+      role:
+        | "COMPOSER"
+        | "LYRICIST"
+        | "PRODUCER"
+        | "MIXING_ENGINEER"
+        | "MASTERING_ENGINEER"
+        | "ARRANGER"
+        | "VOCALIST"
+        | "BACKGROUND_VOCALIST"
+        | "GUITARIST"
+        | "BASSIST"
+        | "PIANIST"
+        | "DRUMMER";
+    }>;
   }>;
-  validationIssues: Array<{
-    id: string;
-    fieldPath: string;
-    message: string;
-    severity: "ERROR" | "WARNING" | "INFO" | "CRITICAL";
-  }>;
+  validationIssues: ReleaseIssue[];
 };
 
 export type ReleaseWizardFormValues = z.input<typeof updateReleaseSchema>;
 
-const steps: WizardStep[] = [
-  { id: "type", title: "Yayın türü" },
-  { id: "basic", title: "Temel bilgiler" },
-  { id: "artists", title: "Sanatçılar" },
+type StepId =
+  | "details"
+  | "tracks"
+  | "rights"
+  | "distribution"
+  | "files"
+  | "review";
+
+const steps: Array<WizardStep & { id: StepId }> = [
+  { id: "details", title: "Yayın bilgileri" },
   { id: "tracks", title: "Parçalar" },
-  { id: "contributors", title: "Katkıda bulunanlar" },
+  { id: "rights", title: "Hak sahipleri" },
   { id: "distribution", title: "Dağıtım" },
-  { id: "artwork", title: "Kapak" },
-  { id: "review", title: "Önizleme" },
+  { id: "files", title: "Dosyalar" },
+  { id: "review", title: "Kontrol ve gönder" },
+];
+
+const detailFields: FieldPath<ReleaseWizardFormValues>[] = [
+  "type",
+  "title",
+  "primaryLanguage",
+  "primaryGenre",
+  "copyrightP",
+  "copyrightC",
+  "plannedReleaseDate",
+  "artists",
+  "previouslyReleased",
+  "upc",
 ];
 
 export function ReleaseWizard({
@@ -112,117 +165,149 @@ export function ReleaseWizard({
 }) {
   const router = useRouter();
   const [releaseId, setReleaseId] = useState(initialRelease?.id ?? "");
-  const [currentStep, setCurrentStep] = useState(steps[0]?.id ?? "type");
-  const [issues, setIssues] = useState(initialRelease?.validationIssues ?? []);
+  const [currentStep, setCurrentStep] = useState<StepId>("details");
+  const [maxAccessibleIndex, setMaxAccessibleIndex] = useState(0);
+  const [issues, setIssues] = useState<ReleaseIssue[]>(
+    initialRelease?.validationIssues ?? [],
+  );
+  const [artworkUploaded, setArtworkUploaded] = useState(
+    Boolean(initialRelease?.artworkUploadId),
+  );
+  const [audioUploadedByTrackId, setAudioUploadedByTrackId] = useState<
+    Record<string, boolean>
+  >(() =>
+    Object.fromEntries(
+      (initialRelease?.tracks ?? []).map((track) => [
+        track.id,
+        Boolean(track.audioUploadId),
+      ]),
+    ),
+  );
+  const [persistedTrackIds, setPersistedTrackIds] = useState<string[]>(
+    initialRelease?.tracks.map((track) => track.id) ?? [],
+  );
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<ReleaseWizardFormValues>({
     resolver: zodResolver(updateReleaseSchema),
     defaultValues: toFormDefaults(initialRelease, artists[0]?.id),
+    mode: "onTouched",
   });
 
   const tracks = useFieldArray({
     control: form.control,
     name: "tracks",
   });
+
   const watchedValues = useWatch({
     control: form.control,
   });
 
-  const saveDraft = form.handleSubmit((values) => {
-    startTransition(async () => {
-      const targetReleaseId = await ensureRelease(values);
-      if (!targetReleaseId) {
-        return;
-      }
+  const currentStepIndex = steps.findIndex(
+    (step) => step.id === currentStep,
+  );
 
-      const response = await fetch(`/api/releases/${targetReleaseId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
+  async function validateCurrentStep(step: StepId) {
+    if (step === "details") {
+      const valid = await form.trigger(detailFields, {
+        shouldFocus: true,
       });
-      const result = await response.json();
 
-      if (!response.ok || !result.success) {
-        toast.error(result.message ?? "Taslak kaydedilemedi.");
-        return;
+      const values = form.getValues();
+      if (values.previouslyReleased && !values.upc) {
+        form.setError("upc", {
+          type: "manual",
+          message: "Daha önce dağıtılan yayınlarda UPC zorunludur.",
+        });
+        return false;
       }
 
-      toast.success("Taslak kaydedildi.");
-      router.refresh();
-    });
-  });
-
-  const uploadFile = (kind: "AUDIO" | "ARTWORK", file: File | null, trackId?: string) => {
-    if (!file) {
-      toast.error("Dosya seçilmedi.");
-      return;
+      return valid;
     }
 
-    startTransition(async () => {
-      const targetReleaseId = await ensureRelease(form.getValues());
-      if (!targetReleaseId) {
-        return;
-      }
-
-      const formData = new FormData();
-      formData.set("kind", kind);
-      formData.set("file", file);
-      if (trackId) {
-        formData.set("trackId", trackId);
-      }
-
-      const response = await fetch(`/api/releases/${targetReleaseId}/uploads`, {
-        method: "POST",
-        body: formData,
+    if (step === "tracks") {
+      const valid = await form.trigger("tracks", {
+        shouldFocus: true,
       });
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        toast.error(result.message ?? "Dosya yüklenemedi.");
-        return;
+      if (!valid) {
+        return false;
       }
 
-      toast.success(kind === "ARTWORK" ? "Kapak yüklendi." : "Ses dosyası yüklendi.");
-      router.refresh();
-    });
-  };
+      const values = form.getValues();
+      const trackCount = values.tracks?.length ?? 0;
+      const releaseType = values.type ?? "SINGLE";
 
-  const validateAndSubmit = () => {
-    startTransition(async () => {
-      const targetReleaseId = await ensureRelease(form.getValues());
-      if (!targetReleaseId) {
-        return;
+      if (releaseType === "SINGLE" && trackCount !== 1) {
+        toast.error("Single yayın tam olarak bir parça içermelidir.");
+        return false;
       }
 
-      await saveValues(targetReleaseId, form.getValues());
-      const validateResponse = await fetch(`/api/releases/${targetReleaseId}/validate`, {
-        method: "POST",
+      if (releaseType === "EP" && (trackCount < 2 || trackCount > 6)) {
+        toast.error("EP yayın 2 ile 6 parça arasında olmalıdır.");
+        return false;
+      }
+
+      if (releaseType === "ALBUM" && trackCount < 7) {
+        toast.error("Albüm en az 7 parça içermelidir.");
+        return false;
+      }
+
+      return true;
+    }
+
+    if (step === "rights") {
+      const valid = await form.trigger("tracks", {
+        shouldFocus: true,
       });
-      const validateResult = await validateResponse.json();
-      setIssues(validateResult.data?.issues ?? []);
-
-      if (!validateResponse.ok || !validateResult.success) {
-        toast.error(validateResult.message ?? "Doğrulama hataları var.");
-        return;
+      if (!valid) {
+        return false;
       }
 
-      const submitResponse = await fetch(`/api/releases/${targetReleaseId}/submit`, {
-        method: "POST",
-      });
-      const submitResult = await submitResponse.json();
+      const formTracks = form.getValues("tracks") ?? [];
+      for (const [index, track] of formTracks.entries()) {
+        const roles = new Set(
+          (track.contributors ?? []).map((contributor) => contributor.role),
+        );
 
-      if (!submitResponse.ok || !submitResult.success) {
-        toast.error(submitResult.message ?? "Yayın incelemeye gönderilemedi.");
-        return;
+        if (!roles.has("COMPOSER")) {
+          toast.error(
+            `${index + 1}. parça için en az bir besteci ekleyin.`,
+          );
+          return false;
+        }
+
+        if (!track.instrumental && !roles.has("LYRICIST")) {
+          toast.error(
+            `${index + 1}. sözlü parça için en az bir söz yazarı ekleyin.`,
+          );
+          return false;
+        }
       }
 
-      toast.success("Yayın admin incelemesine gönderildi.");
-      router.push(`/releases/${targetReleaseId}`);
-    });
-  };
+      return true;
+    }
+
+    if (step === "distribution") {
+      const valid = await form.trigger(
+        ["stores", "worldwideDistribution"],
+        { shouldFocus: true },
+      );
+      const stores = form.getValues("stores") ?? [];
+
+      if (stores.length === 0) {
+        form.setError("stores", {
+          type: "manual",
+          message: "En az bir dijital platform seçmelisiniz.",
+        });
+        toast.error("En az bir dijital platform seçmelisiniz.");
+        return false;
+      }
+
+      return valid;
+    }
+
+    return true;
+  }
 
   async function ensureRelease(values: ReleaseWizardFormValues) {
     if (releaseId) {
@@ -246,133 +331,542 @@ export function ReleaseWizard({
         copyrightC: values.copyrightC,
       }),
     });
-    const result = await response.json();
 
+    const result = await response.json();
     if (!response.ok || !result.success) {
       toast.error(result.message ?? "Taslak oluşturulamadı.");
       return "";
     }
 
-    setReleaseId(result.data.id);
-    window.history.replaceState(null, "", `/releases/${result.data.id}/edit`);
-    return result.data.id as string;
+    const createdReleaseId = result.data.id as string;
+    setReleaseId(createdReleaseId);
+    window.history.replaceState(
+      null,
+      "",
+      `/releases/${createdReleaseId}/edit`,
+    );
+    return createdReleaseId;
   }
 
-  async function saveValues(targetReleaseId: string, values: ReleaseWizardFormValues) {
-    await fetch(`/api/releases/${targetReleaseId}`, {
+  async function savePayload(
+    targetReleaseId: string,
+    payload: Record<string, unknown>,
+  ) {
+    const response = await fetch(`/api/releases/${targetReleaseId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(values),
+      body: JSON.stringify(payload),
+    });
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      toast.error(result.message ?? "Taslak kaydedilemedi.");
+      return false;
+    }
+
+    return true;
+  }
+
+  async function saveCurrentStep(step: StepId) {
+    const values = form.getValues();
+    const targetReleaseId = await ensureRelease(values);
+    if (!targetReleaseId) {
+      return false;
+    }
+
+    let payload: Record<string, unknown> = {};
+
+    if (step === "details") {
+      payload = {
+        title: values.title,
+        versionTitle: values.versionTitle,
+        primaryLanguage: values.primaryLanguage,
+        primaryGenre: values.primaryGenre,
+        secondaryGenre: values.secondaryGenre,
+        type: values.type,
+        explicit: values.explicit,
+        labelId: values.labelId,
+        copyrightP: values.copyrightP,
+        copyrightC: values.copyrightC,
+        plannedReleaseDate: values.plannedReleaseDate,
+        originalReleaseDate: values.originalReleaseDate,
+        previouslyReleased: values.previouslyReleased,
+        upc: values.upc,
+        artists: values.artists,
+      };
+    }
+
+    if (step === "tracks" || step === "rights") {
+      payload = {
+        tracks: values.tracks,
+      };
+    }
+
+    if (step === "distribution") {
+      payload = {
+        stores: values.stores,
+        territories: values.territories,
+        worldwideDistribution: values.worldwideDistribution,
+        presaveEnabled: values.presaveEnabled,
+        dolbyAtmosEnabled: values.dolbyAtmosEnabled,
+        contentIdEnabled: values.contentIdEnabled,
+      };
+    }
+
+    if (Object.keys(payload).length === 0) {
+      return true;
+    }
+
+    const saved = await savePayload(targetReleaseId, payload);
+    if (saved && (step === "tracks" || step === "rights")) {
+      await syncReleaseDetail(targetReleaseId);
+    }
+
+    return saved;
+  }
+
+  async function syncReleaseDetail(targetReleaseId: string) {
+    const response = await fetch(`/api/releases/${targetReleaseId}`, {
+      cache: "no-store",
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      toast.error(result.message ?? "Yayın bilgileri yenilenemedi.");
+      return false;
+    }
+
+    const serverTracks = (result.data.tracks ?? []) as Array<{
+      id: string;
+      audioUploadId: string | null;
+    }>;
+
+    setPersistedTrackIds(serverTracks.map((track) => track.id));
+    setArtworkUploaded(Boolean(result.data.artworkUploadId));
+    setAudioUploadedByTrackId(
+      Object.fromEntries(
+        serverTracks.map((track) => [track.id, Boolean(track.audioUploadId)]),
+      ),
+    );
+
+    serverTracks.forEach((track, index) => {
+      form.setValue(`tracks.${index}.id`, track.id, {
+        shouldDirty: false,
+      });
+    });
+
+    return true;
+  }
+
+  async function validateOnServer(targetReleaseId: string) {
+    const response = await fetch(
+      `/api/releases/${targetReleaseId}/validate`,
+      { method: "POST" },
+    );
+    const result = await response.json();
+    setIssues(result.data?.issues ?? []);
+
+    if (!response.ok || !result.success) {
+      toast.error(
+        result.message ?? "Eksik veya hatalı yayın bilgileri bulunuyor.",
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  function runAsync(task: () => Promise<void>) {
+    startTransition(() => {
+      void task();
+    });
+  }
+
+  function handleNext() {
+    runAsync(async () => {
+      const valid = await validateCurrentStep(currentStep);
+      if (!valid) {
+        return;
+      }
+
+      if (currentStep === "files") {
+        const targetReleaseId = await ensureRelease(form.getValues());
+        if (!targetReleaseId) {
+          return;
+        }
+
+        const serverValid = await validateOnServer(targetReleaseId);
+        if (!serverValid) {
+          return;
+        }
+      } else {
+        const saved = await saveCurrentStep(currentStep);
+        if (!saved) {
+          return;
+        }
+      }
+
+      const nextIndex = Math.min(currentStepIndex + 1, steps.length - 1);
+      setMaxAccessibleIndex((current) => Math.max(current, nextIndex));
+      setCurrentStep(steps[nextIndex]?.id ?? currentStep);
+      router.refresh();
+    });
+  }
+
+  function saveDraft() {
+    runAsync(async () => {
+      const valid = await validateCurrentStep(currentStep);
+      if (!valid) {
+        return;
+      }
+
+      const saved = await saveCurrentStep(currentStep);
+      if (!saved) {
+        return;
+      }
+
+      toast.success("Taslak kaydedildi.");
+      router.refresh();
+    });
+  }
+
+  function uploadFile(
+    kind: "AUDIO" | "ARTWORK",
+    file: File | null,
+    trackIndex?: number,
+  ) {
+    if (!file) {
+      toast.error("Dosya seçilmedi.");
+      return;
+    }
+
+    runAsync(async () => {
+      const targetReleaseId = await ensureRelease(form.getValues());
+      if (!targetReleaseId) {
+        return;
+      }
+
+      let trackId =
+        trackIndex === undefined ? undefined : persistedTrackIds[trackIndex];
+
+      if (kind === "AUDIO" && !trackId && trackIndex !== undefined) {
+        const synced = await syncReleaseDetail(targetReleaseId);
+        if (!synced) {
+          return;
+        }
+
+        const currentTracks = form.getValues("tracks") as
+          | Array<{ id?: string }>
+          | undefined;
+        trackId = currentTracks?.[trackIndex]?.id;
+      }
+
+      if (kind === "AUDIO" && !trackId) {
+        toast.error("Parçayı önce kaydedin, ardından ses dosyasını yükleyin.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.set("kind", kind);
+      formData.set("file", file);
+      if (trackId) {
+        formData.set("trackId", trackId);
+      }
+
+      const response = await fetch(
+        `/api/releases/${targetReleaseId}/uploads`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        toast.error(result.message ?? "Dosya yüklenemedi.");
+        return;
+      }
+
+      if (kind === "ARTWORK") {
+        setArtworkUploaded(true);
+        toast.success("Kapak görseli yüklendi.");
+      } else if (trackId) {
+        setAudioUploadedByTrackId((current) => ({
+          ...current,
+          [trackId]: true,
+        }));
+        toast.success("Ses dosyası yüklendi.");
+      }
+
+      router.refresh();
+    });
+  }
+
+  function submitForReview() {
+    runAsync(async () => {
+      const targetReleaseId = await ensureRelease(form.getValues());
+      if (!targetReleaseId) {
+        return;
+      }
+
+      const serverValid = await validateOnServer(targetReleaseId);
+      if (!serverValid) {
+        return;
+      }
+
+      const response = await fetch(
+        `/api/releases/${targetReleaseId}/submit`,
+        { method: "POST" },
+      );
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        setIssues(result.data?.issues ?? issues);
+        toast.error(
+          result.message ?? "Yayın incelemeye gönderilemedi.",
+        );
+        return;
+      }
+
+      toast.success("Yayın Radarune incelemesine gönderildi.");
+      router.push(`/releases/${targetReleaseId}`);
+      router.refresh();
     });
   }
 
   return (
-    <form className="space-y-8" onSubmit={saveDraft}>
-      <WizardStepNavigation currentStep={currentStep} onSelect={setCurrentStep} steps={steps} />
+    <form
+      className="min-w-0 space-y-6"
+      onSubmit={(event) => event.preventDefault()}
+    >
+      <WizardStepNavigation
+        currentStep={currentStep}
+        maxAccessibleIndex={maxAccessibleIndex}
+        onSelect={(step) => setCurrentStep(step as StepId)}
+        steps={steps}
+      />
 
-      <section className="rounded-3xl border border-line bg-surface p-6 shadow-sm">
-        {currentStep === "type" ? (
-          <div className="grid gap-4 md:grid-cols-3">
-            {releaseTypeValues.map((type) => (
-              <label className="rounded-2xl border border-line bg-white p-5 text-sm font-semibold" key={type}>
-                <input className="mr-2" type="radio" value={type} {...form.register("type")} />
-                {releaseTypeLabels[type]}
-              </label>
-            ))}
-          </div>
-        ) : null}
-
-        {currentStep === "basic" ? (
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field htmlFor="title" label="Yayın adı" error={form.formState.errors.title?.message}>
-              <Input id="title" {...form.register("title")} />
-            </Field>
-            <Field htmlFor="versionTitle" label="Sürüm adı">
-              <Input id="versionTitle" {...form.register("versionTitle")} />
-            </Field>
-            <Field htmlFor="primaryLanguage" label="Birincil dil">
-              <Input id="primaryLanguage" {...form.register("primaryLanguage")} />
-            </Field>
-            <Field htmlFor="primaryGenre" label="Ana tür">
-              <Input id="primaryGenre" {...form.register("primaryGenre")} />
-            </Field>
-            <Field htmlFor="secondaryGenre" label="Alt tür">
-              <Input id="secondaryGenre" {...form.register("secondaryGenre")} />
-            </Field>
-            <Field htmlFor="labelId" label="Plak şirketi">
-              <Select id="labelId" {...form.register("labelId")}>
-                <option value="">Label seçilmedi</option>
-                {labels.map((label) => (
-                  <option key={label.id} value={label.id}>
-                    {label.name}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <Field htmlFor="copyrightP" label="P telif bilgisi">
-              <Input id="copyrightP" {...form.register("copyrightP")} />
-            </Field>
-            <Field htmlFor="copyrightC" label="C telif bilgisi">
-              <Input id="copyrightC" {...form.register("copyrightC")} />
-            </Field>
-            <Field htmlFor="plannedReleaseDate" label="Planlanan yayın tarihi">
-              <Input id="plannedReleaseDate" type="date" {...form.register("plannedReleaseDate")} />
-            </Field>
-            <Field htmlFor="originalReleaseDate" label="Orijinal yayın tarihi">
-              <Input id="originalReleaseDate" type="date" {...form.register("originalReleaseDate")} />
-            </Field>
-            <Field htmlFor="upc" label="UPC">
-              <Input id="upc" {...form.register("upc")} />
-            </Field>
-            <div className="flex flex-col justify-end gap-3 pb-5">
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input type="checkbox" {...form.register("explicit")} />
-                Explicit içerik
-              </label>
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input type="checkbox" {...form.register("previouslyReleased")} />
-                Daha önce dağıtıldı
-              </label>
+      <section className="min-w-0 rounded-3xl border border-line bg-surface p-4 shadow-sm sm:p-6">
+        {currentStep === "details" ? (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold">Yayın bilgileri</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                Yayının temel metadata bilgilerini ve yayın adına işlem
+                yapacağınız sanatçıyı seçin.
+              </p>
             </div>
-          </div>
-        ) : null}
 
-        {currentStep === "artists" ? (
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field htmlFor="releasePrimaryArtist" label="Primary artist">
-              <Select id="releasePrimaryArtist" {...form.register("artists.0.artistId")}>
-                <option value="">Sanatçı seç</option>
-                {artists.map((artist) => (
-                  <option key={artist.id} value={artist.id}>
-                    {artist.name}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <input type="hidden" value="PRIMARY_ARTIST" {...form.register("artists.0.role")} />
-            <input type="hidden" value={0} {...form.register("artists.0.sortOrder", { valueAsNumber: true })} />
+            <div className="grid gap-4 md:grid-cols-3">
+              {releaseTypeValues.map((type) => (
+                <label
+                  className="rounded-2xl border border-line bg-white p-5 text-sm font-semibold"
+                  key={type}
+                >
+                  <input
+                    className="mr-2"
+                    type="radio"
+                    value={type}
+                    {...form.register("type")}
+                  />
+                  {releaseTypeLabels[type]}
+                </label>
+              ))}
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field
+                error={form.formState.errors.title?.message}
+                htmlFor="title"
+                label="Yayın adı"
+              >
+                <Input id="title" {...form.register("title")} />
+              </Field>
+
+              <Field htmlFor="versionTitle" label="Sürüm adı">
+                <Input
+                  id="versionTitle"
+                  placeholder="Remix, Acoustic gibi — yoksa boş bırakın"
+                  {...form.register("versionTitle")}
+                />
+              </Field>
+
+              <Field
+                error={form.formState.errors.primaryLanguage?.message}
+                htmlFor="primaryLanguage"
+                label="Birincil dil"
+              >
+                <Input
+                  id="primaryLanguage"
+                  placeholder="tr"
+                  {...form.register("primaryLanguage")}
+                />
+              </Field>
+
+              <Field
+                error={form.formState.errors.primaryGenre?.message}
+                htmlFor="primaryGenre"
+                label="Ana tür"
+              >
+                <Input
+                  id="primaryGenre"
+                  placeholder="Pop, Rap, Elektronik..."
+                  {...form.register("primaryGenre")}
+                />
+              </Field>
+
+              <Field htmlFor="secondaryGenre" label="Alt tür">
+                <Input
+                  id="secondaryGenre"
+                  {...form.register("secondaryGenre")}
+                />
+              </Field>
+
+              <Field htmlFor="labelId" label="Label / şirket">
+                <Select id="labelId" {...form.register("labelId")}>
+                  <option value="">Bağımsız yayın</option>
+                  {labels.map((label) => (
+                    <option key={label.id} value={label.id}>
+                      {label.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+
+              <Field
+                error={form.formState.errors.artists?.message}
+                htmlFor="releasePrimaryArtist"
+                label="Ana sanatçı"
+              >
+                <Select
+                  id="releasePrimaryArtist"
+                  {...form.register("artists.0.artistId")}
+                >
+                  <option value="">Sanatçı seçin</option>
+                  {artists.map((artist) => (
+                    <option key={artist.id} value={artist.id}>
+                      {artist.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <input
+                type="hidden"
+                value="PRIMARY_ARTIST"
+                {...form.register("artists.0.role")}
+              />
+              <input
+                type="hidden"
+                value={0}
+                {...form.register("artists.0.sortOrder", {
+                  valueAsNumber: true,
+                })}
+              />
+
+              <Field
+                error={form.formState.errors.copyrightP?.message}
+                hint="Örnek: ℗ 2026 Blaa Records"
+                htmlFor="copyrightP"
+                label="Ses kaydı hakkı (℗)"
+              >
+                <Input id="copyrightP" {...form.register("copyrightP")} />
+              </Field>
+
+              <Field
+                error={form.formState.errors.copyrightC?.message}
+                hint="Örnek: © 2026 Blaa Records"
+                htmlFor="copyrightC"
+                label="Telif hakkı (©)"
+              >
+                <Input id="copyrightC" {...form.register("copyrightC")} />
+              </Field>
+
+              <Field
+                error={form.formState.errors.plannedReleaseDate?.message}
+                htmlFor="plannedReleaseDate"
+                label="Planlanan yayın tarihi"
+              >
+                <Input
+                  id="plannedReleaseDate"
+                  type="date"
+                  {...form.register("plannedReleaseDate")}
+                />
+              </Field>
+
+              <Field
+                htmlFor="originalReleaseDate"
+                label="İlk yayın tarihi"
+              >
+                <Input
+                  id="originalReleaseDate"
+                  type="date"
+                  {...form.register("originalReleaseDate")}
+                />
+              </Field>
+
+              <div className="rounded-2xl border border-line bg-white p-4 md:col-span-2">
+                <label className="flex items-start gap-3 text-sm font-medium">
+                  <input
+                    className="mt-1"
+                    type="checkbox"
+                    {...form.register("previouslyReleased")}
+                  />
+                  <span>
+                    <strong className="block">Bu yayın daha önce dağıtıldı</strong>
+                    <span className="mt-1 block text-xs font-normal text-muted">
+                      İşaretlerseniz mevcut UPC ve parça ISRC kodları zorunlu olur.
+                    </span>
+                  </span>
+                </label>
+              </div>
+
+              {watchedValues.previouslyReleased ? (
+                <Field
+                  error={form.formState.errors.upc?.message}
+                  htmlFor="upc"
+                  label="Mevcut UPC / EAN"
+                >
+                  <Input
+                    id="upc"
+                    inputMode="numeric"
+                    placeholder="12 veya 13 hane"
+                    {...form.register("upc")}
+                  />
+                </Field>
+              ) : (
+                <div className="rounded-2xl border border-line bg-white p-4 text-sm">
+                  <p className="font-semibold">UPC işlemi</p>
+                  <p className="mt-1 text-muted">
+                    Yeni yayın için gerekli kod Radarune dağıtım sürecinde
+                    atanabilir.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         ) : null}
 
         {currentStep === "tracks" ? (
           <div className="space-y-5">
+            <div>
+              <h2 className="text-xl font-semibold">Parçalar</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                Parça metadata bilgilerini girin. Daha önce dağıtılmış
+                parçalarda mevcut ISRC kodu zorunludur.
+              </p>
+            </div>
+
             {tracks.fields.map((field, index) => (
-              <div className="space-y-3" key={field.id}>
-                <TrackEditor artists={artists} index={index} onRemove={() => tracks.remove(index)} register={form.register} />
-                {initialRelease?.tracks[index]?.id ? (
-                  <Field htmlFor={`audio-${index}`} label="Ses dosyası">
-                    <Input
-                      accept=".wav,.flac,audio/wav,audio/flac"
-                      id={`audio-${index}`}
-                      onChange={(event) => uploadFile("AUDIO", event.target.files?.[0] ?? null, initialRelease.tracks[index]?.id)}
-                      type="file"
-                    />
-                  </Field>
-                ) : null}
-              </div>
+              <TrackEditor
+                artists={artists}
+                index={index}
+                key={field.id}
+                onRemove={() => tracks.remove(index)}
+                register={form.register}
+              />
             ))}
+
             <Button
               onClick={() =>
                 tracks.append({
@@ -387,7 +881,13 @@ export function ReleaseWizard({
                   isrc: "",
                   lyrics: "",
                   previewStartSeconds: 0,
-                  artists: [{ artistId: artists[0]?.id ?? "", role: "PRIMARY_ARTIST", sortOrder: 0 }],
+                  artists: [
+                    {
+                      artistId: artists[0]?.id ?? "",
+                      role: "PRIMARY_ARTIST",
+                      sortOrder: 0,
+                    },
+                  ],
                   contributors: [],
                 })
               }
@@ -399,99 +899,337 @@ export function ReleaseWizard({
           </div>
         ) : null}
 
-        {currentStep === "contributors" ? (
-          <div className="space-y-4">
-            <p className="text-sm text-muted">
-              Katkıda bulunanlar parça bazında kaydedilir. Parça düzenleyicisindeki contributor alanları API tarafından doğrulanır.
-            </p>
-            <Field htmlFor="contributorNote" label="İç not">
-              <Textarea id="contributorNote" disabled value="Contributor rolleri: composer, lyricist, producer ve teknik ekip rolleri desteklenir." />
-            </Field>
+        {currentStep === "rights" ? (
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-xl font-semibold">Hak sahipleri</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                Besteci, söz yazarı ve prodüksiyon katkılarını parça bazında
+                eksiksiz girin.
+              </p>
+            </div>
+
+            {(form.getValues("tracks") ?? []).map((track, index) => (
+              <TrackRightsEditor
+                control={form.control}
+                index={index}
+                key={track.id ?? `${track.trackNumber}-${index}`}
+                register={form.register}
+              />
+            ))}
           </div>
         ) : null}
 
         {currentStep === "distribution" ? (
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field htmlFor="provider" label="Dağıtım sağlayıcısı">
-              <Select id="provider" {...form.register("provider")}>
-                {distributionProviderValues.map((provider) => (
-                  <option key={provider} value={provider}>
-                    {provider}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <Field htmlFor="releaseDate" label="Dağıtım yayın tarihi">
-              <Input id="releaseDate" type="date" {...form.register("releaseDate")} />
-            </Field>
-            <div className="md:col-span-2">
-              <p className="mb-3 text-sm font-semibold">Mağazalar</p>
-              <div className="grid gap-3 md:grid-cols-3">
+          <div className="space-y-6">
+            <div className="rounded-2xl border border-accent/25 bg-accent/5 p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
+                Dağıtım hizmeti
+              </p>
+              <h2 className="mt-2 text-xl font-semibold">Radarune Dağıtımı</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                Teknik dağıtım sağlayıcısı Radarune yönetimi tarafından yayın
+                uygunluğu ve anlaşmalara göre belirlenir.
+              </p>
+            </div>
+
+            <div>
+              <p className="mb-3 text-sm font-semibold">Dijital platformlar</p>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {releaseStoreValues.map((store) => (
-                  <label className="flex items-center gap-2 rounded-2xl border border-line bg-white px-4 py-3 text-sm" key={store}>
-                    <input type="checkbox" value={store} {...form.register("stores")} />
+                  <label
+                    className="flex items-center gap-2 rounded-2xl border border-line bg-white px-4 py-3 text-sm"
+                    key={store}
+                  >
+                    <input
+                      type="checkbox"
+                      value={store}
+                      {...form.register("stores")}
+                    />
                     {storeLabels[store]}
                   </label>
                 ))}
               </div>
+              {form.formState.errors.stores?.message ? (
+                <p className="mt-2 text-xs text-danger">
+                  {form.formState.errors.stores.message}
+                </p>
+              ) : null}
             </div>
-            <label className="flex items-center gap-2 text-sm font-medium">
-              <input type="checkbox" {...form.register("worldwideDistribution")} />
-              Dünya geneli dağıtım
-            </label>
-            <label className="flex items-center gap-2 text-sm font-medium">
-              <input type="checkbox" {...form.register("presaveEnabled")} />
-              Pre-save açık
-            </label>
-            <label className="flex items-center gap-2 text-sm font-medium">
-              <input type="checkbox" {...form.register("dolbyAtmosEnabled")} />
-              Dolby Atmos
-            </label>
-            <label className="flex items-center gap-2 text-sm font-medium">
-              <input type="checkbox" {...form.register("contentIdEnabled")} />
-              YouTube Content ID
-            </label>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="flex items-start gap-3 rounded-2xl border border-line bg-white p-4 text-sm font-medium">
+                <input
+                  className="mt-1"
+                  type="checkbox"
+                  {...form.register("worldwideDistribution")}
+                />
+                <span>
+                  <strong className="block">Dünya geneli dağıtım</strong>
+                  <span className="mt-1 block text-xs font-normal text-muted">
+                    Uygun olan tüm ülke ve bölgelerde yayınlayın.
+                  </span>
+                </span>
+              </label>
+
+              <label className="flex items-start gap-3 rounded-2xl border border-line bg-white p-4 text-sm font-medium">
+                <input
+                  className="mt-1"
+                  type="checkbox"
+                  {...form.register("presaveEnabled")}
+                />
+                <span>
+                  <strong className="block">Pre-save kampanyası</strong>
+                  <span className="mt-1 block text-xs font-normal text-muted">
+                    Yayın öncesi takipçi ve dinleyici toplayın.
+                  </span>
+                </span>
+              </label>
+
+              <label className="flex items-start gap-3 rounded-2xl border border-line bg-white p-4 text-sm font-medium">
+                <input
+                  className="mt-1"
+                  type="checkbox"
+                  {...form.register("dolbyAtmosEnabled")}
+                />
+                <span>
+                  <strong className="block">Dolby Atmos</strong>
+                  <span className="mt-1 block text-xs font-normal text-muted">
+                    Uyumlu teslim dosyası ayrıca kontrol edilir.
+                  </span>
+                </span>
+              </label>
+
+              <label className="flex items-start gap-3 rounded-2xl border border-line bg-white p-4 text-sm font-medium">
+                <input
+                  className="mt-1"
+                  type="checkbox"
+                  {...form.register("contentIdEnabled")}
+                />
+                <span>
+                  <strong className="block">YouTube Content ID başvurusu</strong>
+                  <span className="mt-1 block text-xs font-normal text-muted">
+                    Hak sahipliği uygunluğu inceleme sırasında doğrulanır.
+                  </span>
+                </span>
+              </label>
+            </div>
           </div>
         ) : null}
 
-        {currentStep === "artwork" ? (
-          <div className="space-y-4">
-            <Field htmlFor="artwork" label="Kapak görseli" hint="JPG veya PNG, kare, en az 3000 x 3000 piksel, en fazla 20 MB.">
-              <Input accept=".jpg,.jpeg,.png,image/jpeg,image/png" id="artwork" onChange={(event) => uploadFile("ARTWORK", event.target.files?.[0] ?? null)} type="file" />
-            </Field>
+        {currentStep === "files" ? (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold">Kapak ve ses dosyaları</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                Kapak görselini ve her parça için kayıpsız ses dosyasını
+                yükleyin.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-line bg-white p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="font-semibold">Kapak görseli</p>
+                  <p className="mt-1 text-xs text-muted">
+                    JPG veya PNG, kare, en az 3000 × 3000 piksel, en fazla 20 MB.
+                  </p>
+                </div>
+                <StatusPill ready={artworkUploaded} />
+              </div>
+
+              <Input
+                accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                className="mt-4"
+                id="artwork"
+                onChange={(event) =>
+                  uploadFile(
+                    "ARTWORK",
+                    event.target.files?.[0] ?? null,
+                  )
+                }
+                type="file"
+              />
+            </div>
+
+            <div className="grid gap-4">
+              {(form.getValues("tracks") ?? []).map((track, index) => {
+                const trackId = persistedTrackIds[index];
+                const uploaded = trackId
+                  ? Boolean(audioUploadedByTrackId[trackId])
+                  : false;
+
+                return (
+                  <div
+                    className="rounded-2xl border border-line bg-white p-5"
+                    key={track.id ?? `${track.trackNumber}-${index}`}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="font-semibold">
+                          {index + 1}. {track.title || "İsimsiz parça"}
+                        </p>
+                        <p className="mt-1 text-xs text-muted">
+                          WAV veya FLAC, kayıpsız master dosyası.
+                        </p>
+                      </div>
+                      <StatusPill ready={uploaded} />
+                    </div>
+
+                    <Input
+                      accept=".wav,.flac,audio/wav,audio/flac"
+                      className="mt-4"
+                      id={`audio-${index}`}
+                      onChange={(event) =>
+                        uploadFile(
+                          "AUDIO",
+                          event.target.files?.[0] ?? null,
+                          index,
+                        )
+                      }
+                      type="file"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+
+            {issues.length > 0 ? <ValidationSummary issues={issues} /> : null}
           </div>
         ) : null}
 
         {currentStep === "review" ? (
-          <div className="space-y-5">
-            <ValidationSummary issues={issues} />
-            <div className="grid gap-4 text-sm md:grid-cols-3">
-              <SummaryItem label="Yayın" value={asDisplayString(watchedValues.title)} />
-              <SummaryItem label="Tür" value={releaseTypeLabels[watchedValues.type ?? "SINGLE"]} />
-              <SummaryItem label="Parça sayısı" value={String(watchedValues.tracks?.length ?? 0)} />
-              <SummaryItem label="Provider" value={asDisplayString(watchedValues.provider ?? "INTERNAL")} />
-              <SummaryItem label="UPC" value={asDisplayString(watchedValues.upc) || "Sağlayıcı atayabilir"} />
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold">Kontrol ve gönder</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                Yayınınız Radarune ekibi tarafından incelendikten sonra uygun
+                dağıtım kanalına yönlendirilir.
+              </p>
+            </div>
+
+            <div className="grid gap-4 text-sm md:grid-cols-2 xl:grid-cols-4">
+              <SummaryItem
+                label="Yayın"
+                value={asDisplayString(watchedValues.title)}
+              />
+              <SummaryItem
+                label="Tür"
+                value={releaseTypeLabels[watchedValues.type ?? "SINGLE"]}
+              />
+              <SummaryItem
+                label="Parça sayısı"
+                value={String(watchedValues.tracks?.length ?? 0)}
+              />
+              <SummaryItem label="Dağıtım" value="Radarune Dağıtımı" />
+              <SummaryItem
+                label="UPC"
+                value={
+                  asDisplayString(watchedValues.upc) ||
+                  "Yeni yayın için Radarune atayabilir"
+                }
+              />
+              <SummaryItem
+                label="Platform sayısı"
+                value={String(watchedValues.stores?.length ?? 0)}
+              />
+              <SummaryItem
+                label="Bölge"
+                value={
+                  watchedValues.worldwideDistribution
+                    ? "Dünya geneli"
+                    : "Seçili bölgeler"
+                }
+              />
               <SummaryItem label="Durum" value="Taslak" />
             </div>
-            <Button disabled={isPending} onClick={validateAndSubmit} type="button">
+
+            <ValidationSummary issues={issues} />
+
+            <div className="rounded-2xl border border-line bg-white p-5">
+              <div className="flex gap-3">
+                <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-accent" />
+                <div>
+                  <p className="font-semibold">Gönderime hazır</p>
+                  <p className="mt-1 text-sm leading-6 text-muted">
+                    Gönderimden sonra yayın kilitlenir. Radarune ekibi gerekli
+                    görürse revizyon talebi gönderir.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <Button
+              disabled={isPending}
+              onClick={submitForReview}
+              type="button"
+            >
               <Send className="mr-2 size-4" />
-              İncelemeye gönder
+              Radarune incelemesine gönder
             </Button>
           </div>
         ) : null}
       </section>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Button disabled={isPending} type="submit" variant="secondary">
-          <Save className="mr-2 size-4" />
-          Taslağı kaydet
-        </Button>
-        <Button disabled={isPending} onClick={() => setCurrentStep(nextStep(currentStep))} type="button">
-          <Upload className="mr-2 size-4" />
-          Sonraki adım
-        </Button>
+        <div className="flex flex-wrap gap-3">
+          {currentStepIndex > 0 ? (
+            <Button
+              disabled={isPending}
+              onClick={() =>
+                setCurrentStep(
+                  steps[Math.max(currentStepIndex - 1, 0)]?.id ?? "details",
+                )
+              }
+              type="button"
+              variant="ghost"
+            >
+              <ArrowLeft className="mr-2 size-4" />
+              Geri
+            </Button>
+          ) : null}
+
+          {currentStep !== "files" && currentStep !== "review" ? (
+            <Button
+              disabled={isPending}
+              onClick={saveDraft}
+              type="button"
+              variant="secondary"
+            >
+              <Save className="mr-2 size-4" />
+              Taslağı kaydet
+            </Button>
+          ) : null}
+        </div>
+
+        {currentStep !== "review" ? (
+          <Button disabled={isPending} onClick={handleNext} type="button">
+            {currentStep === "files" ? (
+              <CheckCircle2 className="mr-2 size-4" />
+            ) : currentStep === "distribution" ? (
+              <Upload className="mr-2 size-4" />
+            ) : (
+              <ArrowRight className="mr-2 size-4" />
+            )}
+            {currentStep === "files" ? "Dosyaları doğrula" : "Kaydet ve ilerle"}
+          </Button>
+        ) : null}
       </div>
     </form>
+  );
+}
+
+function StatusPill({ ready }: { ready: boolean }) {
+  return (
+    <span
+      className={
+        ready
+          ? "rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent"
+          : "rounded-full bg-warning/10 px-3 py-1 text-xs font-semibold text-warning"
+      }
+    >
+      {ready ? "Yüklendi" : "Zorunlu"}
+    </span>
   );
 }
 
@@ -499,18 +1237,13 @@ function SummaryItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-line bg-white p-4">
       <p className="text-xs font-semibold uppercase text-muted">{label}</p>
-      <p className="mt-2 font-semibold">{value}</p>
+      <p className="mt-2 break-words font-semibold">{value}</p>
     </div>
   );
 }
 
 function asDisplayString(value: unknown) {
   return typeof value === "string" ? value : "";
-}
-
-function nextStep(currentStep: string) {
-  const index = steps.findIndex((step) => step.id === currentStep);
-  return steps[Math.min(index + 1, steps.length - 1)]?.id ?? currentStep;
 }
 
 function toDateInput(value: Date | string | null | undefined) {
@@ -521,7 +1254,10 @@ function toDateInput(value: Date | string | null | undefined) {
   return new Date(value).toISOString().slice(0, 10);
 }
 
-function toFormDefaults(initialRelease: InitialRelease | null | undefined, fallbackArtistId: string | undefined): ReleaseWizardFormValues {
+function toFormDefaults(
+  initialRelease: InitialRelease | null | undefined,
+  fallbackArtistId: string | undefined,
+): ReleaseWizardFormValues {
   return {
     title: initialRelease?.title ?? "",
     versionTitle: initialRelease?.versionTitle ?? "",
@@ -539,7 +1275,13 @@ function toFormDefaults(initialRelease: InitialRelease | null | undefined, fallb
     upc: initialRelease?.upc ?? "",
     artists: initialRelease?.artists.length
       ? initialRelease.artists
-      : [{ artistId: fallbackArtistId ?? "", role: "PRIMARY_ARTIST", sortOrder: 0 }],
+      : [
+          {
+            artistId: fallbackArtistId ?? "",
+            role: "PRIMARY_ARTIST",
+            sortOrder: 0,
+          },
+        ],
     tracks: initialRelease?.tracks.length
       ? initialRelease.tracks.map((track) => ({
           id: track.id,
@@ -556,8 +1298,14 @@ function toFormDefaults(initialRelease: InitialRelease | null | undefined, fallb
           previewStartSeconds: track.previewStartSeconds ?? 0,
           artists: track.artists.length
             ? track.artists
-            : [{ artistId: fallbackArtistId ?? "", role: "PRIMARY_ARTIST", sortOrder: 0 }],
-          contributors: [],
+            : [
+                {
+                  artistId: fallbackArtistId ?? "",
+                  role: "PRIMARY_ARTIST",
+                  sortOrder: 0,
+                },
+              ],
+          contributors: track.contributors ?? [],
         }))
       : [
           {
@@ -572,15 +1320,25 @@ function toFormDefaults(initialRelease: InitialRelease | null | undefined, fallb
             isrc: "",
             lyrics: "",
             previewStartSeconds: 0,
-            artists: [{ artistId: fallbackArtistId ?? "", role: "PRIMARY_ARTIST", sortOrder: 0 }],
+            artists: [
+              {
+                artistId: fallbackArtistId ?? "",
+                role: "PRIMARY_ARTIST",
+                sortOrder: 0,
+              },
+            ],
             contributors: [],
           },
         ],
-    provider: initialRelease?.distributionProvider ?? "INTERNAL",
-    stores: initialRelease?.stores.map((store) => store.storeCode as (typeof releaseStoreValues)[number]) ?? ["SPOTIFY", "APPLE_MUSIC"],
+    stores:
+      initialRelease?.stores.map(
+        (store) => store.storeCode as (typeof releaseStoreValues)[number],
+      ) ?? ["SPOTIFY", "APPLE_MUSIC", "YOUTUBE_MUSIC"],
     worldwideDistribution: initialRelease?.worldwideDistribution ?? true,
-    territories: initialRelease?.territories.map((territory) => territory.territoryCode) ?? [],
-    releaseDate: "",
+    territories:
+      initialRelease?.territories.map(
+        (territory) => territory.territoryCode,
+      ) ?? [],
     presaveEnabled: initialRelease?.presaveEnabled ?? false,
     dolbyAtmosEnabled: initialRelease?.dolbyAtmosEnabled ?? false,
     contentIdEnabled: initialRelease?.contentIdEnabled ?? false,

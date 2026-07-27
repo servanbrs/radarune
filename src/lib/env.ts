@@ -3,6 +3,10 @@ import { z } from "zod";
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   DATABASE_URL: z.string().min(1),
+  DATABASE_CONNECTION_LIMIT: z.coerce.number().int().min(1).max(50).default(5),
+  DATABASE_ACQUIRE_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(120_000).default(30_000),
+  DATABASE_CONNECT_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(120_000).default(10_000),
+  DATABASE_IDLE_TIMEOUT_SECONDS: z.coerce.number().int().min(10).max(3_600).default(300),
   BETTER_AUTH_SECRET: z.string().min(32),
   BETTER_AUTH_URL: z.url(),
   NEXT_PUBLIC_APP_URL: z.url(),
@@ -63,6 +67,10 @@ const envSchema = z.object({
 const parsedEnv = envSchema.safeParse({
   NODE_ENV: process.env.NODE_ENV,
   DATABASE_URL: process.env.DATABASE_URL,
+  DATABASE_CONNECTION_LIMIT: process.env.DATABASE_CONNECTION_LIMIT,
+  DATABASE_ACQUIRE_TIMEOUT_MS: process.env.DATABASE_ACQUIRE_TIMEOUT_MS,
+  DATABASE_CONNECT_TIMEOUT_MS: process.env.DATABASE_CONNECT_TIMEOUT_MS,
+  DATABASE_IDLE_TIMEOUT_SECONDS: process.env.DATABASE_IDLE_TIMEOUT_SECONDS,
   BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
   BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
