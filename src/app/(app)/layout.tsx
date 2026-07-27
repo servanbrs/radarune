@@ -1,66 +1,15 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { canAccessAdmin, toAdminActor } from "@/features/admin/server/admin-context";
 import { SignOutButton } from "@/features/authentication/components/sign-out-button";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
-import {
-  canAccessAdmin,
-  toAdminActor,
-} from "@/features/admin/server/admin-context";
+import { creatorAccessService } from "@/features/authorization/server/creator-access.service";
 
-const primaryNavigation = [
-  {
-    href: "/dashboard",
-    label: "Panel",
-  },
-  {
-    href: "/releases",
-    label: "Yayınlar",
-  },
-  {
-    href: "/artists",
-    label: "Sanatçılar",
-  },
-  {
-    href: "/discover",
-    label: "Keşfet",
-  },
-  {
-    href: "/analytics",
-    label: "Analiz",
-  },
-] as const;
-
-const secondaryNavigation = [
-  {
-    href: "/labels",
-    label: "Label",
-  },
-  {
-    href: "/royalties",
-    label: "Royalty",
-  },
-  {
-    href: "/payouts",
-    label: "Ödemeler",
-  },
-  {
-    href: "/billing",
-    label: "Faturalama",
-  },
-  {
-    href: "/smart-links",
-    label: "Smart Link",
-  },
-  {
-    href: "/presaves",
-    label: "Pre-save",
-  },
-  {
-    href: "/playlists",
-    label: "Playlistler",
-  },
-] as const;
+type NavigationItem = {
+  href: string;
+  label: string;
+};
 
 export default async function AppLayout({
   children,
@@ -79,29 +28,85 @@ export default async function AppLayout({
 
   const adminAccess = canAccessAdmin(actor);
 
+  const creatorAccess = creatorAccessService.getAccess({
+    systemRole: user.systemRole,
+  });
+
+  const primaryNavigation: NavigationItem[] = [
+    {
+      href: "/dashboard",
+      label: "Ana Sayfa",
+    },
+    {
+      href: "/discover",
+      label: "Keşfet",
+    },
+  ];
+
+  if (creatorAccess.showBecomeArtist) {
+    primaryNavigation.push({
+      href: "/become",
+      label: "Sanatçı Ol",
+    });
+  }
+
+  if (creatorAccess.canCreateReleases) {
+    primaryNavigation.push({
+      href: "/releases",
+      label: "Yayınlar",
+    });
+  }
+
+  if (creatorAccess.canManageArtists) {
+    primaryNavigation.push({
+      href: "/artists",
+      label: "Sanatçılar",
+    });
+  }
+
+  const creatorNavigation: NavigationItem[] = [];
+
+  if (creatorAccess.canUseGrowthTools) {
+    creatorNavigation.push(
+      {
+        href: "/smart-links",
+        label: "Smart Link",
+      },
+      {
+        href: "/presaves",
+        label: "Pre-save",
+      },
+    );
+  }
+
+  if (creatorAccess.canViewAnalytics) {
+    creatorNavigation.push({
+      href: "/analytics",
+      label: "Analiz",
+    });
+  }
+
   return (
     <div className="flex min-h-screen min-w-0 flex-col">
       <header className="sticky top-0 z-50 border-b border-line/70 bg-surface/95 backdrop-blur-xl">
         <div className="mx-auto flex min-h-16 w-full max-w-[1600px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-          {/* Marka */}
           <Link
             className="min-w-0 shrink-0"
             href="/dashboard"
           >
-            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-accent">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-accent">
               Radarune
             </p>
 
-            <p className="max-w-[150px] truncate text-sm font-semibold sm:max-w-[220px]">
-              {organization.organization.name}
+            <p className="hidden text-sm font-semibold text-foreground sm:block">
+              Music Platform
             </p>
           </Link>
 
-          {/* Masaüstü ana menü */}
           <nav className="hidden min-w-0 items-center gap-1 lg:flex">
             {primaryNavigation.map((item) => (
               <Link
-                className="whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium text-muted hover:bg-white hover:text-foreground"
+                className="whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium text-muted transition hover:bg-white hover:text-foreground"
                 href={item.href}
                 key={item.href}
               >
@@ -109,27 +114,29 @@ export default async function AppLayout({
               </Link>
             ))}
 
-            <details className="group relative">
-              <summary className="cursor-pointer list-none rounded-xl px-3 py-2 text-sm font-medium text-muted hover:bg-white hover:text-foreground [&::-webkit-details-marker]:hidden">
-                Daha Fazla
-              </summary>
+            {creatorNavigation.length > 0 ? (
+              <details className="group relative">
+                <summary className="cursor-pointer list-none rounded-xl px-3 py-2 text-sm font-medium text-muted transition hover:bg-white hover:text-foreground [&::-webkit-details-marker]:hidden">
+                  Araçlar
+                </summary>
 
-              <div className="absolute right-0 top-12 z-50 grid w-56 gap-1 rounded-2xl border border-line bg-surface p-2 shadow-xl">
-                {secondaryNavigation.map((item) => (
-                  <Link
-                    className="rounded-xl px-3 py-2.5 text-sm font-medium text-muted hover:bg-white hover:text-foreground"
-                    href={item.href}
-                    key={item.href}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </details>
+                <div className="absolute right-0 top-12 z-50 grid w-56 gap-1 rounded-2xl border border-line bg-surface p-2 shadow-xl">
+                  {creatorNavigation.map((item) => (
+                    <Link
+                      className="rounded-xl px-3 py-2.5 text-sm font-medium text-muted transition hover:bg-white hover:text-foreground"
+                      href={item.href}
+                      key={item.href}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </details>
+            ) : null}
 
             {adminAccess ? (
               <Link
-                className="ml-1 whitespace-nowrap rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                className="ml-1 whitespace-nowrap rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
                 href="/admin"
               >
                 Yönetim
@@ -137,24 +144,20 @@ export default async function AppLayout({
             ) : null}
           </nav>
 
-          {/* Masaüstü kullanıcı alanı */}
-          <div className="hidden shrink-0 items-center gap-3 sm:flex">
-            <div className="hidden max-w-[170px] text-right xl:block">
+          <div className="hidden shrink-0 items-center gap-3 lg:flex">
+            <div className="hidden max-w-[180px] text-right xl:block">
               <p className="truncate text-sm font-semibold">
                 {user.name}
               </p>
 
-              <p className="truncate text-[10px] uppercase tracking-[0.16em] text-muted">
-                {organization.role}
+              <p className="truncate text-xs text-muted">
+                {user.email}
               </p>
             </div>
 
-            <div className="hidden lg:block">
-              <SignOutButton />
-            </div>
+            <SignOutButton />
           </div>
 
-          {/* Mobil menü */}
           <details className="group relative lg:hidden">
             <summary className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-xl border border-line bg-white text-lg [&::-webkit-details-marker]:hidden">
               ☰
@@ -172,10 +175,10 @@ export default async function AppLayout({
               </div>
 
               <nav className="mt-3 grid max-h-[60vh] gap-1 overflow-y-auto">
-                {[...primaryNavigation, ...secondaryNavigation].map(
+                {[...primaryNavigation, ...creatorNavigation].map(
                   (item) => (
                     <Link
-                      className="rounded-xl px-3 py-3 text-sm font-medium text-muted hover:bg-white hover:text-foreground"
+                      className="rounded-xl px-3 py-3 text-sm font-medium text-muted transition hover:bg-white hover:text-foreground"
                       href={item.href}
                       key={item.href}
                     >
