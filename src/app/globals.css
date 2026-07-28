@@ -44,6 +44,8 @@ html.admin-active body header { background-color: #0f1a1d !important; border-col
 html.admin-active body header .bg-surface { background-color: #111d20 !important; }
 html.admin-active body header a, html.admin-active body header button { color: #c7d8d4 !important; }
 main[data-admin-theme="dark"] .panel { background-color: #111d20 !important; border-color: #26383a !important; color: #eef7f5; }
+main[data-admin-theme="dark"] article.panel { background-color: #111d20 !important; border-color: #26383a !important; }
+main[data-admin-theme="dark"] .text-muted { color: #9aada9 !important; }
 main[data-admin-theme="dark"] .bg-background { background-color: #0b1114 !important; }
 
 @theme inline {

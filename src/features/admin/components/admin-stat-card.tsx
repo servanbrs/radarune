@@ -15,8 +15,8 @@ export function AdminStatCard({
   }[tone];
 
   return (
-    <article className={`rounded-3xl border border-line p-5 ${toneClass}`}>
-      <p className="text-xs uppercase tracking-[0.22em] text-muted">{label}</p>
+    <article className={`rounded-3xl border border-[#26383a] p-5 ${toneClass}`}>
+      <p className="text-xs uppercase tracking-[0.22em] text-[#9aada9]">{label}</p>
       <p className="mt-3 text-3xl font-semibold">{value}</p>
     </article>
   );
