@@ -172,6 +172,7 @@ export class ProviderWebhookService {
             {
               status: "LIVE",
               previousStatus: "DISTRIBUTED",
+              organizationId: delivery.organizationId,
               reason: "Provider webhook yayının canlı olduğunu bildirdi.",
               metadata: {
                 provider,
@@ -188,6 +189,7 @@ export class ProviderWebhookService {
             {
               status: "DISTRIBUTED",
               previousStatus: "PROCESSING",
+              organizationId: delivery.organizationId,
               reason: "Provider webhook yayının teslim edildiğini bildirdi.",
               metadata: {
                 provider,
