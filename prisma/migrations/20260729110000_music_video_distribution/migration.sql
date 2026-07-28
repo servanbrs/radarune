@@ -1,0 +1,7 @@
+ALTER TABLE `Release`
+  ADD COLUMN `videoUploadId` VARCHAR(191) NULL,
+  ADD COLUMN `videoDistributionEnabled` BOOLEAN NOT NULL DEFAULT false,
+  ADD COLUMN `videoStores` JSON NULL;
+
+ALTER TABLE `Upload`
+  MODIFY COLUMN `kind` ENUM('AUDIO', 'ARTWORK', 'VIDEO') NOT NULL;

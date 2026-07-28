@@ -76,6 +76,8 @@ export const releaseDraftBaseSchema = z.object({
     presaveEnabled: z.boolean().default(false),
     dolbyAtmosEnabled: z.boolean().default(false),
     contentIdEnabled: z.boolean().default(false),
+    videoDistributionEnabled: z.boolean().default(false),
+    videoStores: z.array(z.string().trim().min(1)).default([]),
   });
 
 export const releaseDraftSchema = releaseDraftBaseSchema

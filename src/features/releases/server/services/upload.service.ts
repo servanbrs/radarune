@@ -15,7 +15,7 @@ type StoreUploadInput = {
   organizationId: string;
   ownerUserId: string;
   file: File;
-  kind: "AUDIO" | "ARTWORK";
+  kind: "AUDIO" | "ARTWORK" | "VIDEO";
 };
 
 export class UploadService {
@@ -25,6 +25,10 @@ export class UploadService {
     if (input.kind === "AUDIO") {
       this.assertAudioFileMetadata(input.file);
       return this.storeAudioUpload(input);
+    }
+
+    if (input.kind === "VIDEO") {
+      return this.storeVideoUpload(input);
     }
 
     const buffer = Buffer.from(await input.file.arrayBuffer());
@@ -47,6 +51,22 @@ export class UploadService {
       checksumSha256,
       ...(dimensions ? { width: dimensions.width, height: dimensions.height } : {}),
     });
+  }
+
+  private async storeVideoUpload(input: StoreUploadInput) {
+    const mimeType = input.file.type;
+    if (!mimeType.startsWith("video/") || !/\.(mp4|mov|webm)$/i.test(input.file.name)) {
+      throw new Error("Klip dosyası MP4, MOV veya WebM formatında olmalıdır.");
+    }
+    const buffer = Buffer.from(await input.file.arrayBuffer());
+    if (buffer.byteLength > maxAudioFileBytes * 4) {
+      throw new Error("Klip dosyası izin verilen maksimum boyutu aşıyor.");
+    }
+    const checksumSha256 = createHash("sha256").update(buffer).digest("hex");
+    const extension = input.file.name.split(".").pop()?.toLowerCase() ?? "mp4";
+    const storageKey = `private/uploads/${input.organizationId}/video/${randomUUID()}.${extension}`;
+    await storageService.getAdapter().upload({ key: storageKey, contentType: mimeType, body: buffer });
+    return uploadRepository.create({ organizationId: input.organizationId, ownerUserId: input.ownerUserId, kind: "VIDEO", fileName: input.file.name, mimeType, byteSize: BigInt(buffer.byteLength), storageKey, checksumSha256 });
   }
 
   private async storeAudioUpload(input: StoreUploadInput) {

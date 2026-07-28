@@ -382,6 +382,7 @@ enum ContributorRole {
 enum UploadKind {
   AUDIO
   ARTWORK
+  VIDEO
 }
 
 enum UploadStatus {
@@ -1697,6 +1698,9 @@ model Release {
   presaveEnabled        Boolean                  @default(false)
   dolbyAtmosEnabled     Boolean                  @default(false)
   contentIdEnabled      Boolean                  @default(false)
+  videoUploadId         String?
+  videoDistributionEnabled Boolean               @default(false)
+  videoStores           Json?
   submittedAt           DateTime?
   approvedAt            DateTime?
   rejectedAt            DateTime?
@@ -3606,6 +3610,7 @@ model StoreRevenue {
   releaseTitle          String
   trackTitle            String
   trackKey              String
+  contentType           String        @default("AUDIO")
   isrc                  String?
   upc                   String?
   streamCount           Int           @default(0)

@@ -68,6 +68,9 @@ type InitialRelease = {
   previouslyReleased: boolean;
   upc: string | null;
   artworkUploadId?: string | null;
+  videoUploadId?: string | null;
+  videoDistributionEnabled: boolean;
+  videoStores?: unknown;
   worldwideDistribution: boolean;
   presaveEnabled: boolean;
   dolbyAtmosEnabled: boolean;
@@ -173,6 +176,7 @@ export function ReleaseWizard({
   const [artworkUploaded, setArtworkUploaded] = useState(
     Boolean(initialRelease?.artworkUploadId),
   );
+  const [videoUploaded, setVideoUploaded] = useState(Boolean(initialRelease?.videoUploadId));
   const [audioUploadedByTrackId, setAudioUploadedByTrackId] = useState<
     Record<string, boolean>
   >(() =>
@@ -540,7 +544,7 @@ export function ReleaseWizard({
   }
 
   function uploadFile(
-    kind: "AUDIO" | "ARTWORK",
+    kind: "AUDIO" | "ARTWORK" | "VIDEO",
     file: File | null,
     trackIndex?: number,
   ) {
@@ -599,6 +603,9 @@ export function ReleaseWizard({
       if (kind === "ARTWORK") {
         setArtworkUploaded(true);
         toast.success("Kapak görseli yüklendi.");
+      } else if (kind === "VIDEO") {
+        setVideoUploaded(true);
+        toast.success("Klip yüklendi. Dağıtım incelemesine gönderilecek.");
       } else if (trackId) {
         setAudioUploadedByTrackId((current) => ({
           ...current,
@@ -1066,6 +1073,22 @@ export function ReleaseWizard({
               />
             </div>
 
+            <div className="rounded-2xl border border-accent/25 bg-accent/5 p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="font-semibold">Müzik klibi dağıtımı</p>
+                  <p className="mt-1 text-xs text-muted">MP4, MOV veya WebM klibinizi Radarune kanallarına gönderin. Dağıtım geliri ayrıca raporlanır.</p>
+                </div>
+                <StatusPill ready={videoUploaded} />
+              </div>
+              <Input accept=".mp4,.mov,.webm,video/mp4,video/quicktime,video/webm" className="mt-4" id="video" onChange={(event) => uploadFile("VIDEO", event.target.files?.[0] ?? null)} type="file" />
+              <label className="mt-4 flex items-center gap-2 text-sm font-medium">
+                <input type="checkbox" {...form.register("videoDistributionEnabled")} />
+                Klibi yayınla ve klip gelirlerini ayrı gelir kalemi olarak takip et
+              </label>
+              <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted">Kanal seçimi: Radarune Music, YouTube, Vevo, Meta Video ve uygun klip ağları</div>
+            </div>
+
             <div className="grid gap-4">
               {(form.getValues("tracks") ?? []).map((track, index) => {
                 const trackId = persistedTrackIds[index];
@@ -1356,5 +1379,7 @@ function toFormDefaults(
     presaveEnabled: initialRelease?.presaveEnabled ?? false,
     dolbyAtmosEnabled: initialRelease?.dolbyAtmosEnabled ?? false,
     contentIdEnabled: initialRelease?.contentIdEnabled ?? false,
+    videoDistributionEnabled: initialRelease?.videoDistributionEnabled ?? false,
+    videoStores: Array.isArray(initialRelease?.videoStores) ? initialRelease.videoStores.filter((value): value is string => typeof value === "string") : ["RADARUNE_MUSIC", "YOUTUBE", "VEVO", "META_VIDEO"],
   };
 }

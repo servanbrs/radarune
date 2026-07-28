@@ -44,6 +44,10 @@ export class DistributionPayloadService {
       (upload) => upload.id === release.artworkUploadId && upload.kind === "ARTWORK",
     );
 
+    const video = release.videoDistributionEnabled && release.videoUploadId
+      ? release.uploads.find((upload) => upload.id === release.videoUploadId && upload.kind === "VIDEO")
+      : null;
+
     if (!artwork) {
       return {
         success: false,
@@ -102,6 +106,7 @@ export class DistributionPayloadService {
         presaveEnabled: release.presaveEnabled,
         contentIdEnabled: release.contentIdEnabled,
         dolbyAtmosEnabled: release.dolbyAtmosEnabled,
+        ...(video ? { video: { fileUrl: storageReference(video.storageKey), stores: Array.isArray(release.videoStores) ? release.videoStores.filter((value): value is string => typeof value === "string") : ["RADARUNE_MUSIC", "YOUTUBE", "VEVO", "META_VIDEO"], revenueEligible: true } } : {}),
         artists: release.artists.map((artist) => ({
           artistId: artist.artistId,
           name: artist.artist.name,

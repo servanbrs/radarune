@@ -264,6 +264,8 @@ export class ReleaseRepository {
         ...(input.presaveEnabled !== undefined ? { presaveEnabled: input.presaveEnabled } : {}),
         ...(input.dolbyAtmosEnabled !== undefined ? { dolbyAtmosEnabled: input.dolbyAtmosEnabled } : {}),
         ...(input.contentIdEnabled !== undefined ? { contentIdEnabled: input.contentIdEnabled } : {}),
+        ...(input.videoDistributionEnabled !== undefined ? { videoDistributionEnabled: input.videoDistributionEnabled } : {}),
+        ...(input.videoStores !== undefined ? { videoStores: input.videoStores } : {}),
       },
       select: {
         id: true,
@@ -474,7 +476,7 @@ export class ReleaseRepository {
     organizationId: string;
     trackId?: string;
     uploadId: string;
-    kind: "AUDIO" | "ARTWORK";
+    kind: "AUDIO" | "ARTWORK" | "VIDEO";
   }, client: DatabaseClient = prisma) {
     const upload = await client.upload.findFirst({
       where: {
@@ -519,6 +521,14 @@ export class ReleaseRepository {
         data: {
           artworkUploadId: params.uploadId,
         },
+      });
+      if (releaseUpdated.count !== 1) throw new Error("Yayın bu organizasyona ait değil.");
+    }
+
+    if (params.kind === "VIDEO") {
+      const releaseUpdated = await client.release.updateMany({
+        where: { id: params.releaseId, organizationId: params.organizationId },
+        data: { videoUploadId: params.uploadId, videoDistributionEnabled: true },
       });
       if (releaseUpdated.count !== 1) throw new Error("Yayın bu organizasyona ait değil.");
     }

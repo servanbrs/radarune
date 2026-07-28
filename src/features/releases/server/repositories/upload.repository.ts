@@ -5,7 +5,7 @@ import type { DatabaseClient } from "@/server/prisma/database-client";
 export type CreateUploadRecordInput = {
   organizationId: string;
   ownerUserId: string;
-  kind: "AUDIO" | "ARTWORK";
+  kind: "AUDIO" | "ARTWORK" | "VIDEO";
   fileName: string;
   mimeType: string;
   byteSize: bigint;

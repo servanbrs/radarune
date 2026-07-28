@@ -26,7 +26,7 @@ export async function POST(request: Request, context: UploadRouteContext) {
       );
     }
 
-    if (kind !== "AUDIO" && kind !== "ARTWORK") {
+    if (kind !== "AUDIO" && kind !== "ARTWORK" && kind !== "VIDEO") {
       return releaseJson(
         {
           success: false,

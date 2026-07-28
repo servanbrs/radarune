@@ -99,6 +99,11 @@ export type CanonicalDistributionPayload = {
   presaveEnabled: boolean;
   contentIdEnabled: boolean;
   dolbyAtmosEnabled: boolean;
+  video?: {
+    fileUrl: string;
+    stores: string[];
+    revenueEligible: boolean;
+  };
   artists: Array<{
     artistId: string;
     name: string;

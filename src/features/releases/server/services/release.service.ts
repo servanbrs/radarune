@@ -206,7 +206,7 @@ export class ReleaseService {
 
   async attachUpload(actor: ReleaseActor, releaseId: string, params: {
     uploadId: string;
-    kind: "AUDIO" | "ARTWORK";
+    kind: "AUDIO" | "ARTWORK" | "VIDEO";
     trackId?: string;
   }) {
     const release = await releaseRepository.findDetailById(releaseId);
