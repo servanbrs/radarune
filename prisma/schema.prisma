@@ -1257,6 +1257,7 @@ model Organization {
   invoices                       Invoice[]
   manualPaymentRequests          ManualPaymentRequest[]
   paymentProviderConfigs         PaymentProviderConfig[]
+  integrationCredentials          IntegrationCredential[]
   paymentTransactions            PaymentTransaction[]
   revenueImports                 RevenueImport[]
   revenueReports                 RevenueReport[]
@@ -1368,6 +1369,27 @@ model Organization {
   @@index([tenantStatus])
   @@index([primaryDomain])
   @@index([ownerUserId])
+}
+
+enum IntegrationCredentialProvider {
+  YOUTUBE
+  SPOTIFY
+}
+
+model IntegrationCredential {
+  id                 String                        @id @default(cuid())
+  organizationId     String
+  provider           IntegrationCredentialProvider
+  credentialsEncrypted String                     @db.Text
+  active             Boolean                       @default(true)
+  lastTestedAt       DateTime?
+  lastTestError      String?                       @db.Text
+  createdAt          DateTime                      @default(now())
+  updatedAt          DateTime                      @updatedAt
+  organization       Organization                  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, provider])
+  @@index([organizationId, active])
 }
 
 model OrganizationMembership {
