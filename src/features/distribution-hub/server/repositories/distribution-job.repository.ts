@@ -190,14 +190,33 @@ export class DistributionJobRepository {
       const updated = await tx.distributionJob.updateMany({
         where: {
           id: candidate.id,
-          OR: [
+          status: {
+            in: ["PENDING", "QUEUED", "RETRY_SCHEDULED"],
+          },
+          AND: [
             {
-              lockedAt: null,
+              OR: [
+                {
+                  lockedAt: null,
+                },
+                {
+                  lockedAt: {
+                    lt: lockStaleBefore,
+                  },
+                },
+              ],
             },
             {
-              lockedAt: {
-                lt: lockStaleBefore,
-              },
+              OR: [
+                {
+                  nextAttemptAt: null,
+                },
+                {
+                  nextAttemptAt: {
+                    lte: now,
+                  },
+                },
+              ],
             },
           ],
         },
@@ -222,7 +241,89 @@ export class DistributionJobRepository {
     });
   }
 
-  async updateStatus(
+  
+  async heartbeat(
+    jobId: string,
+    workerId: string,
+    client: DatabaseClient = prisma,
+  ) {
+    const result = await client.distributionJob.updateMany({
+      where: {
+        id: jobId,
+        status: "PROCESSING",
+        lockedBy: workerId,
+      },
+      data: {
+        lockedAt: new Date(),
+      },
+    });
+
+    return result.count === 1;
+  }
+  async listDeadLetterJobs(
+    organizationId: string,
+    take = 50,
+    client: DatabaseClient = prisma,
+  ) {
+    const safeTake = Math.min(
+      Math.max(Math.trunc(take), 1),
+      100,
+    );
+
+    return client.distributionJob.findMany({
+      where: {
+        organizationId,
+        status: "MANUAL_REVIEW",
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+      take: safeTake,
+      select: distributionJobSelect,
+    });
+  }
+
+  async requeueDeadLetterJob(
+    jobId: string,
+    organizationId: string,
+    now = new Date(),
+    client: DatabaseClient = prisma,
+  ) {
+    const result = await client.distributionJob.updateMany({
+      where: {
+        id: jobId,
+        organizationId,
+        status: "MANUAL_REVIEW",
+      },
+      data: {
+        status: "QUEUED",
+        attemptCount: 0,
+        nextAttemptAt: now,
+        lastAttemptAt: null,
+        lockedAt: null,
+        lockedBy: null,
+        lastErrorCode: null,
+        lastErrorMessage: null,
+        completedAt: null,
+        cancelledAt: null,
+        queuedAt: now,
+      },
+    });
+
+    if (result.count !== 1) {
+      return null;
+    }
+
+    return client.distributionJob.findUnique({
+      where: {
+        id: jobId,
+      },
+      select: distributionJobSelect,
+    });
+  }
+
+
+async updateStatus(
     id: string,
     input: {
       status:

@@ -1,0 +1,894 @@
+===== RELEASE MODEL =====
+1650:model Release {
+1651-  id                    String                   @id @default(cuid())
+1652-  organizationId        String
+1653-  createdByUserId       String
+1654-  submittedByUserId     String?
+1655-  labelId               String?
+1656-  title                 String
+1657-  versionTitle          String?
+1658-  primaryLanguage       String
+1659-  primaryGenre          String
+1660-  secondaryGenre        String?
+1661-  type                  ReleaseType
+1662-  status                ReleaseStatus            @default(DRAFT)
+1663-  explicit              Boolean                  @default(false)
+1664-  copyrightP            String
+1665-  copyrightC            String
+1666-  plannedReleaseDate    DateTime?
+1667-  originalReleaseDate   DateTime?
+1668-  previouslyReleased    Boolean                  @default(false)
+1669-  upc                   String?
+1670-  artworkUploadId       String?
+1671-  distributionProvider  DistributionProvider?
+1672-  worldwideDistribution Boolean                  @default(true)
+1673-  presaveEnabled        Boolean                  @default(false)
+1674-  dolbyAtmosEnabled     Boolean                  @default(false)
+1675-  contentIdEnabled      Boolean                  @default(false)
+1676-  submittedAt           DateTime?
+1677-  approvedAt            DateTime?
+1678-  rejectedAt            DateTime?
+1679-  liveAt                DateTime?
+1680-  createdAt             DateTime                 @default(now())
+1681-  updatedAt             DateTime                 @updatedAt
+1682-  organization          Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+1683-  createdByUser         User                     @relation("ReleaseCreatedBy", fields: [createdByUserId], references: [id], onDelete: Cascade)
+1684-  submittedByUser       User?                    @relation("ReleaseSubmittedBy", fields: [submittedByUserId], references: [id], onDelete: SetNull)
+1685-  label                 Label?                   @relation(fields: [labelId], references: [id], onDelete: SetNull)
+1686-  tracks                Track[]
+1687-  artists               ReleaseArtist[]
+1688-  contributors          Contributor[]
+1689-  distributionSelection DistributionSelection?
+1690-  stores                ReleaseStore[]
+1691-  territories           ReleaseTerritory[]
+1692-  uploads               Upload[]
+1693-  validationIssues      ReleaseValidationIssue[]
+1694-  statusHistory         ReleaseStatusHistory[]
+1695-  aiAnalysisJobs        AiAnalysisJob[]
+1696-  artworkAnalyses       ArtworkAnalysis[]
+1697-  audioAnalyses         AudioAnalysis[]
+1698-  duplicateMatches      DuplicateAudioMatch[]
+1699-  lyricsAnalyses        LyricsAnalysis[]
+1700-  metadataAnalyses      MetadataAnalysis[]
+1701-  readinessScores       ReleaseReadinessScore[]
+1702-  validationRuns        ValidationRun[]
+1703-  comments              Comment[]
+1704-  discoverEvents        DiscoverEvent[]
+1705-  playlistTracks        PlaylistTrack[]
+1706-  preSaveCampaigns      PreSaveCampaign[]
+1707-  releaseLikes          ReleaseLike[]
+1708-  smartLinks            SmartLink[]
+1709-  stories               Story[]
+1710-  externalMediaSources  ExternalMediaSource[]
+1711-  importMatches         ImportMatch[]
+1712-
+1713-  @@index([organizationId, status, updatedAt])
+1714-  @@index([createdByUserId, status])
+1715-  @@index([labelId])
+1716-  @@index([upc])
+1717-}
+1718-
+1719-model Track {
+1720-  id                   String                   @id @default(cuid())
+1721-  organizationId       String
+1722-  releaseId            String
+1723-  title                String
+1724-  versionTitle         String?
+1725-  trackNumber          Int
+1726-  discNumber           Int                      @default(1)
+1727-  language             String
+1728-  explicit             Boolean                  @default(false)
+1729-  instrumental         Boolean                  @default(false)
+1730-  previouslyReleased   Boolean                  @default(false)
+1731-  isrc                 String?
+1732-  audioUploadId        String?
+1733-  durationMs           Int?
+1734-  lyrics               String?                  @db.Text
+1735-  previewStartSeconds  Int?
+1736-  createdAt            DateTime                 @default(now())
+1737-  updatedAt            DateTime                 @updatedAt
+1738-  organization         Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+1739-  release              Release                  @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+1740-  artists              TrackArtist[]
+1741-  contributors         TrackContributor[]
+1742-  uploads              Upload[]
+1743-  validationIssues     ReleaseValidationIssue[]
+1744-  audioAnalyses        AudioAnalysis[]
+1745-  audioFingerprints    AudioFingerprint[]
+1746-  duplicateMatches     DuplicateAudioMatch[]
+1747-  lyricsAnalyses       LyricsAnalysis[]
+1748-  comments             Comment[]
+1749-  discoverEvents       DiscoverEvent[]
+1750-  playlistTracks       PlaylistTrack[]
+1751-  trackLikes           TrackLike[]
+1752-  playbackSessions     PlaybackSession[]
+1753-  externalMediaSources ExternalMediaSource[]
+1754-  importMatches        ImportMatch[]
+1755-
+1756-  @@unique([releaseId, discNumber, trackNumber])
+1757-  @@index([organizationId])
+1758-  @@index([isrc])
+1759-}
+1760-
+1761-model ReleaseArtist {
+1762-  id        String            @id @default(cuid())
+1763-  releaseId String
+1764-  artistId  String
+1765-  role      ReleaseArtistRole
+1766-  sortOrder Int               @default(0)
+1767-  createdAt DateTime          @default(now())
+1768-  release   Release           @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+1769-  artist    Artist            @relation(fields: [artistId], references: [id], onDelete: Cascade)
+1770-
+1771-  @@unique([releaseId, artistId, role])
+1772-  @@index([artistId])
+1773-}
+1774-
+1775-model TrackArtist {
+1776-  id        String            @id @default(cuid())
+1777-  trackId   String
+1778-  artistId  String
+1779-  role      ReleaseArtistRole
+1780-  sortOrder Int               @default(0)
+1781-  createdAt DateTime          @default(now())
+1782-  track     Track             @relation(fields: [trackId], references: [id], onDelete: Cascade)
+1783-  artist    Artist            @relation(fields: [artistId], references: [id], onDelete: Cascade)
+1784-
+1785-  @@unique([trackId, artistId, role])
+1786-  @@index([artistId])
+1787-}
+1788-
+1789-model Contributor {
+1790-  id        String             @id @default(cuid())
+
+===== TRACK MODEL =====
+1719:model Track {
+1720-  id                   String                   @id @default(cuid())
+1721-  organizationId       String
+1722-  releaseId            String
+1723-  title                String
+1724-  versionTitle         String?
+1725-  trackNumber          Int
+1726-  discNumber           Int                      @default(1)
+1727-  language             String
+1728-  explicit             Boolean                  @default(false)
+1729-  instrumental         Boolean                  @default(false)
+1730-  previouslyReleased   Boolean                  @default(false)
+1731-  isrc                 String?
+1732-  audioUploadId        String?
+1733-  durationMs           Int?
+1734-  lyrics               String?                  @db.Text
+1735-  previewStartSeconds  Int?
+1736-  createdAt            DateTime                 @default(now())
+1737-  updatedAt            DateTime                 @updatedAt
+1738-  organization         Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+1739-  release              Release                  @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+1740-  artists              TrackArtist[]
+1741-  contributors         TrackContributor[]
+1742-  uploads              Upload[]
+1743-  validationIssues     ReleaseValidationIssue[]
+1744-  audioAnalyses        AudioAnalysis[]
+1745-  audioFingerprints    AudioFingerprint[]
+1746-  duplicateMatches     DuplicateAudioMatch[]
+1747-  lyricsAnalyses       LyricsAnalysis[]
+1748-  comments             Comment[]
+1749-  discoverEvents       DiscoverEvent[]
+1750-  playlistTracks       PlaylistTrack[]
+1751-  trackLikes           TrackLike[]
+1752-  playbackSessions     PlaybackSession[]
+1753-  externalMediaSources ExternalMediaSource[]
+1754-  importMatches        ImportMatch[]
+1755-
+1756-  @@unique([releaseId, discNumber, trackNumber])
+1757-  @@index([organizationId])
+1758-  @@index([isrc])
+1759-}
+1760-
+1761-model ReleaseArtist {
+1762-  id        String            @id @default(cuid())
+1763-  releaseId String
+1764-  artistId  String
+1765-  role      ReleaseArtistRole
+1766-  sortOrder Int               @default(0)
+1767-  createdAt DateTime          @default(now())
+1768-  release   Release           @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+1769-  artist    Artist            @relation(fields: [artistId], references: [id], onDelete: Cascade)
+1770-
+1771-  @@unique([releaseId, artistId, role])
+1772-  @@index([artistId])
+1773-}
+1774-
+1775-model TrackArtist {
+1776-  id        String            @id @default(cuid())
+1777-  trackId   String
+1778-  artistId  String
+1779-  role      ReleaseArtistRole
+1780-  sortOrder Int               @default(0)
+1781-  createdAt DateTime          @default(now())
+1782-  track     Track             @relation(fields: [trackId], references: [id], onDelete: Cascade)
+1783-  artist    Artist            @relation(fields: [artistId], references: [id], onDelete: Cascade)
+1784-
+1785-  @@unique([trackId, artistId, role])
+1786-  @@index([artistId])
+1787-}
+1788-
+1789-model Contributor {
+1790-  id        String             @id @default(cuid())
+1791-  releaseId String
+1792-  name      String
+1793-  role      ContributorRole
+1794-  createdAt DateTime           @default(now())
+1795-  updatedAt DateTime           @updatedAt
+1796-  release   Release            @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+1797-  tracks    TrackContributor[]
+1798-
+1799-  @@index([releaseId, role])
+1800-}
+1801-
+1802-model TrackContributor {
+1803-  id            String          @id @default(cuid())
+1804-  trackId       String
+1805-  contributorId String
+1806-  role          ContributorRole
+1807-  createdAt     DateTime        @default(now())
+1808-  track         Track           @relation(fields: [trackId], references: [id], onDelete: Cascade)
+1809-  contributor   Contributor     @relation(fields: [contributorId], references: [id], onDelete: Cascade)
+1810-
+1811-  @@unique([trackId, contributorId, role])
+1812-  @@index([contributorId])
+1813-}
+1814-
+1815-model DistributionSelection {
+1816-  id                    String               @id @default(cuid())
+1817-  releaseId             String               @unique
+1818-  provider              DistributionProvider
+1819-  releaseDate           DateTime?
+1820-  worldwideDistribution Boolean              @default(true)
+1821-  presaveEnabled        Boolean              @default(false)
+1822-  dolbyAtmosEnabled     Boolean              @default(false)
+1823-  contentIdEnabled      Boolean              @default(false)
+1824-  createdAt             DateTime             @default(now())
+1825-  updatedAt             DateTime             @updatedAt
+1826-  release               Release              @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+1827-}
+1828-
+1829-model ReleaseStore {
+1830-  id        String   @id @default(cuid())
+1831-  releaseId String
+1832-  storeCode String
+1833-  createdAt DateTime @default(now())
+1834-  release   Release  @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+1835-
+1836-  @@unique([releaseId, storeCode])
+1837-}
+1838-
+1839-model ReleaseTerritory {
+1840-  id            String   @id @default(cuid())
+1841-  releaseId     String
+1842-  territoryCode String
+1843-  createdAt     DateTime @default(now())
+1844-  release       Release  @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+1845-
+1846-  @@unique([releaseId, territoryCode])
+1847-}
+1848-
+1849-model ReleaseValidationIssue {
+1850-  id              String                    @id @default(cuid())
+1851-  organizationId  String
+1852-  releaseId       String
+1853-  trackId         String?
+1854-  fieldPath       String
+1855-  step            String
+1856-  code            String
+1857-  category        IntelligenceIssueCategory @default(METADATA)
+1858-  title           String?
+1859-  message         String
+
+===== DISTRIBUTION PROVIDER =====
+src/features/distribution-hub/domain/provider.ts
+src/features/distribution-hub/server/adapters/internal-provider.adapter.ts
+src/features/distribution-hub/server/provider-registry.ts
+src/features/distribution-hub/server/repositories/provider-configuration.repository.ts
+src/features/distribution-hub/server/repositories/provider-external-reference.repository.ts
+src/features/distribution-hub/server/repositories/provider-webhook-event.repository.ts
+src/features/distribution-hub/server/services/distribution-processor.service.ts
+src/features/distribution-hub/server/services/provider-code-rules.ts
+src/features/distribution-hub/server/services/provider-configuration.service.ts
+src/features/distribution-hub/server/services/provider-webhook.service.ts
+src/features/distribution-hub/tests/provider-code-rules.test.ts
+
+===== INTERNAL ADAPTER =====
+
+----- src/features/distribution-hub/server/adapters/internal-provider.adapter.ts -----
+import "server-only";
+import {
+  type CanonicalDistributionPayload,
+  type DistributionProviderAdapter,
+  type DistributionProviderResult,
+  type DistributionProviderRuntimeConfiguration,
+  type DistributionSubmissionContext,
+  type DistributionValidationIssue,
+  type DistributionValidationResult,
+  type NormalizedProviderWebhook,
+  type ProviderReleaseMutationResult,
+  type ProviderStatusSnapshot,
+} from "@/features/distribution-hub/domain/provider";
+
+const capabilities = new Set([
+  "CREATE_RELEASE",
+  "UPDATE_RELEASE",
+  "TAKEDOWN",
+  "STATUS_SYNC",
+  "WEBHOOKS",
+  "AUTO_ISRC",
+  "AUTO_UPC",
+  "CONTENT_ID",
+  "DOLBY_ATMOS",
+  "PRESAVE",
+] as const);
+
+export class InternalProviderAdapter implements DistributionProviderAdapter {
+  readonly key = "INTERNAL" as const;
+  readonly capabilities = capabilities;
+
+  supportsCapability(capability: string) {
+    return this.capabilities.has(capability as (typeof capabilities extends Set<infer T> ? T : never));
+  }
+
+  validateConfiguration(
+    configuration: DistributionProviderRuntimeConfiguration | null,
+  ): DistributionProviderResult<{ checkedAt: Date }> {
+    void configuration;
+    return {
+      success: true,
+      data: {
+        checkedAt: new Date(),
+      },
+    };
+  }
+
+  async testConnection(
+    configuration: DistributionProviderRuntimeConfiguration | null,
+  ): Promise<DistributionProviderResult<{ checkedAt: Date }>> {
+    return this.validateConfiguration(configuration);
+  }
+
+  validateRelease(payload: CanonicalDistributionPayload): DistributionValidationResult {
+    const issues: DistributionValidationIssue[] = [];
+
+    if (!payload.title.trim()) {
+      issues.push({
+        code: "TITLE_REQUIRED",
+        field: "title",
+        message: "Yayın adı zorunludur.",
+        severity: "ERROR",
+      });
+    }
+
+    if (payload.tracks.length === 0) {
+      issues.push({
+        code: "TRACKS_REQUIRED",
+        field: "tracks",
+        message: "En az bir parça gereklidir.",
+        severity: "ERROR",
+      });
+    }
+
+    if (payload.isExistingRelease && !payload.upc) {
+      issues.push({
+        code: "UPC_REQUIRED",
+        field: "upc",
+        message: "Mevcut yayınlar için UPC zorunludur.",
+        severity: "ERROR",
+      });
+    }
+
+    return issues.some((issue) => issue.severity === "ERROR")
+      ? { success: false, issues }
+      : { success: true, issues };
+  }
+
+  async createRelease(
+    input: DistributionSubmissionContext,
+    configuration: DistributionProviderRuntimeConfiguration | null,
+  ): Promise<DistributionProviderResult<ProviderReleaseMutationResult>> {
+    void configuration;
+    return {
+      success: true,
+      data: {
+        externalReleaseId: `internal:${input.payload.releaseId}:${input.idempotencyKey.slice(0, 12)}`,
+        rawStatus: "accepted",
+      },
+    };
+  }
+
+  async updateRelease(
+    input: DistributionSubmissionContext & { externalReleaseId: string },
+    configuration: DistributionProviderRuntimeConfiguration | null,
+  ): Promise<DistributionProviderResult<ProviderReleaseMutationResult>> {
+    void configuration;
+    return {
+      success: true,
+      data: {
+        externalReleaseId: input.externalReleaseId,
+        rawStatus: "updated",
+      },
+    };
+  }
+
+  async requestTakedown(
+    input: { externalReleaseId: string; releaseId: string },
+    configuration: DistributionProviderRuntimeConfiguration | null,
+  ): Promise<DistributionProviderResult<{ rawStatus: string }>> {
+    void input;
+    void configuration;
+    return {
+      success: true as const,
+      data: {
+        rawStatus: "takedown_pending",
+      },
+    };
+  }
+
+  async getReleaseStatus(
+    input: { externalReleaseId: string; releaseId: string },
+    configuration: DistributionProviderRuntimeConfiguration | null,
+  ): Promise<DistributionProviderResult<ProviderStatusSnapshot>> {
+    void configuration;
+    return {
+      success: true,
+      data: {
+        externalReleaseId: input.externalReleaseId,
+        rawStatus: "accepted",
+        deliveryStatus: "ACCEPTED",
+      },
+    };
+  }
+
+  async normalizeWebhook(
+    input: { payload: string; signature?: string },
+    configuration: DistributionProviderRuntimeConfiguration | null,
+  ): Promise<DistributionProviderResult<NormalizedProviderWebhook>> {
+    void configuration;
+
+    return {
+      success: true,
+      data: {
+        eventId: `internal:${Buffer.from(input.payload).toString("base64").slice(0, 12)}`,
+        occurredAt: new Date(),
+        rawPayload: input.payload,
+        rawType: "internal.status",
+        deliveryStatus: "ACCEPTED",
+      },
+    };
+  }
+}
+
+===== DISTRIBUTION PROCESSOR =====
+
+----- src/features/distribution-hub/server/services/distribution-processor.service.ts -----
+import "server-only";
+import { Prisma } from "@/generated/prisma/client";
+import { distributionProviderRegistry } from "@/features/distribution-hub/server/provider-registry";
+import { distributionAttemptRepository } from "@/features/distribution-hub/server/repositories/distribution-attempt.repository";
+import { distributionJobRepository } from "@/features/distribution-hub/server/repositories/distribution-job.repository";
+import { distributionStatusHistoryRepository } from "@/features/distribution-hub/server/repositories/distribution-status-history.repository";
+import { providerExternalReferenceRepository } from "@/features/distribution-hub/server/repositories/provider-external-reference.repository";
+import { releaseDeliveryRepository } from "@/features/distribution-hub/server/repositories/release-delivery.repository";
+import { databaseDistributionQueueService } from "@/features/distribution-hub/server/services/database-queue.service";
+import { distributionProviderConfigurationService } from "@/features/distribution-hub/server/services/provider-configuration.service";
+import { distributionValidationService } from "@/features/distribution-hub/server/services/distribution-validation.service";
+import { auditLogService } from "@/features/finance/server/services/audit-log.service";
+import { releaseRepository } from "@/features/releases/server/repositories/release.repository";
+import type { DatabaseClient } from "@/server/prisma/database-client";
+import { prisma } from "@/server/prisma/prisma";
+
+function createBackoffDate(attemptCount: number) {
+  const delayMinutes = Math.min(60, 2 ** Math.max(0, attemptCount - 1));
+  return new Date(Date.now() + delayMinutes * 60 * 1000);
+}
+
+export class DistributionProcessorService {
+  async processNextJob(workerId: string) {
+    const job = await databaseDistributionQueueService.reserve(workerId);
+
+    if (!job) {
+      return {
+        success: true as const,
+        data: {
+          processed: false,
+        },
+      };
+    }
+
+    const runtimeConfig = await distributionProviderConfigurationService.getRuntimeConfiguration(
+      job.organizationId,
+      job.provider,
+    );
+    const adapter = distributionProviderRegistry.getAdapter(job.provider);
+    const payload = job.canonicalPayload as unknown as Parameters<
+      typeof distributionValidationService.validateRelease
+    >[1];
+
+    const validation = distributionValidationService.validateRelease(
+      job.provider,
+      payload,
+      runtimeConfig,
+    );
+
+    if (!validation.success) {
+      await prisma.$transaction(async (tx) => {
+        await distributionJobRepository.updateStatus(
+          job.id,
+          {
+            status: "FAILED",
+            validationIssues: validation.issues as unknown as Prisma.InputJsonValue,
+            lockedAt: null,
+            lockedBy: null,
+            lastErrorCode: "VALIDATION_ERROR",
+            lastErrorMessage: "Provider validation başarısız.",
+          },
+          tx,
+        );
+
+        const delivery = await releaseDeliveryRepository.findByReleaseAndProvider(
+          job.organizationId,
+          job.releaseId,
+          job.provider,
+          tx,
+        );
+
+        if (delivery) {
+          await releaseDeliveryRepository.updateStatus(
+            delivery.id,
+            {
+              status: "FAILED",
+              failureReason: "Provider validation başarısız.",
+              failedAt: new Date(),
+            },
+            tx,
+          );
+        }
+
+        await distributionStatusHistoryRepository.create(
+          {
+            organizationId: job.organizationId,
+            jobId: job.id,
+            previousStatus: job.status,
+            status: "FAILED",
+            message: "Provider validation başarısız.",
+            metadata: {
+              issues: validation.issues,
+            },
+          },
+          tx,
+        );
+      });
+
+      return {
+        success: false as const,
+        message: "Provider validation başarısız.",
+      };
+    }
+
+    await releaseRepository.updateStatus(job.releaseId, {
+      status: "PROCESSING",
+      previousStatus: "QUEUED",
+      reason: "Dağıtım worker işlemi başlattı.",
+      metadata: {
+        distributionJobId: job.id,
+        provider: job.provider,
+      },
+    });
+
+    const startedAt = Date.now();
+    const createResult = await adapter.createRelease(
+      {
+        idempotencyKey: job.idempotencyKey,
+        payload,
+      },
+      runtimeConfig
+        ? {
+            environment: runtimeConfig.environment,
+            credentials: runtimeConfig.credentials,
+            publicMetadata: runtimeConfig.publicMetadata,
+            ...(runtimeConfig.webhookSecret ? { webhookSecret: runtimeConfig.webhookSecret } : {}),
+          }
+        : null,
+    );
+    const durationMs = Date.now() - startedAt;
+    const nextAttemptCount = job.attemptCount + 1;
+
+    await distributionAttemptRepository.create({
+      organizationId: job.organizationId,
+      jobId: job.id,
+      provider: job.provider,
+      attemptNumber: nextAttemptCount,
+      status: createResult.success ? "SUCCEEDED" : "FAILED",
+      idempotencyKey: job.idempotencyKey,
+      retryable: createResult.success ? false : createResult.retryable ?? false,
+      requestPayload: payload as unknown as Prisma.InputJsonValue,
+      ...(createResult.success
+        ? {
+            responsePayload: createResult.data as unknown as Prisma.InputJsonValue,
+          }
+        : {}),
+      ...(createResult.success
+        ? {}
+        : {
+            errorCode: createResult.code,
+            errorMessage: createResult.message,
+          }),
+      finishedAt: new Date(),
+      durationMs,
+    });
+
+    if (!createResult.success) {
+      const retryable =
+        createResult.retryable ?? createResult.code === "PROVIDER_ERROR";
+      const canRetry = retryable && nextAttemptCount < job.maxRetryCount;
+      const nextAttemptAt = canRetry ? createBackoffDate(nextAttemptCount) : null;
+
+      await prisma.$transaction(async (tx) => {
+        await distributionJobRepository.updateStatus(
+          job.id,
+          {
+            status: canRetry ? "RETRY_SCHEDULED" : "MANUAL_REVIEW",
+            attemptCount: nextAttemptCount,
+            nextAttemptAt,
+            lastErrorCode: createResult.code,
+            lastErrorMessage: createResult.message,
+            lockedAt: null,
+            lockedBy: null,
+          },
+          tx,
+        );
+
+        const delivery = await releaseDeliveryRepository.findByReleaseAndProvider(
+          job.organizationId,
+          job.releaseId,
+          job.provider,
+          tx,
+        );
+
+        if (delivery) {
+          await releaseDeliveryRepository.updateStatus(
+            delivery.id,
+            {
+              status: canRetry ? "QUEUED" : "FAILED",
+              failureReason: createResult.message,
+              ...(canRetry ? {} : { failedAt: new Date() }),
+            },
+            tx,
+          );
+        }
+
+        await distributionStatusHistoryRepository.create(
+          {
+            organizationId: job.organizationId,
+            jobId: job.id,
+            previousStatus: job.status,
+            status: canRetry ? "RETRY_SCHEDULED" : "MANUAL_REVIEW",
+            message: createResult.message,
+          },
+          tx,
+        );
+
+        await auditLogService.create(
+          {
+            organizationId: job.organizationId,
+            action: "distribution.job.failed",
+            entityType: "DistributionJob",
+            entityId: job.id,
+            metadata: {
+              provider: job.provider,
+              retryable: canRetry,
+              errorCode: createResult.code,
+            },
+          },
+          tx,
+        );
+      });
+
+      return {
+        success: false as const,
+        message: createResult.message,
+      };
+    }
+
+    const assignmentConflict = await this.findGeneratedCodeConflict({
+      releaseId: job.releaseId,
+      ...(createResult.data.generatedUpc
+        ? { generatedUpc: createResult.data.generatedUpc }
+        : {}),
+      ...(createResult.data.generatedTrackIsrcs
+        ? { generatedTrackIsrcs: createResult.data.generatedTrackIsrcs }
+        : {}),
+    });
+
+    if (assignmentConflict) {
+      await prisma.$transaction(async (tx) => {
+        await distributionJobRepository.updateStatus(
+          job.id,
+          {
+            status: "MANUAL_REVIEW",
+            attemptCount: nextAttemptCount,
+            lockedAt: null,
+            lockedBy: null,
+            lastErrorCode: "CODE_ASSIGNMENT_CONFLICT",
+            lastErrorMessage: assignmentConflict,
+          },
+          tx,
+        );
+
+        await distributionStatusHistoryRepository.create(
+          {
+            organizationId: job.organizationId,
+            jobId: job.id,
+            previousStatus: job.status,
+            status: "MANUAL_REVIEW",
+            message: assignmentConflict,
+          },
+          tx,
+        );
+      });
+
+      return {
+        success: false as const,
+        message: assignmentConflict,
+      };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await this.applyGeneratedCodes({
+        releaseId: job.releaseId,
+        ...(createResult.data.generatedUpc
+          ? { generatedUpc: createResult.data.generatedUpc }
+          : {}),
+        ...(createResult.data.generatedTrackIsrcs
+          ? { generatedTrackIsrcs: createResult.data.generatedTrackIsrcs }
+          : {}),
+      }, tx);
+
+      const delivery = await releaseDeliveryRepository.upsertForJob(
+        {
+          organizationId: job.organizationId,
+          jobId: job.id,
+          ...(job.providerConfigurationId
+            ? { providerConfigurationId: job.providerConfigurationId }
+            : {}),
+          provider: job.provider,
+          releaseId: job.releaseId,
+          releaseVersion: job.releaseVersion,
+          status: "ACCEPTED",
+          externalReleaseId: createResult.data.externalReleaseId,
+          submittedAt: new Date(),
+        },
+        tx,
+      );
+
+      await distributionJobRepository.updateStatus(
+        job.id,
+        {
+          status: "SUCCEEDED",
+          attemptCount: nextAttemptCount,
+          completedAt: new Date(),
+          lockedAt: null,
+          lockedBy: null,
+          lastErrorCode: null,
+          lastErrorMessage: null,
+        },
+        tx,
+      );
+
+      await providerExternalReferenceRepository.upsert(
+        {
+          organizationId: job.organizationId,
+          provider: job.provider,
+          releaseId: job.releaseId,
+          referenceType: "RELEASE",
+          externalId: createResult.data.externalReleaseId,
+          metadata: {
+            rawStatus: createResult.data.rawStatus,
+          },
+        },
+        tx,
+      );
+
+      await distributionStatusHistoryRepository.create(
+        {
+          organizationId: job.organizationId,
+          jobId: job.id,
+          releaseDeliveryId: delivery.id,
+          previousStatus: job.status,
+          status: "SUCCEEDED",
+          message: "Release provider tarafından kabul edildi.",
+        },
+        tx,
+      );
+
+      await releaseRepository.updateStatus(
+        job.releaseId,
+        {
+          status: "DISTRIBUTED",
+          previousStatus: "PROCESSING",
+          reason: "Provider release gönderimini kabul etti.",
+          metadata: {
+            distributionJobId: job.id,
+            provider: job.provider,
+            externalReleaseId: createResult.data.externalReleaseId,
+          },
+        },
+        tx,
+      );
+
+      await auditLogService.create(
+        {
+          organizationId: job.organizationId,
+          action: "distribution.job.succeeded",
+          entityType: "DistributionJob",
+
+===== RELEASE APPROVAL ACTION =====
+
+===== ADMIN RELEASE ACTION API =====
+
+===== GLOBAL PLAYER =====
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import type { PlayerItem } from "@/features/player/domain/player-source";
+
+export function GlobalPlayer({ item }: { item?: PlayerItem }) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [playing, setPlaying] = useState(false);
+
+  useEffect(() => {
+    if (!item?.playbackUrl) return;
+    audioRef.current = new Audio(item.playbackUrl);
+    const audio = audioRef.current;
+    const onEnded = () => setPlaying(false);
+    audio.addEventListener("ended", onEnded);
+    return () => {
+      audio.pause();
+      audio.removeEventListener("ended", onEnded);
+      audioRef.current = null;
+    };
+  }, [item?.playbackUrl]);
+
+  if (!item || !item.playbackUrl) return null;
+
+  async function togglePlayback() {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (playing) {
+      audio.pause();
+      setPlaying(false);
+      return;
+    }
+    try {
+      await audio.play();
+      setPlaying(true);
+    } catch {
+      setPlaying(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-x-4 bottom-4 z-40 rounded-3xl border border-line bg-white/90 p-4 shadow-xl backdrop-blur md:inset-x-auto md:right-6 md:w-96">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-xs uppercase tracking-[0.22em] text-muted">Radarune Player</p>
+          <p className="mt-1 text-sm font-semibold">{item.title}</p>
+          <p className="mt-1 text-xs text-muted">{item.artistName} · {item.sourceLabel}</p>
+        </div>
+        <button
+          className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-white"
+          onClick={() => void togglePlayback()}
+          type="button"
+        >
+          {playing ? "Duraklat" : "Oynat"}
+        </button>
+      </div>
+    </div>
+  );
+}

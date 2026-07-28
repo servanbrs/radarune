@@ -1,0 +1,709 @@
+===== JOBS PAGE =====
+import Link from "next/link";
+import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
+import { rbacService } from "@/features/authorization/server/rbac";
+import { adminDistributionService } from "@/features/distribution-hub/server/services/admin-distribution.service";
+
+export default async function AdminDistributionJobsPage() {
+  const { organization, user } = await authSessionService.getDashboardContext();
+  rbacService.redirectIfMissingEffectivePermission({
+    membershipRole: organization.role,
+    permission: "distribution:view",
+    systemRole: user.systemRole,
+  });
+
+  const jobs = await adminDistributionService.listJobs({
+    organizationId: organization.organization.id,
+    membershipRole: organization.role,
+    systemRole: user.systemRole,
+    userId: user.id,
+  });
+
+  return (
+    <main className="page-shell">
+      <section className="panel p-6">
+        <p className="text-xs uppercase tracking-[0.24em] text-muted">Job kuyruğu</p>
+        <h1 className="mt-3 text-3xl font-semibold">Distribution jobları</h1>
+      </section>
+      <section className="panel divide-y divide-line overflow-hidden">
+        {jobs.map((job) => (
+          <Link className="grid gap-3 p-5 text-sm hover:bg-white md:grid-cols-[1fr_0.6fr_0.6fr_0.6fr]" href={`/admin/distribution/jobs/${job.id}`} key={job.id}>
+            <span className="font-semibold">{job.releaseTitle}</span>
+            <span>{job.provider}</span>
+            <span>{job.status}</span>
+            <span>{job.attemptCount}/{job.maxRetryCount}</span>
+          </Link>
+        ))}
+      </section>
+    </main>
+  );
+}
+
+===== JOB DETAIL PAGE =====
+import { notFound } from "next/navigation";
+import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
+import { rbacService } from "@/features/authorization/server/rbac";
+import { adminDistributionService } from "@/features/distribution-hub/server/services/admin-distribution.service";
+
+type AdminDistributionJobDetailPageProps = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
+export default async function AdminDistributionJobDetailPage({
+  params,
+}: AdminDistributionJobDetailPageProps) {
+  const { id } = await params;
+  const { organization, user } = await authSessionService.getDashboardContext();
+  rbacService.redirectIfMissingEffectivePermission({
+    membershipRole: organization.role,
+    permission: "distribution:view",
+    systemRole: user.systemRole,
+  });
+
+  const job = await adminDistributionService.getJob(
+    {
+      organizationId: organization.organization.id,
+      membershipRole: organization.role,
+      systemRole: user.systemRole,
+      userId: user.id,
+    },
+    id,
+  );
+
+  if (!job) {
+    notFound();
+  }
+
+  return (
+    <main className="page-shell">
+      <section className="panel p-6">
+        <p className="text-xs uppercase tracking-[0.24em] text-muted">Job detayı</p>
+        <h1 className="mt-3 text-3xl font-semibold">{job.releaseTitle}</h1>
+        <p className="mt-3 text-sm text-muted">
+          {job.provider} · {job.status} · Deneme {job.attemptCount}/{job.maxRetryCount}
+        </p>
+      </section>
+      <section className="grid gap-6 lg:grid-cols-2">
+        <article className="panel p-6">
+          <h2 className="text-lg font-semibold">İşlem bilgisi</h2>
+          <dl className="mt-4 grid gap-3 text-sm">
+            <Detail label="Release ID" value={job.releaseId} />
+            <Detail label="Idempotency key" value={job.idempotencyKey} />
+            <Detail label="Payload hash" value={job.payloadHash} />
+            <Detail label="Son hata" value={job.lastErrorMessage ?? "Yok"} />
+          </dl>
+        </article>
+        <article className="panel p-6">
+          <h2 className="text-lg font-semibold">Provider yapılandırması</h2>
+          <p className="mt-4 text-sm text-muted">
+            Credential secret değerleri güvenlik nedeniyle bu ekranda gösterilmez.
+          </p>
+          <p className="mt-3 text-sm">
+            Environment: {job.providerConfiguration?.environment ?? "Tanımsız"}
+          </p>
+        </article>
+      </section>
+    </main>
+  );
+}
+
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="text-xs font-semibold uppercase text-muted">{label}</dt>
+      <dd className="mt-1 break-all font-medium">{value}</dd>
+    </div>
+  );
+}
+
+===== ADMIN DISTRIBUTION SERVICE =====
+import "server-only";
+import { rbacService } from "@/features/authorization/server/rbac";
+import { distributionJobRepository } from "@/features/distribution-hub/server/repositories/distribution-job.repository";
+import { distributionProviderConfigurationRepository } from "@/features/distribution-hub/server/repositories/provider-configuration.repository";
+import { providerWebhookEventRepository } from "@/features/distribution-hub/server/repositories/provider-webhook-event.repository";
+import type { FinanceActorContext } from "@/features/finance/server/services/finance-access.service";
+
+function assertView(actor: FinanceActorContext) {
+  if (
+    !rbacService.hasEffectivePermission({
+      membershipRole: actor.membershipRole,
+      systemRole: actor.systemRole,
+      permission: "distribution:view",
+    })
+  ) {
+    throw new Error("Distribution Center görüntüleme yetkiniz yok.");
+  }
+}
+
+export class AdminDistributionService {
+  async listJobs(actor: FinanceActorContext) {
+    assertView(actor);
+    return distributionJobRepository.listByOrganization(actor.organizationId);
+  }
+
+  async getJob(actor: FinanceActorContext, jobId: string) {
+    assertView(actor);
+    const job = await distributionJobRepository.findById(jobId);
+    return job && job.organizationId === actor.organizationId ? job : null;
+  }
+
+  async listWebhooks(actor: FinanceActorContext) {
+    assertView(actor);
+    return providerWebhookEventRepository.listByOrganization(actor.organizationId);
+  }
+
+  async listHealthChecks(actor: FinanceActorContext) {
+    assertView(actor);
+    return distributionProviderConfigurationRepository.listHealthChecksByOrganization(
+      actor.organizationId,
+    );
+  }
+}
+
+export const adminDistributionService = new AdminDistributionService();
+
+===== JOB SERVICE =====
+import "server-only";
+import { createHash } from "node:crypto";
+import { Prisma } from "@/generated/prisma/client";
+import { entitlementService } from "@/features/billing/server/services/entitlement.service";
+import type { CanonicalDistributionPayload } from "@/features/distribution-hub/domain/provider";
+import { distributionStatusHistoryRepository } from "@/features/distribution-hub/server/repositories/distribution-status-history.repository";
+import { distributionJobRepository } from "@/features/distribution-hub/server/repositories/distribution-job.repository";
+import { releaseDeliveryRepository } from "@/features/distribution-hub/server/repositories/release-delivery.repository";
+import { distributionProviderConfigurationService } from "@/features/distribution-hub/server/services/provider-configuration.service";
+import { distributionValidationService } from "@/features/distribution-hub/server/services/distribution-validation.service";
+import { distributionPayloadService } from "@/features/distribution-hub/server/services/distribution-payload.service";
+import {
+  createDistributionJobSchema,
+  type CreateDistributionJobInput,
+} from "@/features/distribution-hub/schemas/distribution.schema";
+import { auditLogService } from "@/features/finance/server/services/audit-log.service";
+import { rbacService } from "@/features/authorization/server/rbac";
+import type { FinanceActorContext } from "@/features/finance/server/services/finance-access.service";
+import { releaseRepository } from "@/features/releases/server/repositories/release.repository";
+import { prisma } from "@/server/prisma/prisma";
+
+function assertManagePermission(actor: FinanceActorContext) {
+  if (
+    !rbacService.hasEffectivePermission({
+      membershipRole: actor.membershipRole,
+      permission: "distribution:manage",
+      systemRole: actor.systemRole,
+    })
+  ) {
+    throw new Error("Distribution job oluşturmak için yetkiniz yok.");
+  }
+}
+
+function buildPayloadHash(payload: CreateDistributionJobInput["payload"]) {
+  return createHash("sha256").update(JSON.stringify(payload)).digest("hex");
+}
+
+function buildIdempotencyKey(params: {
+  payloadHash: string;
+  provider: string;
+  releaseId: string;
+  releaseVersion: number;
+}) {
+  return createHash("sha256")
+    .update(`${params.releaseId}:${params.provider}:${params.releaseVersion}:${params.payloadHash}`)
+    .digest("hex");
+}
+
+function normalizePayload(
+  payload: CreateDistributionJobInput["payload"],
+): CanonicalDistributionPayload {
+  return {
+    organizationId: payload.organizationId,
+    releaseId: payload.releaseId,
+    releaseVersion: payload.releaseVersion,
+    releaseStatus: payload.releaseStatus,
+    title: payload.title,
+    ...(payload.subtitle ? { subtitle: payload.subtitle } : {}),
+    isExistingRelease: payload.isExistingRelease,
+    ...(payload.upc ? { upc: payload.upc } : {}),
+    releaseType: payload.releaseType,
+    ...(payload.labelName ? { labelName: payload.labelName } : {}),
+    ...(payload.copyrightLine ? { copyrightLine: payload.copyrightLine } : {}),
+    ...(payload.productionLine ? { productionLine: payload.productionLine } : {}),
+    releaseDate: payload.releaseDate,
+    ...(payload.originalReleaseDate ? { originalReleaseDate: payload.originalReleaseDate } : {}),
+    artworkUrl: payload.artworkUrl,
+    ...(payload.languageCode ? { languageCode: payload.languageCode } : {}),
+    explicit: payload.explicit,
+    presaveEnabled: payload.presaveEnabled,
+    contentIdEnabled: payload.contentIdEnabled,
+    dolbyAtmosEnabled: payload.dolbyAtmosEnabled,
+    artists: payload.artists,
+    tracks: payload.tracks.map((track) => ({
+      trackId: track.trackId,
+      title: track.title,
+      ...(track.isrc ? { isrc: track.isrc } : {}),
+      audioFileUrl: track.audioFileUrl,
+      ...(track.durationSeconds ? { durationSeconds: track.durationSeconds } : {}),
+      explicit: track.explicit,
+      ...(track.languageCode ? { languageCode: track.languageCode } : {}),
+      contributors: track.contributors,
+    })),
+    stores: payload.stores,
+    territories: payload.territories,
+  };
+}
+
+export class DistributionJobService {
+  async listJobs(actor: FinanceActorContext) {
+    if (
+      !rbacService.hasEffectivePermission({
+        membershipRole: actor.membershipRole,
+        permission: "distribution:view",
+        systemRole: actor.systemRole,
+      })
+    ) {
+      throw new Error("Distribution job kayıtlarını görüntülemek için yetkiniz yok.");
+    }
+
+    return distributionJobRepository.listByOrganization(actor.organizationId);
+  }
+
+  async getJob(actor: FinanceActorContext, jobId: string) {
+    if (
+      !rbacService.hasEffectivePermission({
+        membershipRole: actor.membershipRole,
+        permission: "distribution:view",
+        systemRole: actor.systemRole,
+      })
+    ) {
+      throw new Error("Distribution job kaydını görüntülemek için yetkiniz yok.");
+    }
+
+    const job = await distributionJobRepository.findById(jobId);
+    if (!job || job.organizationId !== actor.organizationId) {
+      return null;
+    }
+
+    return job;
+  }
+
+  async createJob(actor: FinanceActorContext, input: CreateDistributionJobInput) {
+    assertManagePermission(actor);
+
+    await entitlementService.assertFeatureEnabled(
+      {
+        organizationId: actor.organizationId,
+      },
+      "distribution.enabled",
+    );
+
+    const parsed = createDistributionJobSchema.safeParse(input);
+
+    if (!parsed.success) {
+      return {
+        success: false as const,
+        message:
+          Object.values(parsed.error.flatten().fieldErrors).flat().find(Boolean) ??
+          "Distribution payload doğrulanamadı.",
+      };
+    }
+
+    if (parsed.data.payload.organizationId !== actor.organizationId) {
+      return {
+        success: false as const,
+        message: "Payload organizationId mevcut organizasyonla eşleşmiyor.",
+      };
+    }
+
+    const provider =
+      parsed.data.provider ??
+      (
+        await distributionProviderConfigurationService.getRuntimeConfiguration(
+          actor.organizationId,
+          "INTERNAL",
+        )
+      )?.provider ??
+      (
+        await distributionProviderConfigurationService.getRuntimeConfiguration(
+          actor.organizationId,
+          "ONE_RPM",
+        )
+      )?.provider ??
+      "INTERNAL";
+
+    const runtimeConfig = await distributionProviderConfigurationService.getRuntimeConfiguration(
+      actor.organizationId,
+      provider,
+    );
+    const normalizedPayload = normalizePayload(parsed.data.payload);
+
+    const validation = distributionValidationService.validateRelease(
+      provider,
+      normalizedPayload,
+      runtimeConfig,
+    );
+    const payloadHash = buildPayloadHash(parsed.data.payload);
+    const idempotencyKey = buildIdempotencyKey({
+      releaseId: normalizedPayload.releaseId,
+      provider,
+      releaseVersion: normalizedPayload.releaseVersion,
+      payloadHash,
+    });
+
+    const duplicate = await distributionJobRepository.findDuplicate({
+      organizationId: actor.organizationId,
+      releaseId: normalizedPayload.releaseId,
+      provider,
+      releaseVersion: normalizedPayload.releaseVersion,
+      payloadHash,
+    });
+
+    if (duplicate && ["SUCCEEDED", "PARTIALLY_SUCCEEDED", "PROCESSING", "QUEUED", "WAITING_PROVIDER"].includes(duplicate.status)) {
+      return {
+        success: false as const,
+        message: "Aynı payload için zaten dağıtım job kaydı mevcut.",
+      };
+    }
+
+    const job = await prisma.$transaction(async (tx) => {
+      const created = await distributionJobRepository.create(
+        {
+          organizationId: actor.organizationId,
+          createdByUserId: actor.userId,
+          ...(runtimeConfig?.id ? { providerConfigurationId: runtimeConfig.id } : {}),
+          provider,
+          status: validation.success ? "QUEUED" : "PENDING",
+          releaseId: normalizedPayload.releaseId,
+          releaseVersion: normalizedPayload.releaseVersion,
+          releaseTitle: normalizedPayload.title,
+          idempotencyKey,
+          payloadHash,
+          canonicalPayload: normalizedPayload as unknown as Prisma.InputJsonValue,
+          maxRetryCount: runtimeConfig?.maxRetryCount ?? 3,
+          ...(validation.success ? { queuedAt: new Date() } : {}),
+        },
+        tx,
+      );
+
+      await releaseDeliveryRepository.upsertForJob(
+        {
+          organizationId: actor.organizationId,
+          jobId: created.id,
+          ...(runtimeConfig?.id ? { providerConfigurationId: runtimeConfig.id } : {}),
+          provider,
+          releaseId: normalizedPayload.releaseId,
+          releaseVersion: normalizedPayload.releaseVersion,
+          status: validation.success ? "QUEUED" : "NOT_SENT",
+        },
+        tx,
+      );
+
+      if (validation.success) {
+        await releaseRepository.updateStatus(
+          normalizedPayload.releaseId,
+          {
+            status: "QUEUED",
+            previousStatus: "APPROVED",
+            actorUserId: actor.userId,
+            reason: "Yayın dağıtım kuyruğuna alındı.",
+            metadata: {
+              provider,
+              distributionJobId: created.id,
+            },
+          },
+          tx,
+        );
+      }
+
+      await distributionStatusHistoryRepository.create(
+        {
+          organizationId: actor.organizationId,
+          jobId: created.id,
+          status: validation.success ? "QUEUED" : "PENDING",
+          message: validation.success
+            ? "Job kuyruğa alındı."
+            : "Job validation incelemesi için bekliyor.",
+          metadata: {
+            provider,
+            validationIssues: validation.issues,
+          },
+        },
+        tx,
+      );
+
+      await auditLogService.create(
+        {
+          organizationId: actor.organizationId,
+          actorUserId: actor.userId,
+          action: "distribution.job.created",
+          entityType: "DistributionJob",
+          entityId: created.id,
+          metadata: {
+            provider,
+            releaseId: normalizedPayload.releaseId,
+            releaseVersion: normalizedPayload.releaseVersion,
+            validationSucceeded: validation.success,
+          },
+        },
+        tx,
+      );
+
+      return created;
+    });
+
+    return {
+      success: true as const,
+      data: {
+        id: job.id,
+        status: job.status,
+      },
+    };
+  }
+
+  async createJobForApprovedRelease(
+    actor: FinanceActorContext,
+    input: {
+      releaseId: string;
+      provider?: "ONE_RPM" | "FUGA" | "SYMPHONIC" | "REVELATOR" | "INTERNAL";
+    },
+  ) {
+    assertManagePermission(actor);
+
+    const payload = await distributionPayloadService.buildFromApprovedRelease({
+      organizationId: actor.organizationId,
+      releaseId: input.releaseId,
+    });
+
+    if (!payload.success) {
+      return {
+        success: false as const,
+        message: payload.message,
+      };
+    }
+
+    return this.createJob(actor, {
+      ...(input.provider ? { provider: input.provider } : {}),
+      payload: payload.data,
+    });
+  }
+
+  async cancelJob(actor: FinanceActorContext, jobId: string, reason: string) {
+    assertManagePermission(actor);
+
+    const job = await distributionJobRepository.findById(jobId);
+
+    if (!job || job.organizationId !== actor.organizationId) {
+      return {
+        success: false as const,
+        message: "Distribution job bulunamadı.",
+      };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await distributionJobRepository.updateStatus(
+        jobId,
+        {
+          status: "CANCELLED",
+          cancelledAt: new Date(),
+          lastErrorMessage: reason,
+          lockedAt: null,
+          lockedBy: null,
+        },
+        tx,
+      );
+      await distributionStatusHistoryRepository.create(
+        {
+          organizationId: actor.organizationId,
+          jobId,
+          previousStatus: job.status,
+          status: "CANCELLED",
+          message: reason,
+        },
+        tx,
+      );
+      await auditLogService.create(
+        {
+          organizationId: actor.organizationId,
+          actorUserId: actor.userId,
+
+===== JOB API =====
+import { distributionJson, withDistributionActor } from "@/features/distribution-hub/server/http/distribution-route";
+import { distributionJobService } from "@/features/distribution-hub/server/services/distribution-job.service";
+
+export async function GET() {
+  return withDistributionActor(async (actor) => {
+    const jobs = await distributionJobService.listJobs(actor);
+
+    return distributionJson({
+      success: true,
+      data: jobs,
+    });
+  });
+}
+
+export async function POST(request: Request) {
+  return withDistributionActor(async (actor) => {
+    const body = (await request.json()) as {
+      provider?: "ONE_RPM" | "FUGA" | "SYMPHONIC" | "REVELATOR" | "INTERNAL";
+      payload: {
+        organizationId: string;
+        releaseId: string;
+        releaseVersion: number;
+        releaseStatus: "APPROVED";
+        title: string;
+        subtitle?: string;
+        isExistingRelease: boolean;
+        upc?: string;
+        releaseType: string;
+        labelName?: string;
+        copyrightLine?: string;
+        productionLine?: string;
+        releaseDate: string;
+        originalReleaseDate?: string;
+        artworkUrl: string;
+        languageCode?: string;
+        explicit: boolean;
+        presaveEnabled?: boolean;
+        contentIdEnabled?: boolean;
+        dolbyAtmosEnabled?: boolean;
+        artists: Array<{
+          artistId: string;
+          name: string;
+          role: "PRIMARY" | "FEATURED";
+        }>;
+        tracks: Array<{
+          trackId: string;
+          title: string;
+          isrc?: string;
+          audioFileUrl: string;
+          durationSeconds?: number;
+          explicit: boolean;
+          languageCode?: string;
+          contributors: Array<{
+            name: string;
+            role: string;
+          }>;
+        }>;
+        stores: Array<{
+          code: string;
+          enabled: boolean;
+        }>;
+        territories: string[];
+      };
+    };
+
+    const result = await distributionJobService.createJob(actor, {
+      ...(body.provider ? { provider: body.provider } : {}),
+      payload: {
+        organizationId: body.payload.organizationId,
+        releaseId: body.payload.releaseId,
+        releaseVersion: body.payload.releaseVersion,
+        releaseStatus: body.payload.releaseStatus,
+        title: body.payload.title,
+        ...(body.payload.subtitle ? { subtitle: body.payload.subtitle } : {}),
+        isExistingRelease: body.payload.isExistingRelease,
+        ...(body.payload.upc ? { upc: body.payload.upc } : {}),
+        releaseType: body.payload.releaseType,
+        ...(body.payload.labelName ? { labelName: body.payload.labelName } : {}),
+        ...(body.payload.copyrightLine
+          ? { copyrightLine: body.payload.copyrightLine }
+          : {}),
+        ...(body.payload.productionLine
+          ? { productionLine: body.payload.productionLine }
+          : {}),
+        releaseDate: new Date(body.payload.releaseDate),
+        ...(body.payload.originalReleaseDate
+          ? { originalReleaseDate: new Date(body.payload.originalReleaseDate) }
+          : {}),
+        artworkUrl: body.payload.artworkUrl,
+        ...(body.payload.languageCode ? { languageCode: body.payload.languageCode } : {}),
+        explicit: body.payload.explicit,
+        presaveEnabled: body.payload.presaveEnabled ?? false,
+        contentIdEnabled: body.payload.contentIdEnabled ?? false,
+        dolbyAtmosEnabled: body.payload.dolbyAtmosEnabled ?? false,
+        artists: body.payload.artists,
+        tracks: body.payload.tracks,
+        stores: body.payload.stores,
+        territories: body.payload.territories,
+      },
+    });
+
+    return distributionJson(result, result.success ? 200 : 400);
+  });
+}
+
+===== JOB DETAIL API =====
+import { distributionJson, withDistributionActor } from "@/features/distribution-hub/server/http/distribution-route";
+import { distributionJobService } from "@/features/distribution-hub/server/services/distribution-job.service";
+
+type DistributionJobRouteContext = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
+export async function GET(_request: Request, context: DistributionJobRouteContext) {
+  return withDistributionActor(async (actor) => {
+    const { id } = await context.params;
+    const job = await distributionJobService.getJob(actor, id);
+
+    if (!job) {
+      return distributionJson(
+        {
+          success: false,
+          message: "Distribution job bulunamadı.",
+        },
+        404,
+      );
+    }
+
+    return distributionJson({
+      success: true,
+      data: job,
+    });
+  });
+}
+
+===== RETRY API =====
+import { distributionJson, withDistributionActor } from "@/features/distribution-hub/server/http/distribution-route";
+import { distributionJobService } from "@/features/distribution-hub/server/services/distribution-job.service";
+
+type DistributionJobRetryRouteContext = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
+export async function POST(_request: Request, context: DistributionJobRetryRouteContext) {
+  return withDistributionActor(async (actor) => {
+    const { id } = await context.params;
+    const result = await distributionJobService.retryJob(actor, id);
+
+    return distributionJson(result, result.success ? 200 : 422);
+  });
+}
+
+===== CANCEL API =====
+import { distributionJson, withDistributionActor } from "@/features/distribution-hub/server/http/distribution-route";
+import { distributionJobService } from "@/features/distribution-hub/server/services/distribution-job.service";
+
+export async function POST(
+  request: Request,
+  context: {
+    params: Promise<{
+      id: string;
+    }>;
+  },
+) {
+  return withDistributionActor(async (actor) => {
+    const params = await context.params;
+    const body = (await request.json()) as {
+      reason: string;
+    };
+
+    const result = await distributionJobService.cancelJob(actor, params.id, body.reason);
+
+    return distributionJson(result, result.success ? 200 : 400);
+  });
+}

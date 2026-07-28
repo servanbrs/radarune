@@ -1,0 +1,1318 @@
+### ADMIN DISTRIBUTION PAGE
+import Link from "next/link";
+import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
+import { rbacService } from "@/features/authorization/server/rbac";
+import { distributionJobService } from "@/features/distribution-hub/server/services/distribution-job.service";
+import { distributionProviderConfigurationService } from "@/features/distribution-hub/server/services/provider-configuration.service";
+
+export default async function AdminDistributionPage() {
+  const { organization, user } = await authSessionService.getDashboardContext();
+
+  rbacService.redirectIfMissingEffectivePermission({
+    membershipRole: organization.role,
+    permission: "distribution:view",
+    systemRole: user.systemRole,
+  });
+
+  const actor = {
+    organizationId: organization.organization.id,
+    membershipRole: organization.role,
+    systemRole: user.systemRole,
+    userId: user.id,
+  } as const;
+
+  const [providers, jobs] = await Promise.all([
+    distributionProviderConfigurationService.listByOrganization(actor),
+    distributionJobService.listJobs(actor),
+  ]);
+
+  return (
+    <main className="page-shell">
+      <div className="flex w-full flex-col gap-6">
+        <section className="panel p-6">
+          <p className="text-xs uppercase tracking-[0.24em] text-muted">
+            Distribution Hub
+          </p>
+          <h1 className="mt-3 text-3xl font-semibold">Admin Distribution Center</h1>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
+            Bu merkez, Sprint 2 Release Management modülünde onaylanan yayınları
+            canonical payload olarak kuyruğa alır, provider adapter üzerinden işler ve
+            delivery durumlarını release statüsüyle senkronize eder.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-3 text-sm font-semibold">
+            <Link className="rounded-full border border-line bg-white px-4 py-2" href="/admin/distribution/providers">
+              Providerlar
+            </Link>
+            <Link className="rounded-full border border-line bg-white px-4 py-2" href="/admin/distribution/jobs">
+              Joblar
+            </Link>
+            <Link className="rounded-full border border-line bg-white px-4 py-2" href="/admin/distribution/webhooks">
+              Webhooklar
+            </Link>
+            <Link className="rounded-full border border-line bg-white px-4 py-2" href="/admin/distribution/health">
+              Health
+            </Link>
+          </div>
+        </section>
+
+        <section className="grid gap-6 lg:grid-cols-4">
+          <article className="panel p-6">
+            <p className="text-xs uppercase tracking-[0.24em] text-muted">
+              Aktif provider
+            </p>
+            <p className="mt-3 text-2xl font-semibold">
+              {providers.filter((provider) => provider.isEnabled).length}
+            </p>
+          </article>
+          <article className="panel p-6">
+            <p className="text-xs uppercase tracking-[0.24em] text-muted">Queued jobs</p>
+            <p className="mt-3 text-2xl font-semibold">
+              {jobs.filter((job) => job.status === "QUEUED").length}
+            </p>
+          </article>
+          <article className="panel p-6">
+            <p className="text-xs uppercase tracking-[0.24em] text-muted">
+              Manual review
+            </p>
+            <p className="mt-3 text-2xl font-semibold">
+              {jobs.filter((job) => job.status === "MANUAL_REVIEW").length}
+            </p>
+          </article>
+          <article className="panel p-6">
+            <p className="text-xs uppercase tracking-[0.24em] text-muted">
+              Succeeded
+            </p>
+            <p className="mt-3 text-2xl font-semibold">
+              {jobs.filter((job) => job.status === "SUCCEEDED").length}
+            </p>
+          </article>
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-2">
+          <article className="panel p-6 md:p-8">
+            <p className="text-xs uppercase tracking-[0.24em] text-muted">
+              Provider konfigürasyonları
+            </p>
+            <div className="mt-6 space-y-3">
+              {providers.map((provider) => (
+                <div className="rounded-2xl border bg-white/70 px-4 py-4" key={provider.id}>
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-sm font-medium">{provider.provider}</span>
+                    <span className="text-xs uppercase tracking-[0.18em] text-muted">
+                      {provider.isEnabled ? provider.environment : "PASIF"}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm text-muted">
+                    Retry: {provider.maxRetryCount} · Timeout: {provider.timeoutSeconds}s ·
+                    Varsayılan: {provider.isDefault ? "Evet" : "Hayır"}
+                  </p>
+                  <p className="mt-1 text-sm text-muted">
+                    Credential: {provider.hasCredentials ? "Tanımlı" : "Tanımsız"} ·
+                    Webhook: {provider.hasWebhookSecret ? "Tanımlı" : "Tanımsız"}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="panel p-6 md:p-8">
+            <p className="text-xs uppercase tracking-[0.24em] text-muted">
+              Job kuyruğu
+            </p>
+            <div className="mt-6 space-y-3">
+              {jobs.map((job) => (
+                <div className="rounded-2xl border bg-white/70 px-4 py-4" key={job.id}>
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-sm font-medium">
+                      {job.releaseTitle} · {job.provider}
+                    </span>
+                    <span className="text-xs uppercase tracking-[0.18em] text-muted">
+                      {job.status}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm text-muted">
+                    Release ID: {job.releaseId} · Versiyon: {job.releaseVersion}
+                  </p>
+                  <p className="mt-1 text-sm text-muted">
+                    Deneme: {job.attemptCount}/{job.maxRetryCount}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </article>
+        </section>
+      </div>
+    </main>
+  );
+}
+
+### ADMIN DISTRIBUTION JOBS PAGE
+import Link from "next/link";
+import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
+import { rbacService } from "@/features/authorization/server/rbac";
+import { adminDistributionService } from "@/features/distribution-hub/server/services/admin-distribution.service";
+
+export default async function AdminDistributionJobsPage() {
+  const { organization, user } = await authSessionService.getDashboardContext();
+  rbacService.redirectIfMissingEffectivePermission({
+    membershipRole: organization.role,
+    permission: "distribution:view",
+    systemRole: user.systemRole,
+  });
+
+  const jobs = await adminDistributionService.listJobs({
+    organizationId: organization.organization.id,
+    membershipRole: organization.role,
+    systemRole: user.systemRole,
+    userId: user.id,
+  });
+
+  return (
+    <main className="page-shell">
+      <section className="panel p-6">
+        <p className="text-xs uppercase tracking-[0.24em] text-muted">Job kuyruğu</p>
+        <h1 className="mt-3 text-3xl font-semibold">Distribution jobları</h1>
+      </section>
+      <section className="panel divide-y divide-line overflow-hidden">
+        {jobs.map((job) => (
+          <Link className="grid gap-3 p-5 text-sm hover:bg-white md:grid-cols-[1fr_0.6fr_0.6fr_0.6fr]" href={`/admin/distribution/jobs/${job.id}`} key={job.id}>
+            <span className="font-semibold">{job.releaseTitle}</span>
+            <span>{job.provider}</span>
+            <span>{job.status}</span>
+            <span>{job.attemptCount}/{job.maxRetryCount}</span>
+          </Link>
+        ))}
+      </section>
+    </main>
+  );
+}
+
+### ADMIN DISTRIBUTION SERVICE
+import "server-only";
+import { rbacService } from "@/features/authorization/server/rbac";
+import { distributionJobRepository } from "@/features/distribution-hub/server/repositories/distribution-job.repository";
+import { distributionProviderConfigurationRepository } from "@/features/distribution-hub/server/repositories/provider-configuration.repository";
+import { providerWebhookEventRepository } from "@/features/distribution-hub/server/repositories/provider-webhook-event.repository";
+import type { FinanceActorContext } from "@/features/finance/server/services/finance-access.service";
+
+function assertView(actor: FinanceActorContext) {
+  if (
+    !rbacService.hasEffectivePermission({
+      membershipRole: actor.membershipRole,
+      systemRole: actor.systemRole,
+      permission: "distribution:view",
+    })
+  ) {
+    throw new Error("Distribution Center görüntüleme yetkiniz yok.");
+  }
+}
+
+export class AdminDistributionService {
+  async listJobs(actor: FinanceActorContext) {
+    assertView(actor);
+    return distributionJobRepository.listByOrganization(actor.organizationId);
+  }
+
+  async getJob(actor: FinanceActorContext, jobId: string) {
+    assertView(actor);
+    const job = await distributionJobRepository.findById(jobId);
+    return job && job.organizationId === actor.organizationId ? job : null;
+  }
+
+  async listWebhooks(actor: FinanceActorContext) {
+    assertView(actor);
+    return providerWebhookEventRepository.listByOrganization(actor.organizationId);
+  }
+
+  async listHealthChecks(actor: FinanceActorContext) {
+    assertView(actor);
+    return distributionProviderConfigurationRepository.listHealthChecksByOrganization(
+      actor.organizationId,
+    );
+  }
+}
+
+export const adminDistributionService = new AdminDistributionService();
+
+### DISTRIBUTION JOB REPOSITORY
+import "server-only";
+import { Prisma } from "@/generated/prisma/client";
+import type { DatabaseClient } from "@/server/prisma/database-client";
+import { prisma } from "@/server/prisma/prisma";
+
+const distributionJobSelect = {
+  id: true,
+  organizationId: true,
+  createdByUserId: true,
+  providerConfigurationId: true,
+  provider: true,
+  status: true,
+  releaseId: true,
+  releaseVersion: true,
+  releaseTitle: true,
+  idempotencyKey: true,
+  payloadHash: true,
+  canonicalPayload: true,
+  validationIssues: true,
+  attemptCount: true,
+  maxRetryCount: true,
+  nextAttemptAt: true,
+  lastAttemptAt: true,
+  lockedAt: true,
+  lockedBy: true,
+  lastErrorCode: true,
+  lastErrorMessage: true,
+  queuedAt: true,
+  completedAt: true,
+  cancelledAt: true,
+  createdAt: true,
+  updatedAt: true,
+  providerConfiguration: {
+    select: {
+      id: true,
+      provider: true,
+      isEnabled: true,
+      environment: true,
+      maxRetryCount: true,
+      timeoutSeconds: true,
+      credentialsEncrypted: true,
+      webhookSecretEncrypted: true,
+      publicMetadata: true,
+      capabilities: {
+        select: {
+          capability: true,
+          isEnabled: true,
+        },
+      },
+    },
+  },
+} satisfies Prisma.DistributionJobSelect;
+
+export class DistributionJobRepository {
+  async findById(id: string, client: DatabaseClient = prisma) {
+    return client.distributionJob.findUnique({
+      where: {
+        id,
+      },
+      select: distributionJobSelect,
+    });
+  }
+
+  async findDuplicate(input: {
+    organizationId: string;
+    releaseId: string;
+    provider: "ONE_RPM" | "FUGA" | "SYMPHONIC" | "REVELATOR" | "INTERNAL";
+    releaseVersion: number;
+    payloadHash: string;
+  }, client: DatabaseClient = prisma) {
+    return client.distributionJob.findFirst({
+      where: {
+        organizationId: input.organizationId,
+        releaseId: input.releaseId,
+        provider: input.provider,
+        releaseVersion: input.releaseVersion,
+        payloadHash: input.payloadHash,
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+  }
+
+  async create(input: {
+    organizationId: string;
+    createdByUserId?: string;
+    providerConfigurationId?: string;
+    provider: "ONE_RPM" | "FUGA" | "SYMPHONIC" | "REVELATOR" | "INTERNAL";
+    status: "PENDING" | "QUEUED";
+    releaseId: string;
+    releaseVersion: number;
+    releaseTitle: string;
+    idempotencyKey: string;
+    payloadHash: string;
+    canonicalPayload: Prisma.InputJsonValue;
+    maxRetryCount: number;
+    queuedAt?: Date;
+  }, client: DatabaseClient = prisma) {
+    return client.distributionJob.create({
+      data: {
+        organizationId: input.organizationId,
+        createdByUserId: input.createdByUserId ?? null,
+        providerConfigurationId: input.providerConfigurationId ?? null,
+        provider: input.provider,
+        status: input.status,
+        releaseId: input.releaseId,
+        releaseVersion: input.releaseVersion,
+        releaseTitle: input.releaseTitle,
+        idempotencyKey: input.idempotencyKey,
+        payloadHash: input.payloadHash,
+        canonicalPayload: input.canonicalPayload,
+        maxRetryCount: input.maxRetryCount,
+        queuedAt: input.queuedAt ?? null,
+      },
+      select: distributionJobSelect,
+    });
+  }
+
+  async listByOrganization(organizationId: string, client: DatabaseClient = prisma) {
+    return client.distributionJob.findMany({
+      where: {
+        organizationId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 50,
+      select: distributionJobSelect,
+    });
+  }
+
+  async reserveNextEligibleJob(
+    workerId: string,
+    lockStaleBefore: Date,
+    now: Date,
+    client: DatabaseClient = prisma,
+  ) {
+    return client.$transaction(async (tx) => {
+      const candidate = await tx.distributionJob.findFirst({
+        where: {
+          status: {
+            in: ["PENDING", "QUEUED", "RETRY_SCHEDULED"],
+          },
+          AND: [
+            {
+              OR: [
+                {
+                  lockedAt: null,
+                },
+                {
+                  lockedAt: {
+                    lt: lockStaleBefore,
+                  },
+                },
+              ],
+            },
+            {
+              OR: [
+                {
+                  nextAttemptAt: null,
+                },
+                {
+                  nextAttemptAt: {
+                    lte: now,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        orderBy: [
+          {
+            nextAttemptAt: "asc",
+          },
+          {
+            createdAt: "asc",
+          },
+        ],
+        select: {
+          id: true,
+        },
+      });
+
+      if (!candidate) {
+        return null;
+      }
+
+      const updated = await tx.distributionJob.updateMany({
+        where: {
+          id: candidate.id,
+          OR: [
+            {
+              lockedAt: null,
+            },
+            {
+              lockedAt: {
+                lt: lockStaleBefore,
+              },
+            },
+          ],
+        },
+        data: {
+          status: "PROCESSING",
+          lockedAt: now,
+          lockedBy: workerId,
+          lastAttemptAt: now,
+        },
+      });
+
+      if (updated.count === 0) {
+        return null;
+      }
+
+      return tx.distributionJob.findUnique({
+        where: {
+          id: candidate.id,
+        },
+        select: distributionJobSelect,
+      });
+    });
+  }
+
+  async updateStatus(
+    id: string,
+    input: {
+      status:
+        | "PENDING"
+        | "VALIDATING"
+        | "QUEUED"
+        | "PROCESSING"
+        | "WAITING_PROVIDER"
+        | "RETRY_SCHEDULED"
+        | "SUCCEEDED"
+        | "PARTIALLY_SUCCEEDED"
+        | "FAILED"
+        | "CANCELLED"
+        | "MANUAL_REVIEW";
+      attemptCount?: number;
+      validationIssues?: Prisma.InputJsonValue | null;
+      nextAttemptAt?: Date | null;
+      lastErrorCode?: string | null;
+      lastErrorMessage?: string | null;
+      queuedAt?: Date | null;
+      completedAt?: Date | null;
+      cancelledAt?: Date | null;
+      lockedAt?: Date | null;
+      lockedBy?: string | null;
+    },
+    client: DatabaseClient = prisma,
+  ) {
+    const data: Prisma.DistributionJobUncheckedUpdateInput = {
+      status: input.status,
+    };
+
+    if (input.attemptCount !== undefined) {
+      data.attemptCount = input.attemptCount;
+    }
+    if (input.validationIssues !== undefined) {
+      data.validationIssues = input.validationIssues ?? Prisma.JsonNull;
+    }
+    if (input.nextAttemptAt !== undefined) {
+      data.nextAttemptAt = input.nextAttemptAt;
+    }
+    if (input.lastErrorCode !== undefined) {
+      data.lastErrorCode = input.lastErrorCode;
+    }
+    if (input.lastErrorMessage !== undefined) {
+      data.lastErrorMessage = input.lastErrorMessage;
+    }
+    if (input.queuedAt !== undefined) {
+      data.queuedAt = input.queuedAt;
+    }
+    if (input.completedAt !== undefined) {
+      data.completedAt = input.completedAt;
+    }
+    if (input.cancelledAt !== undefined) {
+      data.cancelledAt = input.cancelledAt;
+    }
+    if (input.lockedAt !== undefined) {
+      data.lockedAt = input.lockedAt;
+    }
+    if (input.lockedBy !== undefined) {
+      data.lockedBy = input.lockedBy;
+    }
+
+    return client.distributionJob.update({
+      where: {
+        id,
+      },
+      data,
+      select: distributionJobSelect,
+    });
+  }
+}
+
+export const distributionJobRepository = new DistributionJobRepository();
+
+### DISTRIBUTION ATTEMPT REPOSITORY
+import "server-only";
+import { Prisma } from "@/generated/prisma/client";
+import type { DatabaseClient } from "@/server/prisma/database-client";
+import { prisma } from "@/server/prisma/prisma";
+
+export class DistributionAttemptRepository {
+  async create(
+    input: {
+      organizationId: string;
+      jobId: string;
+      provider: "ONE_RPM" | "FUGA" | "SYMPHONIC" | "REVELATOR" | "INTERNAL";
+      attemptNumber: number;
+      status:
+        | "PENDING"
+        | "VALIDATING"
+        | "QUEUED"
+        | "PROCESSING"
+        | "WAITING_PROVIDER"
+        | "RETRY_SCHEDULED"
+        | "SUCCEEDED"
+        | "PARTIALLY_SUCCEEDED"
+        | "FAILED"
+        | "CANCELLED"
+        | "MANUAL_REVIEW";
+      idempotencyKey: string;
+      retryable?: boolean;
+      requestPayload?: Prisma.InputJsonValue;
+      responsePayload?: Prisma.InputJsonValue;
+      errorCode?: string;
+      errorMessage?: string;
+      startedAt?: Date;
+      finishedAt?: Date;
+      durationMs?: number;
+    },
+    client: DatabaseClient = prisma,
+  ) {
+    return client.distributionAttempt.create({
+      data: {
+        organizationId: input.organizationId,
+        jobId: input.jobId,
+        provider: input.provider,
+        attemptNumber: input.attemptNumber,
+        status: input.status,
+        idempotencyKey: input.idempotencyKey,
+        retryable: input.retryable ?? false,
+        requestPayload: input.requestPayload ?? Prisma.JsonNull,
+        responsePayload: input.responsePayload ?? Prisma.JsonNull,
+        errorCode: input.errorCode ?? null,
+        errorMessage: input.errorMessage ?? null,
+        startedAt: input.startedAt ?? new Date(),
+        finishedAt: input.finishedAt ?? null,
+        durationMs: input.durationMs ?? null,
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
+}
+
+export const distributionAttemptRepository = new DistributionAttemptRepository();
+
+### RELEASE DELIVERY REPOSITORY
+import "server-only";
+import type { Prisma } from "@/generated/prisma/client";
+import type { DatabaseClient } from "@/server/prisma/database-client";
+import { prisma } from "@/server/prisma/prisma";
+
+const releaseDeliverySelect = {
+  id: true,
+  organizationId: true,
+  jobId: true,
+  providerConfigurationId: true,
+  provider: true,
+  releaseId: true,
+  releaseVersion: true,
+  status: true,
+  externalReleaseId: true,
+  externalReleaseUrl: true,
+  lastSyncedAt: true,
+  submittedAt: true,
+  deliveredAt: true,
+  liveAt: true,
+  rejectedAt: true,
+  failedAt: true,
+  takenDownAt: true,
+  failureReason: true,
+  createdAt: true,
+  updatedAt: true,
+  storeDeliveries: {
+    select: {
+      id: true,
+      storeCode: true,
+      territoryCode: true,
+      status: true,
+      externalStoreReference: true,
+      liveUrl: true,
+      liveAt: true,
+    },
+  },
+} satisfies Prisma.ReleaseDeliverySelect;
+
+export class ReleaseDeliveryRepository {
+  async listByRelease(
+    organizationId: string,
+    releaseId: string,
+    client: DatabaseClient = prisma,
+  ) {
+    return client.releaseDelivery.findMany({
+      where: {
+        organizationId,
+        releaseId,
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+      select: releaseDeliverySelect,
+    });
+  }
+
+  async findByReleaseAndProvider(
+    organizationId: string,
+    releaseId: string,
+    provider: "ONE_RPM" | "FUGA" | "SYMPHONIC" | "REVELATOR" | "INTERNAL",
+    client: DatabaseClient = prisma,
+  ) {
+    return client.releaseDelivery.findUnique({
+      where: {
+        organizationId_releaseId_provider: {
+          organizationId,
+          releaseId,
+          provider,
+        },
+      },
+      select: releaseDeliverySelect,
+    });
+  }
+
+  async findByExternalReleaseId(
+    provider: "ONE_RPM" | "FUGA" | "SYMPHONIC" | "REVELATOR" | "INTERNAL",
+    externalReleaseId: string,
+    client: DatabaseClient = prisma,
+  ) {
+    return client.releaseDelivery.findFirst({
+      where: {
+        provider,
+        externalReleaseId,
+      },
+      select: releaseDeliverySelect,
+    });
+  }
+
+  async upsertForJob(
+    input: {
+      organizationId: string;
+      jobId: string;
+      providerConfigurationId?: string;
+      provider: "ONE_RPM" | "FUGA" | "SYMPHONIC" | "REVELATOR" | "INTERNAL";
+      releaseId: string;
+      releaseVersion: number;
+      status:
+        | "NOT_SENT"
+        | "QUEUED"
+        | "SUBMITTED"
+        | "ACCEPTED"
+        | "PROCESSING"
+        | "DELIVERED"
+        | "LIVE"
+        | "REJECTED"
+        | "FAILED"
+        | "TAKEDOWN_PENDING"
+        | "TAKEN_DOWN";
+      externalReleaseId?: string;
+      externalReleaseUrl?: string;
+      submittedAt?: Date;
+      failureReason?: string;
+    },
+    client: DatabaseClient = prisma,
+  ) {
+    const existing = await this.findByReleaseAndProvider(
+      input.organizationId,
+      input.releaseId,
+      input.provider,
+      client,
+    );
+
+    if (existing) {
+      return client.releaseDelivery.update({
+        where: {
+          id: existing.id,
+        },
+        data: {
+          jobId: input.jobId,
+          providerConfigurationId: input.providerConfigurationId ?? null,
+          releaseVersion: input.releaseVersion,
+          status: input.status,
+          externalReleaseId: input.externalReleaseId ?? null,
+          externalReleaseUrl: input.externalReleaseUrl ?? null,
+          submittedAt: input.submittedAt ?? null,
+          failureReason: input.failureReason ?? null,
+        },
+        select: releaseDeliverySelect,
+      });
+    }
+
+    return client.releaseDelivery.create({
+      data: {
+        organizationId: input.organizationId,
+        jobId: input.jobId,
+        providerConfigurationId: input.providerConfigurationId ?? null,
+        provider: input.provider,
+        releaseId: input.releaseId,
+        releaseVersion: input.releaseVersion,
+        status: input.status,
+        externalReleaseId: input.externalReleaseId ?? null,
+        externalReleaseUrl: input.externalReleaseUrl ?? null,
+        submittedAt: input.submittedAt ?? null,
+        failureReason: input.failureReason ?? null,
+      },
+      select: releaseDeliverySelect,
+    });
+  }
+
+  async updateStatus(
+    id: string,
+    input: {
+      status:
+        | "NOT_SENT"
+        | "QUEUED"
+        | "SUBMITTED"
+        | "ACCEPTED"
+        | "PROCESSING"
+        | "DELIVERED"
+        | "LIVE"
+        | "REJECTED"
+        | "FAILED"
+        | "TAKEDOWN_PENDING"
+        | "TAKEN_DOWN";
+      externalReleaseId?: string | null;
+      externalReleaseUrl?: string | null;
+      failureReason?: string | null;
+      lastSyncedAt?: Date | null;
+      deliveredAt?: Date | null;
+      liveAt?: Date | null;
+      rejectedAt?: Date | null;
+      failedAt?: Date | null;
+      takenDownAt?: Date | null;
+    },
+    client: DatabaseClient = prisma,
+  ) {
+    return client.releaseDelivery.update({
+      where: {
+        id,
+      },
+      data: {
+        status: input.status,
+        ...(input.externalReleaseId !== undefined
+          ? { externalReleaseId: input.externalReleaseId }
+          : {}),
+        ...(input.externalReleaseUrl !== undefined
+          ? { externalReleaseUrl: input.externalReleaseUrl }
+          : {}),
+        ...(input.failureReason !== undefined ? { failureReason: input.failureReason } : {}),
+        ...(input.lastSyncedAt !== undefined ? { lastSyncedAt: input.lastSyncedAt } : {}),
+        ...(input.deliveredAt !== undefined ? { deliveredAt: input.deliveredAt } : {}),
+        ...(input.liveAt !== undefined ? { liveAt: input.liveAt } : {}),
+        ...(input.rejectedAt !== undefined ? { rejectedAt: input.rejectedAt } : {}),
+        ...(input.failedAt !== undefined ? { failedAt: input.failedAt } : {}),
+        ...(input.takenDownAt !== undefined ? { takenDownAt: input.takenDownAt } : {}),
+      },
+      select: releaseDeliverySelect,
+    });
+  }
+}
+
+export const releaseDeliveryRepository = new ReleaseDeliveryRepository();
+
+### DISTRIBUTION PRISMA MODELS
+1887-
+1888-  @@index([organizationId, createdAt])
+1889-  @@index([releaseId, createdAt])
+1890-}
+1891-
+1892:model DistributionProviderConfiguration {
+1893-  id                     String                           @id @default(cuid())
+1894-  organizationId         String?
+1895-  provider               DistributionProvider
+1896-  isEnabled              Boolean                          @default(false)
+1897-  environment            ProviderEnvironment              @default(SANDBOX)
+1898-  priority               Int                              @default(100)
+1899-  maxRetryCount          Int                              @default(3)
+1900-  timeoutSeconds         Int                              @default(30)
+1901-  supportsAutoIsrc       Boolean                          @default(false)
+1902-  supportsAutoUpc        Boolean                          @default(false)
+1903-  supportsWebhooks       Boolean                          @default(false)
+1904-  supportsUpdate         Boolean                          @default(false)
+1905-  supportsTakedown       Boolean                          @default(false)
+1906-  isDefault              Boolean                          @default(false)
+1907-  credentials            Json?
+1908-  webhookSigningSecret   String?
+1909-  credentialsEncrypted   String?                          @db.Text
+1910-  webhookSecretEncrypted String?                          @db.Text
+1911-  publicMetadata         Json?
+1912-  lastValidatedAt        DateTime?
+1913-  lastValidationStatus   String?
+1914-  createdAt              DateTime                         @default(now())
+1915-  updatedAt              DateTime                         @updatedAt
+1916-  organization           Organization?                    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+1917-  capabilities           DistributionProviderCapability[]
+1918-  distributionJobs       DistributionJob[]
+1919-  releaseDeliveries      ReleaseDelivery[]
+1920-  webhookEvents          ProviderWebhookEvent[]
+1921-  healthChecks           ProviderHealthCheck[]
+1922-
+1923-  @@unique([organizationId, provider])
+1924-  @@index([provider])
+1925-}
+1926-
+1927-model DistributionProviderCapability {
+1928-  id              String                            @id @default(cuid())
+1929-  configurationId String
+1930-  provider        DistributionProvider
+1931-  capability      DistributionProviderCapabilityKey
+1932-  isEnabled       Boolean                           @default(true)
+1933-  createdAt       DateTime                          @default(now())
+1934-  updatedAt       DateTime                          @updatedAt
+1935-  configuration   DistributionProviderConfiguration @relation(fields: [configurationId], references: [id], onDelete: Cascade)
+1936-
+1937-  @@unique([configurationId, capability])
+1938-  @@index([provider, capability])
+1939-}
+1940-
+1941-model AuditLog {
+1942-  id             String        @id @default(cuid())
+1943-  organizationId String?
+1944-  actorUserId    String?
+1945-  action         String
+1946-  entityType     String
+1947-  entityId       String?
+1948-  metadata       Json?
+1949-  createdAt      DateTime      @default(now())
+1950-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+1951-  actorUser      User?         @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+1952-
+1953-  @@index([organizationId, createdAt])
+1954-  @@index([actorUserId, createdAt])
+1955-  @@index([entityType, entityId])
+1956-}
+1957-
+1958-model ArtistApplication {
+1959-  id                  String                           @id @default(cuid())
+1960-  organizationId      String
+1961-  userId              String
+1962-  artistId            String?
+1963-  stageName           String
+1964-  legalName           String
+1965-  biography           String                           @db.Text
+1966-  profileImageUrl     String?
+1967-  socialLinks         Json?
+1968-  spotifyArtistUrl    String?
+1969-  appleMusicArtistUrl String?
+1970-  youtubeChannelUrl   String?
+1971-  documentReference   String?
+1972-  status              ArtistApplicationStatus          @default(PENDING)
+1973-  adminNotes          String?                          @db.Text
+1974-  reviewedByUserId    String?
+1975-  reviewedAt          DateTime?
+1976-  createdAt           DateTime                         @default(now())
+1977-  updatedAt           DateTime                         @updatedAt
+1978-  organization        Organization                     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+1979-  user                User                             @relation(fields: [userId], references: [id], onDelete: Cascade)
+1980-  artist              Artist?                          @relation(fields: [artistId], references: [id], onDelete: SetNull)
+1981-  reviewedByUser      User?                            @relation("ArtistApplicationReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+1982-  statusHistory       ArtistApplicationStatusHistory[]
+1983-
+1984-  @@index([organizationId, status, createdAt])
+1985-  @@index([userId, status])
+1986-  @@index([artistId])
+1987-}
+1988-
+1989-model ArtistApplicationStatusHistory {
+1990-  id             String                   @id @default(cuid())
+1991-  organizationId String
+1992-  applicationId  String
+1993-  previousStatus ArtistApplicationStatus?
+1994-  status         ArtistApplicationStatus
+1995-  actorUserId    String?
+1996-  reason         String?
+1997-  metadata       Json?
+1998-  createdAt      DateTime                 @default(now())
+1999-  organization   Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+2000-  application    ArtistApplication        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+2001-  actorUser      User?                    @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+2002-
+2003-  @@index([organizationId, createdAt])
+2004-  @@index([applicationId, createdAt])
+2005-}
+2006-
+2007-model Notification {
+2008-  id                String             @id @default(cuid())
+2009-  organizationId    String?
+2010-  userId            String
+2011-  type              String
+2012-  title             String
+2013-  message           String             @db.Text
+2014-  entityType        String?
+2015-  entityId          String?
+2016-  readAt            DateTime?
+2017-  createdAt         DateTime           @default(now())
+2018-  organization      Organization?      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+2019-  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+2020-  pushNotifications PushNotification[]
+2021-
+2022-  @@index([organizationId, createdAt])
+2023-  @@index([userId, readAt, createdAt])
+2024-}
+2025-
+2026-model SystemLog {
+2027-  id             String          @id @default(cuid())
+2028-  organizationId String?
+2029-  level          SystemLogLevel
+2030-  source         SystemLogSource
+2031-  message        String          @db.Text
+2032-  entityType     String?
+2033-  entityId       String?
+2034-  metadata       Json?
+2035-  createdAt      DateTime        @default(now())
+2036-  organization   Organization?   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+2037-
+2038-  @@index([organizationId, level, createdAt])
+2039-  @@index([source, createdAt])
+2040-}
+2041-
+2042-model AdminSetting {
+2043-  id              String          @id @default(cuid())
+2044-  organizationId  String?
+2045-  key             AdminSettingKey
+2046-  value           Json
+2047-  updatedByUserId String?
+2048-  createdAt       DateTime        @default(now())
+2049-  updatedAt       DateTime        @updatedAt
+2050-  organization    Organization?   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+2051-
+2052-  @@unique([organizationId, key])
+2053-  @@index([key])
+2054-}
+2055-
+2056-model AiProvider {
+2057-  id                  String                 @id @default(cuid())
+2058-  organizationId      String?
+2059-  code                AiProviderCode
+2060-  displayName         String
+2061-  active              Boolean                @default(false)
+2062-  priority            Int                    @default(100)
+2063-  lastHealthStatus    String?
+2064-  lastHealthMessage   String?
+2065-  lastHealthCheckedAt DateTime?
+2066-  createdAt           DateTime               @default(now())
+2067-  updatedAt           DateTime               @updatedAt
+2068-  organization        Organization?          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+2069-  credentials         AiProviderCredential[]
+2070-  capabilities        AiCapability[]
+2071-  jobs                AiAnalysisJob[]
+2072-  attempts            AiAnalysisAttempt[]
+--
+3853-
+3854-  @@index([organizationId, status])
+3855-  @@index([statementId])
+3856-}
+3857-
+3858:model DistributionJob {
+3859-  id                      String                             @id @default(cuid())
+3860-  organizationId          String
+3861-  createdByUserId         String?
+3862-  providerConfigurationId String?
+3863-  provider                DistributionProvider
+3864-  status                  DistributionJobStatus
+3865-  releaseId               String
+3866-  releaseVersion          Int                                @default(1)
+3867-  releaseTitle            String
+3868-  idempotencyKey          String                             @unique
+3869-  payloadHash             String
+3870-  canonicalPayload        Json
+3871-  validationIssues        Json?
+3872-  attemptCount            Int                                @default(0)
+3873-  maxRetryCount           Int                                @default(3)
+3874-  nextAttemptAt           DateTime?
+3875-  lastAttemptAt           DateTime?
+3876-  lockedAt                DateTime?
+3877-  lockedBy                String?
+3878-  lastErrorCode           String?
+3879-  lastErrorMessage        String?
+3880-  queuedAt                DateTime?
+3881-  completedAt             DateTime?
+3882-  cancelledAt             DateTime?
+3883-  createdAt               DateTime                           @default(now())
+3884-  updatedAt               DateTime                           @updatedAt
+3885-  organization            Organization                       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+3886-  createdByUser           User?                              @relation("DistributionJobCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+3887-  providerConfiguration   DistributionProviderConfiguration? @relation(fields: [providerConfigurationId], references: [id], onDelete: SetNull)
+3888-  attempts                DistributionAttempt[]
+3889-  deliveries              ReleaseDelivery[]
+3890-  statusHistory           DistributionStatusHistory[]
+3891-
+3892-  @@unique([organizationId, releaseId, provider, releaseVersion, payloadHash])
+3893-  @@index([organizationId, status, nextAttemptAt])
+3894-  @@index([provider, status, nextAttemptAt])
+3895-}
+3896-
+3897:model DistributionAttempt {
+3898-  id              String                @id @default(cuid())
+3899-  organizationId  String
+3900-  jobId           String
+3901-  provider        DistributionProvider
+3902-  attemptNumber   Int
+3903-  status          DistributionJobStatus
+3904-  idempotencyKey  String
+3905-  retryable       Boolean               @default(false)
+3906-  requestPayload  Json?
+3907-  responsePayload Json?
+3908-  errorCode       String?
+3909-  errorMessage    String?
+3910-  startedAt       DateTime              @default(now())
+3911-  finishedAt      DateTime?
+3912-  durationMs      Int?
+3913-  createdAt       DateTime              @default(now())
+3914-  updatedAt       DateTime              @updatedAt
+3915-  organization    Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+3916-  job             DistributionJob       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+3917-
+3918-  @@unique([jobId, attemptNumber])
+3919-  @@index([organizationId, createdAt])
+3920-}
+3921-
+3922:model ReleaseDelivery {
+3923-  id                      String                             @id @default(cuid())
+3924-  organizationId          String
+3925-  jobId                   String?
+3926-  providerConfigurationId String?
+3927-  provider                DistributionProvider
+3928-  releaseId               String
+3929-  releaseVersion          Int                                @default(1)
+3930-  status                  DeliveryStatus                     @default(NOT_SENT)
+3931-  externalReleaseId       String?
+3932-  externalReleaseUrl      String?
+3933-  lastSyncedAt            DateTime?
+3934-  submittedAt             DateTime?
+3935-  deliveredAt             DateTime?
+3936-  liveAt                  DateTime?
+3937-  rejectedAt              DateTime?
+3938-  failedAt                DateTime?
+3939-  takenDownAt             DateTime?
+3940-  failureReason           String?
+3941-  createdAt               DateTime                           @default(now())
+3942-  updatedAt               DateTime                           @updatedAt
+3943-  organization            Organization                       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+3944-  job                     DistributionJob?                   @relation(fields: [jobId], references: [id], onDelete: SetNull)
+3945-  providerConfiguration   DistributionProviderConfiguration? @relation(fields: [providerConfigurationId], references: [id], onDelete: SetNull)
+3946-  storeDeliveries         StoreDelivery[]
+3947-  statusHistory           DistributionStatusHistory[]
+3948-  webhookEvents           ProviderWebhookEvent[]
+3949-
+3950-  @@unique([organizationId, releaseId, provider])
+3951-  @@index([organizationId, status, updatedAt])
+3952-  @@index([provider, externalReleaseId])
+3953-}
+3954-
+3955-model StoreDelivery {
+3956-  id                     String                      @id @default(cuid())
+3957-  releaseDeliveryId      String
+3958-  storeCode              String
+3959-  territoryCode          String?
+3960-  status                 DeliveryStatus              @default(NOT_SENT)
+3961-  externalStoreReference String?
+3962-  liveUrl                String?
+3963-  deliveredAt            DateTime?
+3964-  liveAt                 DateTime?
+3965-  createdAt              DateTime                    @default(now())
+3966-  updatedAt              DateTime                    @updatedAt
+3967-  releaseDelivery        ReleaseDelivery             @relation(fields: [releaseDeliveryId], references: [id], onDelete: Cascade)
+3968-  statusHistory          DistributionStatusHistory[]
+3969-
+3970-  @@unique([releaseDeliveryId, storeCode, territoryCode])
+3971-  @@index([status, updatedAt])
+3972-}
+3973-
+3974:model ProviderWebhookEvent {
+3975-  id                      String                             @id @default(cuid())
+3976-  organizationId          String?
+3977-  providerConfigurationId String?
+3978-  releaseDeliveryId       String?
+3979-  provider                DistributionProvider
+3980-  externalEventId         String
+3981-  processingStatus        ProviderWebhookEventStatus         @default(PENDING)
+3982-  signatureVerified       Boolean                            @default(false)
+3983-  payload                 Json
+3984-  headers                 Json?
+3985-  normalizedPayload       Json?
+3986-  errorMessage            String?
+3987-  receivedAt              DateTime                           @default(now())
+3988-  processedAt             DateTime?
+3989-  failedAt                DateTime?
+3990-  createdAt               DateTime                           @default(now())
+3991-  updatedAt               DateTime                           @updatedAt
+3992-  organization            Organization?                      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+3993-  providerConfiguration   DistributionProviderConfiguration? @relation(fields: [providerConfigurationId], references: [id], onDelete: SetNull)
+3994-  releaseDelivery         ReleaseDelivery?                   @relation(fields: [releaseDeliveryId], references: [id], onDelete: SetNull)
+3995-
+3996-  @@unique([provider, externalEventId])
+3997-  @@index([organizationId, processingStatus, receivedAt])
+3998-}
+3999-
+4000-model ProviderExternalReference {
+4001-  id             String               @id @default(cuid())
+4002-  organizationId String
+4003-  provider       DistributionProvider
+4004-  releaseId      String
+4005-  referenceType  String
+4006-  externalId     String
+4007-  metadata       Json?
+4008-  createdAt      DateTime             @default(now())
+4009-  updatedAt      DateTime             @updatedAt
+4010-  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+4011-
+4012-  @@unique([provider, externalId])
+4013-  @@index([organizationId, releaseId, provider])
+4014-}
+4015-
+4016-model DistributionStatusHistory {
+4017-  id                String           @id @default(cuid())
+4018-  organizationId    String
+4019-  jobId             String?
+4020-  releaseDeliveryId String?
+4021-  storeDeliveryId   String?
+4022-  previousStatus    String?
+4023-  status            String
+4024-  message           String?
+4025-  metadata          Json?
+4026-  createdAt         DateTime         @default(now())
+4027-  organization      Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+4028-  job               DistributionJob? @relation(fields: [jobId], references: [id], onDelete: SetNull)
+4029-  releaseDelivery   ReleaseDelivery? @relation(fields: [releaseDeliveryId], references: [id], onDelete: SetNull)
+4030-  storeDelivery     StoreDelivery?   @relation(fields: [storeDeliveryId], references: [id], onDelete: SetNull)
+4031-
+4032-  @@index([organizationId, createdAt])
+4033-  @@index([jobId, createdAt])
+4034-}
+4035-
+4036-model ProviderHealthCheck {
+4037-  id                      String                             @id @default(cuid())
+4038-  organizationId          String?
+4039-  providerConfigurationId String?
+4040-  provider                DistributionProvider
+4041-  environment             ProviderEnvironment
+4042-  success                 Boolean
+4043-  responseTimeMs          Int?
+4044-  errorCode               String?
+4045-  errorMessage            String?
+4046-  checkedAt               DateTime                           @default(now())
+4047-  createdAt               DateTime                           @default(now())
+4048-  organization            Organization?                      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+4049-  providerConfiguration   DistributionProviderConfiguration? @relation(fields: [providerConfigurationId], references: [id], onDelete: SetNull)
+4050-
+4051-  @@index([organizationId, provider, checkedAt])
+4052-}
+4053-
+4054-model SubscriptionPlan {
+4055-  id            String         @id @default(cuid())
+4056-  code          String         @unique
+4057-  name          String
+4058-  description   String?
+4059-  active        Boolean        @default(true)
+4060-  isPublic      Boolean        @default(true) @map("public")
+4061-  sortOrder     Int            @default(0)
+4062-  trialDays     Int            @default(0)
+4063-  metadata      Json?
+4064-  createdAt     DateTime       @default(now())
+4065-  updatedAt     DateTime       @updatedAt
+4066-  features      PlanFeature[]
+4067-  prices        PlanPrice[]
+4068-  subscriptions Subscription[]
+4069-  invoiceLines  InvoiceLine[]
+4070-  coupons       Coupon[]
+4071-
+4072-  @@index([active, sortOrder])
+4073-}
+4074-
+4075-model PlanPrice {
+4076-  id                String             @id @default(cuid())
+4077-  planId            String
+4078-  currencyCode      CurrencyCode
+4079-  amountMinor       BigInt
+4080-  interval          BillingInterval
+4081-  intervalCount     Int                @default(1)
+4082-  provider          BillingProvider
+4083-  externalPriceId   String?
+4084-  active            Boolean            @default(true)
+4085-  metadata          Json?
+4086-  createdAt         DateTime           @default(now())
+4087-  updatedAt         DateTime           @updatedAt
+4088-  plan              SubscriptionPlan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+4089-  subscriptions     Subscription[]
+4090-  subscriptionItems SubscriptionItem[]
+4091-  invoiceLines      InvoiceLine[]
+4092-
+4093-  @@unique([planId, currencyCode, interval, intervalCount, provider])
+4094-  @@unique([provider, externalPriceId])
+4095-  @@index([planId, active])
+4096-}
+4097-
+4098-model PlanFeature {
+4099-  id           String               @id @default(cuid())
+4100-  planId       String
+4101-  featureKey   String
+4102-  valueType    PlanFeatureValueType
+4103-  booleanValue Boolean?
+4104-  integerValue Int?
+4105-  stringValue  String?
+4106-  jsonValue    Json?
+4107-  createdAt    DateTime             @default(now())
+4108-  updatedAt    DateTime             @updatedAt
+4109-  plan         SubscriptionPlan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+4110-
+4111-  @@unique([planId, featureKey])
+4112-  @@index([featureKey])
+4113-}
+4114-
+4115-model BillingCustomer {
+4116-  id                  String               @id @default(cuid())
+4117-  organizationId      String?
+4118-  userId              String?
+4119-  provider            BillingProvider
+4120-  externalCustomerId  String
+4121-  email               String
+4122-  name                String
+4123-  isActive            Boolean              @default(true)
+4124-  metadata            Json?
+4125-  createdAt           DateTime             @default(now())
+4126-  updatedAt           DateTime             @updatedAt
+4127-  organization        Organization?        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+4128-  user                User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+4129-  addresses           BillingAddress[]
+4130-  billingEvents       BillingEvent[]
+4131-  invoices            Invoice[]
+4132-  paymentTransactions PaymentTransaction[]
+4133-  subscriptions       Subscription[]
+4134-
+4135-  @@unique([provider, externalCustomerId])
+4136-  @@unique([organizationId, provider])
+4137-  @@unique([userId, provider])
+4138-  @@index([organizationId, isActive])
+4139-  @@index([userId, isActive])
+4140-}
+4141-
+4142-model PaymentProviderConfig {
+4143-  id                     String          @id @default(cuid())
+4144-  organizationId         String?
+4145-  provider               BillingProvider
+4146-  active                 Boolean         @default(false)
+4147-  displayName            String?
+4148-  credentialsEncrypted   String?         @db.Text
+4149-  publicMetadata         Json?
+4150-  webhookSecretEncrypted String?         @db.Text
+4151-  createdAt              DateTime        @default(now())
+4152-  updatedAt              DateTime        @updatedAt
+4153-  organization           Organization?   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+4154-
+
+### ADMIN UI COMPONENTS
+src/features/admin/components/admin-settings-form.tsx
+src/features/admin/components/admin-shell.tsx
+src/features/admin/components/admin-stat-card.tsx
+src/features/admin/components/simple-table.tsx
+src/features/admin/components/status-badges.tsx
+
+### AVAILABLE SHADCN COMPONENTS
+src/components/ui/button.tsx
+src/components/ui/field.tsx
+src/components/ui/input.tsx
+src/components/ui/select.tsx
+src/components/ui/textarea.tsx

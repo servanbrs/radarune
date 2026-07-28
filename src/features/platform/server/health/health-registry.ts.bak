@@ -1,0 +1,19 @@
+import { HealthCheck } from "./health-check";
+
+export class HealthRegistry {
+
+    private checks:HealthCheck[]=[];
+
+    register(check:HealthCheck){
+
+        this.checks.push(check);
+
+    }
+
+    getChecks(){
+
+        return this.checks;
+
+    }
+
+}

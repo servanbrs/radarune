@@ -23,6 +23,9 @@ export class DistributionProcessorService {
   async processNextJob(workerId: string) {
     const job = await databaseDistributionQueueService.reserve(workerId);
 
+    let heartbeatInterval: ReturnType<typeof setInterval> | null = null;
+
+
     if (!job) {
       return {
         success: true as const,
@@ -102,7 +105,26 @@ export class DistributionProcessorService {
       };
     }
 
-    await releaseRepository.updateStatus(job.releaseId, {
+    
+    heartbeatInterval = setInterval(async () => {
+      try {
+        const ok =
+          await databaseDistributionQueueService.heartbeat(
+            job.id,
+            workerId,
+          );
+
+        if (!ok) {
+          clearInterval(heartbeatInterval!);
+          heartbeatInterval = null;
+        }
+      } catch {
+        clearInterval(heartbeatInterval!);
+        heartbeatInterval = null;
+      }
+    }, 30000);
+
+await releaseRepository.updateStatus(job.releaseId, {
       status: "PROCESSING",
       previousStatus: "QUEUED",
       reason: "Dağıtım worker işlemi başlattı.",
@@ -113,20 +135,76 @@ export class DistributionProcessorService {
     });
 
     const startedAt = Date.now();
-    const createResult = await adapter.createRelease(
-      {
-        idempotencyKey: job.idempotencyKey,
-        payload,
-      },
-      runtimeConfig
-        ? {
-            environment: runtimeConfig.environment,
-            credentials: runtimeConfig.credentials,
-            publicMetadata: runtimeConfig.publicMetadata,
-            ...(runtimeConfig.webhookSecret ? { webhookSecret: runtimeConfig.webhookSecret } : {}),
-          }
-        : null,
-    );
+    const providerTimeoutMs =
+      (runtimeConfig?.timeoutSeconds ?? 60) * 1000;
+
+    type CreateReleaseResult = Awaited<
+      ReturnType<typeof adapter.createRelease>
+    >;
+
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let createResult: CreateReleaseResult;
+
+    try {
+      const providerRequest = adapter.createRelease(
+        {
+          idempotencyKey: job.idempotencyKey,
+          payload,
+        },
+        runtimeConfig
+          ? {
+              environment: runtimeConfig.environment,
+              credentials: runtimeConfig.credentials,
+              publicMetadata: runtimeConfig.publicMetadata,
+              ...(runtimeConfig.webhookSecret
+                ? {
+                    webhookSecret: runtimeConfig.webhookSecret,
+                  }
+                : {}),
+            }
+          : null,
+      );
+
+      const timeoutRequest = new Promise<CreateReleaseResult>(
+        (resolve) => {
+          timeoutId = setTimeout(() => {
+            resolve({
+              success: false,
+              code: "PROVIDER_ERROR",
+              message: `Provider ${providerTimeoutMs / 1000} saniye içinde yanıt vermedi.`,
+              retryable: true,
+            } as CreateReleaseResult);
+          }, providerTimeoutMs);
+        },
+      );
+
+      createResult = await Promise.race([
+        providerRequest,
+        timeoutRequest,
+      ]);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Provider çağrısında beklenmeyen bir hata oluştu.";
+
+      createResult = {
+        success: false,
+        code: "PROVIDER_ERROR",
+        message: errorMessage,
+        retryable: true,
+      } as CreateReleaseResult;
+    } finally {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+
+      if (heartbeatInterval) {
+        clearInterval(heartbeatInterval);
+        heartbeatInterval = null;
+      }
+    }
+
     const durationMs = Date.now() - startedAt;
     const nextAttemptCount = job.attemptCount + 1;
 
@@ -338,20 +416,37 @@ export class DistributionProcessorService {
         tx,
       );
 
+      const isInternalDistribution = job.provider === "INTERNAL";
+
       await releaseRepository.updateStatus(
         job.releaseId,
         {
-          status: "DISTRIBUTED",
+          status: isInternalDistribution ? "LIVE" : "DISTRIBUTED",
           previousStatus: "PROCESSING",
-          reason: "Provider release gönderimini kabul etti.",
+          reason: isInternalDistribution
+            ? "Yayın Radarune üzerinde canlıya alındı."
+            : "Provider release gönderimini kabul etti.",
           metadata: {
             distributionJobId: job.id,
             provider: job.provider,
             externalReleaseId: createResult.data.externalReleaseId,
+            radaruneLive: isInternalDistribution,
           },
         },
         tx,
       );
+
+      if (isInternalDistribution) {
+        await tx.release.update({
+          where: {
+            id: job.releaseId,
+          },
+          data: {
+            liveAt: new Date(),
+            distributionProvider: "INTERNAL",
+          },
+        });
+      }
 
       await auditLogService.create(
         {

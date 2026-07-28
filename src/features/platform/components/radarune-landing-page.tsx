@@ -167,7 +167,7 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
             <h2 className="mt-5 max-w-2xl text-4xl font-semibold leading-tight tracking-[-0.04em] md:text-6xl">Yayınlanan müzikleri keşfedin.</h2>
             <p className="mt-5 max-w-2xl text-base leading-7 text-white/55">Radarune&apos;da canlıya alınan yayınları inceleyin. Bu vitrin yalnızca gerçek katalog verilerini gösterir.</p>
           </div>
-          <Link className="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-3 text-sm font-semibold text-white/80 hover:border-[#efb848]/60 hover:text-white" href="/sign-up">Kataloğunuzu yayınlayın <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>
+          <Link className="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-3 text-sm font-semibold text-white/80 hover:border-[#efb848]/60 hover:text-white" href="/discover">Tümünü keşfet <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>
         </div>
         {discoverReleases.length > 0 ? (
           <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">

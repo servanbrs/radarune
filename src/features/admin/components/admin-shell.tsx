@@ -56,7 +56,7 @@ const adminNavigationGroups = [
         label: "Spotify",
       },
       {
-        href: "/admin/settings/storage",
+        href: "/admin/storage",
         label: "Dosya Depolama",
       },
       {

@@ -1,0 +1,20 @@
+export type HealthStatus =
+  | "healthy"
+  | "warning"
+  | "error"
+  | "unknown";
+
+export interface HealthCheckResult {
+  id: string;
+  title: string;
+
+  status: HealthStatus;
+
+  message: string;
+
+  duration: number;
+
+  checkedAt: Date;
+
+  required: boolean;
+}
