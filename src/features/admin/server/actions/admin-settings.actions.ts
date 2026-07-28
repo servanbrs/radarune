@@ -72,6 +72,8 @@ export async function updateAdminSettingsAction(
       value: getText(formData, "supportEmail"),
       reason,
     },
+    { key: "SEO_TITLE", value: getText(formData, "seoTitle"), reason },
+    { key: "SEO_DESCRIPTION", value: getText(formData, "seoDescription"), reason },
     {
       key: "DEFAULT_DISTRIBUTION_PROVIDER",
       value: getText(

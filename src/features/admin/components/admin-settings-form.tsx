@@ -130,6 +130,8 @@ export function AdminSettingsForm({
               type="text"
             />
           </label>
+          <label className="text-sm font-medium md:col-span-2">SEO sayfa başlığı<input className={inputClassName} defaultValue={getStringValue(settings, "SEO_TITLE", "Radarune | Müzik operasyon platformu")} name="seoTitle" maxLength={70} /></label>
+          <label className="text-sm font-medium md:col-span-2">SEO açıklaması<textarea className={inputClassName} defaultValue={getStringValue(settings, "SEO_DESCRIPTION", "")} name="seoDescription" maxLength={160} rows={3} /></label>
         </div>
       </section>
 

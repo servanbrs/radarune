@@ -63,6 +63,8 @@ export const updateAdminSettingSchema = z.object({
     "PLATFORM_NAME",
     "LOGO_URL",
     "SUPPORT_EMAIL",
+    "SEO_TITLE",
+    "SEO_DESCRIPTION",
     "DEFAULT_DISTRIBUTION_PROVIDER",
     "AUTO_DISTRIBUTION_ENABLED",
     "MAX_AUDIO_FILE_SIZE_BYTES",

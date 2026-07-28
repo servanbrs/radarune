@@ -11,6 +11,8 @@ const defaults: Array<{ key: UpdateAdminSettingInput["key"]; value: string | boo
   { key: "PLATFORM_NAME", value: "Radarune" },
   { key: "LOGO_URL", value: "" },
   { key: "SUPPORT_EMAIL", value: "support@radarune.com" },
+  { key: "SEO_TITLE", value: "Radarune | Müzik operasyon platformu" },
+  { key: "SEO_DESCRIPTION", value: "Sanatçılar ve label ekipleri için yayın, dağıtım ve gelir yönetimi." },
   { key: "DEFAULT_DISTRIBUTION_PROVIDER", value: "INTERNAL" },
   { key: "AUTO_DISTRIBUTION_ENABLED", value: false },
   { key: "MAX_AUDIO_FILE_SIZE_BYTES", value: 536870912 },
