@@ -4,6 +4,7 @@ import { StatusBadge, UserRoleBadge, UserStatusBadge } from "@/features/admin/co
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { toAdminActor } from "@/features/admin/server/admin-context";
 import { adminUserService } from "@/features/admin/server/services/admin-user.service";
+import { AdminUserActions } from "@/features/admin/components/admin-user-actions";
 
 export default async function AdminUserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -40,6 +41,7 @@ export default async function AdminUserDetailPage({ params }: { params: Promise<
           </div>
         </article>
       </section>
+      <AdminUserActions role={detail.systemRole} status={detail.accountStatus} userId={detail.id} />
       <section className="panel p-6">
         <h2 className="text-lg font-semibold">Yayınlar</h2>
         <div className="mt-4 grid gap-3">
