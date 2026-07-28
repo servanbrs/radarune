@@ -124,8 +124,8 @@ export function AdminShell({
   description: string;
 }) {
   return (
-    <main className="page-shell min-w-0 bg-[#0b1114] text-[#eef7f5]" data-admin-theme="dark">
-      <div className="mb-5 flex items-center justify-between rounded-2xl border border-[#26383a] bg-[#111d20] px-4 py-3"><span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#44c7ad]">Yönetim</span><Link className="text-sm font-semibold text-[#9aada9] hover:text-[#eef7f5]" href="/dashboard">Çalışma alanına dön →</Link></div>
+    <main className="page-shell min-w-0 flex-col bg-[#0b1114] text-[#eef7f5]" data-admin-theme="dark">
+      <div className="mb-5 flex w-full items-center justify-between rounded-2xl border border-[#26383a] bg-[#111d20] px-4 py-3"><span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#44c7ad]">Yönetim</span><Link className="text-sm font-semibold text-[#9aada9] hover:text-[#eef7f5]" href="/dashboard">Çalışma alanına dön →</Link></div>
       <div className="grid min-w-0 w-full gap-5 xl:grid-cols-[260px_minmax(0,1fr)]">
         {/* Admin sidebar */}
         <aside className="panel sticky top-24 block h-fit max-h-[calc(100vh-7rem)] overflow-y-auto p-4">
