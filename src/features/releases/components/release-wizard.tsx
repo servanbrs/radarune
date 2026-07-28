@@ -943,7 +943,12 @@ export function ReleaseWizard({
             </div>
 
             <div>
-              <p className="mb-3 text-sm font-semibold">Dijital platformlar</p>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm font-semibold">Dijital platformlar</p>
+                <button className="rounded-full border border-accent/30 bg-accent/10 px-3 py-1.5 text-xs font-semibold text-accent" onClick={() => form.setValue("stores", (form.getValues("stores") ?? []).length === releaseStoreValues.length ? [] : [...releaseStoreValues], { shouldDirty: true })} type="button">
+                  {(watchedValues.stores ?? []).length === releaseStoreValues.length ? "Seçimi temizle" : "Tümünü seç"}
+                </button>
+              </div>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {releaseStoreValues.map((store) => (
                   <label
