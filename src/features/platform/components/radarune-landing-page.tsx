@@ -29,7 +29,7 @@ const workflowSteps = ["Hazırla", "Doğrula", "Dağıt", "Ölç"] as const;
 
 export function RadaruneLandingPage({ discoverReleases = [] }: { discoverReleases?: PublicDiscoverCandidate[] }) {
   return (
-    <main className="min-h-screen overflow-hidden bg-[#090b0f] text-white">
+    <main className="landing-shell min-h-screen overflow-hidden bg-[#090b0f] text-white">
       <StructuredData
         data={{
           "@context": "https://schema.org",
@@ -41,7 +41,8 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
         }}
       />
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[38rem] bg-[radial-gradient(circle_at_20%_12%,rgba(239,184,72,0.18),transparent_28%),radial-gradient(circle_at_78%_18%,rgba(48,190,169,0.13),transparent_32%)]" />
+      <div className="landing-aurora landing-aurora-one pointer-events-none absolute inset-x-0 top-0 h-[38rem]" />
+      <div className="landing-aurora landing-aurora-two pointer-events-none absolute right-[-10rem] top-[22rem] h-[30rem] w-[30rem]" />
 
       <header className="relative z-10 border-b border-white/10 px-5 py-5 md:px-10">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-6">
@@ -71,7 +72,7 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
             <CircleDot className="h-3.5 w-3.5" aria-hidden="true" />
             MÜZİK OPERASYONLARI İÇİN
           </div>
-          <h1 className="max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.05em] md:text-7xl lg:text-[5.25rem]">
+          <h1 className="landing-title max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.05em] md:text-7xl lg:text-[5.25rem]">
             Müziğinizi yayınlayın, <span className="text-[#efb848]">kitlenizi büyütün.</span>
           </h1>
           <p className="mt-8 max-w-xl text-lg leading-8 text-white/60 md:text-xl">
@@ -112,7 +113,7 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
                 </div>
               ))}
             </div>
-            <div className="rounded-2xl bg-[#efb848] p-5 text-[#090b0f]">
+            <div className="landing-cta-card rounded-2xl bg-[#efb848] p-5 text-[#090b0f]">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-[0.18em]">Tek merkez</span>
                 <ArrowUpRight className="h-5 w-5" aria-hidden="true" />

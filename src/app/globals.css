@@ -95,7 +95,61 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-heading), sans-serif;
+  transition: background-color 420ms ease, color 420ms ease;
 }
+
+.landing-shell,
+.landing-shell * {
+  transition: background-color 420ms ease, border-color 420ms ease, color 420ms ease, box-shadow 420ms ease;
+}
+
+.landing-shell {
+  --landing-bg: #090b0f;
+  --landing-fg: #ffffff;
+  --landing-muted: rgba(255, 255, 255, 0.62);
+  position: relative;
+  isolation: isolate;
+  background: var(--landing-bg) !important;
+  color: var(--landing-fg);
+}
+
+.landing-aurora {
+  z-index: -1;
+  border-radius: 999px;
+  filter: blur(80px);
+  opacity: 0.5;
+  animation: landing-drift 14s ease-in-out infinite alternate;
+}
+
+.landing-aurora-one {
+  background: radial-gradient(circle at 20% 20%, rgba(239, 184, 72, 0.28), transparent 42%), radial-gradient(circle at 78% 18%, rgba(48, 190, 169, 0.22), transparent 38%), radial-gradient(circle at 54% 72%, rgba(147, 96, 255, 0.16), transparent 35%);
+}
+
+.landing-aurora-two {
+  background: radial-gradient(circle, rgba(147, 96, 255, 0.22), transparent 65%);
+  animation-delay: -5s;
+}
+
+@keyframes landing-drift {
+  from { transform: translate3d(-2%, -1%, 0) scale(1); }
+  to { transform: translate3d(3%, 2%, 0) scale(1.08); }
+}
+
+.theme-toggle-icon { display: grid; animation: theme-icon-in 360ms ease both; }
+@keyframes theme-icon-in { from { transform: rotate(-35deg) scale(0.7); opacity: 0; } to { transform: rotate(0) scale(1); opacity: 1; } }
+
+html[data-theme="light"] .landing-shell {
+  --landing-bg: #f4efe7;
+  --landing-fg: #13191d;
+  --landing-muted: #5d686c;
+  background: var(--landing-bg) !important;
+  color: var(--landing-fg);
+}
+
+html[data-theme="light"] .landing-shell [class*="text-white"] { color: var(--landing-fg) !important; }
+html[data-theme="light"] .landing-shell [class*="border-white"] { border-color: rgba(19, 25, 29, 0.14) !important; }
+html[data-theme="light"] .landing-shell [class*="bg-white"] { background-color: rgba(19, 25, 29, 0.05) !important; }
+html[data-theme="light"] .landing-shell .landing-title { color: #13191d !important; }
 
 a,
 button,

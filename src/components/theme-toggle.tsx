@@ -15,7 +15,7 @@ export function ThemeToggle() {
   return (
     <button
       aria-label={dark ? "Gündüz moduna geç" : "Gece moduna geç"}
-      className="grid h-10 w-10 place-items-center rounded-full border border-line bg-surface text-muted hover:bg-surface-strong hover:text-foreground"
+      className="theme-toggle grid h-10 w-10 place-items-center rounded-full border border-line bg-surface text-muted hover:bg-surface-strong hover:text-foreground"
       onClick={() => {
         const enabled = !dark;
         document.documentElement.dataset.theme = enabled ? "dark" : "light";
@@ -24,7 +24,7 @@ export function ThemeToggle() {
       }}
       type="button"
     >
-      {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      <span className="theme-toggle-icon">{dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}</span>
     </button>
   );
 }
