@@ -4,6 +4,7 @@ import { StatusBadge } from "@/features/admin/components/status-badges";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { toAdminActor } from "@/features/admin/server/admin-context";
 import { releaseModerationService } from "@/features/admin/server/services/release-moderation.service";
+import { ReleasePreview, ReleaseReviewActions } from "@/features/admin/components/release-review-actions";
 
 export default async function AdminReleaseDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -46,6 +47,8 @@ export default async function AdminReleaseDetailPage({ params }: { params: Promi
           </div>
         </article>
       </section>
+      <ReleasePreview artworkUploadId={release.artworkUploadId} artworkUpload={release.uploads.find((upload) => upload.id === release.artworkUploadId) ?? null} audioUploadId={release.tracks[0]?.audioUploadId ?? null} audioUpload={release.tracks[0]?.uploads.find((upload) => upload.id === release.tracks[0]?.audioUploadId) ?? null} />
+      <ReleaseReviewActions releaseId={release.id} status={release.status} />
       <section className="panel p-6">
         <h2 className="text-lg font-semibold">Parçalar</h2>
         <div className="mt-4 grid gap-3">

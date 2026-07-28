@@ -93,15 +93,15 @@ function AdminNavigation() {
       className="grid gap-6"
     >
       {adminNavigationGroups.map((group) => (
-        <details className="group" key={group.title} open>
-          <summary className="cursor-pointer list-none px-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted [&::-webkit-details-marker]:hidden">
-            {group.title}
+        <details className="group" key={group.title} open={group.title === "Genel"}>
+          <summary className="flex cursor-pointer list-none items-center justify-between rounded-xl px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted transition hover:bg-surface-strong [&::-webkit-details-marker]:hidden">
+            <span>{group.title}</span><span className="text-base transition-transform group-open:rotate-180">⌄</span>
           </summary>
 
           <div className="mt-2 grid gap-1">
             {group.items.map((item) => (
               <Link
-                className="rounded-xl px-3 py-2.5 text-sm font-medium text-muted transition hover:bg-white hover:text-foreground"
+                className="rounded-xl px-3 py-2.5 text-sm font-medium text-muted transition hover:bg-surface-strong hover:text-foreground"
                 href={item.href}
                 key={item.href}
               >

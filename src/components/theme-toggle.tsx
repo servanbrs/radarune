@@ -10,6 +10,7 @@ export function ThemeToggle() {
     const saved = window.localStorage.getItem("radarune-theme");
     const enabled = saved === "dark";
     document.documentElement.dataset.theme = enabled ? "dark" : "light";
+    setDark(enabled);
   }, []);
 
   return (
@@ -18,9 +19,11 @@ export function ThemeToggle() {
       className="theme-toggle grid h-10 w-10 place-items-center rounded-full border border-line bg-surface text-muted hover:bg-surface-strong hover:text-foreground"
       onClick={() => {
         const enabled = !dark;
+        document.documentElement.classList.add("theme-transitioning");
         document.documentElement.dataset.theme = enabled ? "dark" : "light";
         window.localStorage.setItem("radarune-theme", enabled ? "dark" : "light");
         setDark(enabled);
+        window.setTimeout(() => document.documentElement.classList.remove("theme-transitioning"), 420);
       }}
       type="button"
     >

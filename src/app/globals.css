@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* A single, calm cross-fade keeps every surface, card and text color in sync. */
+html.theme-transitioning,
+html.theme-transitioning body,
+html.theme-transitioning body * {
+  transition: background-color 380ms ease, color 380ms ease, border-color 380ms ease, box-shadow 380ms ease !important;
+}
+
 :root {
   --background: #f4efe7;
   --foreground: #131313;
