@@ -4,6 +4,7 @@ import { formatMinorMoney } from "@/features/finance/lib/formatters";
 import { analyticsService } from "@/features/finance/server/services/analytics.service";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import Link from "next/link";
 
 type AnalyticsPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -65,6 +66,7 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
                 çalıştıran performans ekranı.
               </p>
             </div>
+            <Link className="inline-flex rounded-full border border-line px-4 py-2 text-sm font-semibold" href="/analytics/detail">Detaylı analiz sayfası →</Link>
             <form className="grid gap-3 md:grid-cols-4" method="GET">
               <Input defaultValue={readSearchParam(params, "periodStart")} name="periodStart" type="date" />
               <Input defaultValue={readSearchParam(params, "periodEnd")} name="periodEnd" type="date" />

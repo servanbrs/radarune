@@ -23,6 +23,13 @@
   --danger: #ff7b7b;
 }
 
+[data-admin-theme="dark"] .bg-white,
+[data-admin-theme="dark"] .bg-white\/60,
+[data-admin-theme="dark"] .bg-white\/70,
+[data-admin-theme="dark"] .bg-white\/80 {
+  background-color: var(--surface-strong) !important;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

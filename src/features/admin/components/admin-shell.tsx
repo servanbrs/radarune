@@ -125,6 +125,7 @@ export function AdminShell({
 }) {
   return (
     <main className="page-shell min-w-0" data-admin-theme="dark">
+      <div className="mb-5 flex items-center justify-between rounded-2xl border border-line bg-surface px-4 py-3"><span className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Yönetim</span><Link className="text-sm font-semibold text-muted hover:text-foreground" href="/dashboard">Çalışma alanına dön →</Link></div>
       <div className="grid min-w-0 w-full gap-5 xl:grid-cols-[260px_minmax(0,1fr)]">
         {/* Mobil admin menüsü */}
         <details className="panel group xl:hidden">
