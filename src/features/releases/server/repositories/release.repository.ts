@@ -457,14 +457,41 @@ export class ReleaseRepository {
 
   async attachUpload(params: {
     releaseId: string;
+    organizationId: string;
     trackId?: string;
     uploadId: string;
     kind: "AUDIO" | "ARTWORK";
   }, client: DatabaseClient = prisma) {
-    await client.upload.update({
+    const upload = await client.upload.findFirst({
       where: {
         id: params.uploadId,
+        organizationId: params.organizationId,
+        kind: params.kind,
       },
+      select: { id: true },
+    });
+
+    if (!upload) {
+      throw new Error("Dosya bulunamadı veya bu organizasyona ait değil.");
+    }
+
+    if (params.trackId) {
+      const track = await client.track.findFirst({
+        where: {
+          id: params.trackId,
+          releaseId: params.releaseId,
+          organizationId: params.organizationId,
+        },
+        select: { id: true },
+      });
+
+      if (!track) {
+        throw new Error("Parça bu organizasyona ve yayına ait değil.");
+      }
+    }
+
+    await client.upload.update({
+      where: { id: upload.id },
       data: {
         releaseId: params.releaseId,
         trackId: params.trackId ?? null,
@@ -473,25 +500,23 @@ export class ReleaseRepository {
     });
 
     if (params.kind === "ARTWORK") {
-      await client.release.update({
-        where: {
-          id: params.releaseId,
-        },
+      const releaseUpdated = await client.release.updateMany({
+        where: { id: params.releaseId, organizationId: params.organizationId },
         data: {
           artworkUploadId: params.uploadId,
         },
       });
+      if (releaseUpdated.count !== 1) throw new Error("Yayın bu organizasyona ait değil.");
     }
 
     if (params.kind === "AUDIO" && params.trackId) {
-      await client.track.update({
-        where: {
-          id: params.trackId,
-        },
+      const trackUpdated = await client.track.updateMany({
+        where: { id: params.trackId, releaseId: params.releaseId, organizationId: params.organizationId },
         data: {
           audioUploadId: params.uploadId,
         },
       });
+      if (trackUpdated.count !== 1) throw new Error("Parça bu organizasyona ve yayına ait değil.");
     }
   }
 

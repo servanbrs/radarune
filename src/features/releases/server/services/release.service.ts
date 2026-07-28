@@ -228,6 +228,7 @@ export class ReleaseService {
 
     await releaseRepository.attachUpload({
       releaseId,
+      organizationId: actor.organizationId,
       uploadId: params.uploadId,
       kind: params.kind,
       ...(params.trackId ? { trackId: params.trackId } : {}),
