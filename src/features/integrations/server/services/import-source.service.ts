@@ -191,7 +191,12 @@ export class ImportSourceService {
     if (!item) throw new Error("Import kaydı bulunamadı.");
     if (!["PENDING_REVIEW", "DETECTED"].includes(item.status)) throw new Error("Import kaydı artık incelenebilir durumda değil.");
     return prisma.$transaction(async (client) => {
-      const updated = await client.importItem.update({ where: { id: item.id }, data: { status: parsed.decision, reviewedAt: new Date() }, select: { id: true, status: true } });
+      const updatedCount = await client.importItem.updateMany({
+        where: { id: item.id, organizationId: actor.organizationId, status: item.status },
+        data: { status: parsed.decision, reviewedAt: new Date() },
+      });
+      if (updatedCount.count !== 1) throw new Error("Import kaydı durumu değişti; işlem artık geçerli değil.");
+      const updated = await client.importItem.findUniqueOrThrow({ where: { id: item.id }, select: { id: true, status: true } });
       await client.importModerationDecision.create({ data: { importItemId: item.id, actorUserId: actor.userId, decision: parsed.decision, reason: parsed.reason } });
       await auditLogService.create({ organizationId: actor.organizationId, actorUserId: actor.userId, action: `IMPORT_${parsed.decision}`, entityType: "ImportItem", entityId: item.id, metadata: { reason: parsed.reason } }, client);
       return updated;
