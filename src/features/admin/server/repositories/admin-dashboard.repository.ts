@@ -28,6 +28,9 @@ export class AdminDashboardRepository {
       failedDistributionJobs,
       recentDistributionErrors,
       recentAuditLogs,
+      totalDistributionJobs,
+      recentUsers,
+      popularReleases,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.user.count({ where: { accountStatus: "ACTIVE" } }),
@@ -70,6 +73,9 @@ export class AdminDashboardRepository {
           actorUser: { select: { id: true, name: true, email: true } },
         },
       }),
+      prisma.distributionJob.count({ where: { organizationId } }),
+      prisma.user.findMany({ orderBy: { createdAt: "desc" }, take: 5, select: { id: true, name: true, email: true, createdAt: true } }),
+      prisma.release.findMany({ where: { organizationId }, orderBy: { releaseLikes: { _count: "desc" } }, take: 5, select: { id: true, title: true, _count: { select: { releaseLikes: true } } } }),
     ]);
 
     const [dailyUsers, dailyReleases, releaseStatusDistribution, jobStatusDistribution] =
@@ -118,6 +124,9 @@ export class AdminDashboardRepository {
       jobStatusDistribution,
       recentDistributionErrors,
       recentAuditLogs,
+      totalDistributionJobs,
+      recentUsers,
+      popularReleases,
     };
   }
 
