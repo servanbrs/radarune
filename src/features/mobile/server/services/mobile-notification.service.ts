@@ -5,7 +5,7 @@ import type { MobileRouteActor } from "@/features/mobile/server/http/mobile-rout
 export class MobileNotificationService {
   async list(actor: MobileRouteActor) {
     return prisma.notification.findMany({
-      where: { userId: actor.userId },
+      where: { userId: actor.userId, organizationId: actor.organizationId },
       orderBy: { createdAt: "desc" },
       take: 100,
       select: { id: true, type: true, title: true, message: true, entityType: true, entityId: true, readAt: true, createdAt: true },
@@ -14,7 +14,7 @@ export class MobileNotificationService {
 
   async markRead(actor: MobileRouteActor, notificationId: string) {
     const result = await prisma.notification.updateMany({
-      where: { id: notificationId, userId: actor.userId },
+      where: { id: notificationId, userId: actor.userId, organizationId: actor.organizationId },
       data: { readAt: new Date() },
     });
     if (result.count === 0) {
@@ -24,7 +24,7 @@ export class MobileNotificationService {
 
   async markAllRead(actor: MobileRouteActor) {
     await prisma.notification.updateMany({
-      where: { userId: actor.userId, readAt: null },
+      where: { userId: actor.userId, organizationId: actor.organizationId, readAt: null },
       data: { readAt: new Date() },
     });
   }
