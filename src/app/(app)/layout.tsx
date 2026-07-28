@@ -7,6 +7,7 @@ import { UserMenu } from "@/features/authentication/components/user-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { creatorAccessService } from "@/features/authorization/server/creator-access.service";
+import { GlobalSearch } from "@/components/global-search";
 
 type NavigationItem = {
   href: string;
@@ -107,6 +108,7 @@ export default async function AppLayout({
             </p>
           </Link>
 
+          <GlobalSearch />
           <nav className="hidden min-w-0 items-center gap-1 lg:flex">
             {primaryNavigation.map((item) => (
               <Link

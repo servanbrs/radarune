@@ -1,0 +1,14 @@
+"use client";
+
+import Link from "next/link";
+import { Search, X } from "lucide-react";
+import { useEffect, useState } from "react";
+
+type Result = { artists: Array<{ id: string; name: string; slug: string }>; releases: Array<{ id: string; title: string; artists: Array<{ artist: { name: string } }> }>; tracks: Array<{ id: string; title: string; release: { id: string; title: string } }> };
+
+export function GlobalSearch() {
+  const [query, setQuery] = useState(""); const [result, setResult] = useState<Result | null>(null); const [open, setOpen] = useState(false);
+  useEffect(() => { const timer = window.setTimeout(() => { if (query.trim().length < 2) { setResult(null); return; } fetch(`/api/search?q=${encodeURIComponent(query)}`).then((r) => r.ok ? r.json() : null).then(setResult).catch(() => setResult(null)); }, 220); return () => window.clearTimeout(timer); }, [query]);
+  const empty = result && !result.artists.length && !result.releases.length && !result.tracks.length;
+  return <div className="relative hidden w-full max-w-xs xl:block"><div className="flex items-center gap-2 rounded-xl border border-line bg-surface-strong px-3 py-2"><Search className="h-4 w-4 text-muted" /><input aria-label="Şarkı veya sanatçı ara" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted" onChange={(e) => { setQuery(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)} placeholder="Şarkı veya sanatçı ara…" value={query} />{query ? <button aria-label="Aramayı temizle" className="text-muted" onClick={() => { setQuery(""); setOpen(false); }} type="button"><X className="h-4 w-4" /></button> : null}</div>{open && query.length > 1 ? <div className="absolute left-0 right-0 top-12 z-[60] max-h-96 overflow-y-auto rounded-2xl border border-line bg-surface p-2 shadow-2xl">{empty ? <p className="p-3 text-sm text-muted">Sonuç bulunamadı.</p> : <div className="grid gap-1">{result?.artists.map((item) => <Link className="rounded-xl px-3 py-2 text-sm hover:bg-surface-strong" href={`/artist/${item.slug}`} key={`a-${item.id}`} onClick={() => setOpen(false)}><span className="text-xs uppercase tracking-wider text-accent">Sanatçı</span><br />{item.name}</Link>)}{result?.releases.map((item) => <Link className="rounded-xl px-3 py-2 text-sm hover:bg-surface-strong" href={`/releases/${item.id}`} key={`r-${item.id}`} onClick={() => setOpen(false)}><span className="text-xs uppercase tracking-wider text-accent">Yayın</span><br />{item.title}</Link>)}{result?.tracks.map((item) => <Link className="rounded-xl px-3 py-2 text-sm hover:bg-surface-strong" href={`/releases/${item.release.id}`} key={`t-${item.id}`} onClick={() => setOpen(false)}><span className="text-xs uppercase tracking-wider text-accent">Şarkı · {item.release.title}</span><br />{item.title}</Link>)}</div>}</div> : null}</div>;
+}
