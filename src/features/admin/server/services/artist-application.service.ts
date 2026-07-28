@@ -122,6 +122,7 @@ export class ArtistApplicationService {
         const updated = await artistApplicationRepository.updateStatus(
           {
             id,
+            organizationId: actor.organizationId,
             previousStatus: application.status,
             status: "APPROVED",
             actorUserId: actor.userId,
@@ -175,6 +176,7 @@ export class ArtistApplicationService {
     const updated = await artistApplicationRepository.updateStatus(
       {
         id: application.id,
+        organizationId: actor.organizationId,
         previousStatus: application.status,
         status,
         actorUserId: actor.userId,

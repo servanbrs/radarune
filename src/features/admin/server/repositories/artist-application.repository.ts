@@ -97,6 +97,7 @@ export class ArtistApplicationRepository {
     input: {
       id: string;
       previousStatus: ArtistApplicationStatus;
+      organizationId: string;
       status: ArtistApplicationStatus;
       actorUserId: string;
       reason?: string;
@@ -105,8 +106,8 @@ export class ArtistApplicationRepository {
     },
     client: DatabaseClient,
   ) {
-    const application = await client.artistApplication.update({
-      where: { id: input.id },
+    const updated = await client.artistApplication.updateMany({
+      where: { id: input.id, organizationId: input.organizationId, status: input.previousStatus },
       data: {
         status: input.status,
         reviewedByUserId: input.actorUserId,
@@ -114,13 +115,15 @@ export class ArtistApplicationRepository {
         ...(input.adminNotes !== undefined ? { adminNotes: input.adminNotes } : {}),
         ...(input.artistId ? { artistId: input.artistId } : {}),
       },
-      select: {
-        id: true,
-        organizationId: true,
-        userId: true,
-        stageName: true,
-        status: true,
-      },
+    });
+
+    if (updated.count !== 1) {
+      throw new Error("Başvuru durumu değişti; işlem artık geçerli değil.");
+    }
+
+    const application = await client.artistApplication.findUniqueOrThrow({
+      where: { id: input.id },
+      select: { id: true, organizationId: true, userId: true, stageName: true, status: true },
     });
 
     await client.artistApplicationStatusHistory.create({
