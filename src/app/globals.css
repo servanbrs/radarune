@@ -23,6 +23,18 @@
   --danger: #ff7b7b;
 }
 
+html[data-theme="dark"] {
+  --background: #0b1114;
+  --foreground: #eef7f5;
+  --muted: #9aada9;
+  --line: #26383a;
+  --surface: #111d20;
+  --surface-strong: #182a2c;
+  --accent: #44c7ad;
+  --accent-foreground: #071512;
+  --danger: #ff7b7b;
+}
+
 [data-admin-theme="dark"] .bg-white,
 [data-admin-theme="dark"] .bg-white\/60,
 [data-admin-theme="dark"] .bg-white\/70,

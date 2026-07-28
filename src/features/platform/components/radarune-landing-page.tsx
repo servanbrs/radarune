@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight, Check, ChevronRight, CircleDot, Compass, Gauge, Headphones, Layers3, ShieldCheck } from "lucide-react";
 import type { PublicDiscoverCandidate } from "@/features/growth/server/services/discover.service";
 import { StructuredData } from "@/features/seo/components/structured-data";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const capabilities = [
   {
@@ -49,13 +50,14 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
             <span className="text-sm font-semibold tracking-[0.24em]">RADARUNE</span>
           </Link>
           <nav className="hidden items-center gap-8 text-sm text-white/60 md:flex" aria-label="Ana navigasyon">
-            <Link className="hover:text-white" href="#capabilities">Platform</Link>
-            <Link className="hover:text-white" href="#workflow">Akış</Link>
+            <Link className="hover:text-white" href="/">Ana Sayfa</Link>
             <Link className="hover:text-white" href="#discover">Keşfet</Link>
-            <Link className="hover:text-white" href="/product">Ürün</Link>
+            <Link className="hover:text-white" href="/about">Hakkımızda</Link>
+            <Link className="hover:text-white" href="/contact">İletişim</Link>
           </nav>
           <div className="flex items-center gap-3">
             <Link className="hidden text-sm font-medium text-white/65 hover:text-white sm:inline" href="/sign-in">Giriş yap</Link>
+            <ThemeToggle />
             <Link className="inline-flex items-center gap-2 rounded-full bg-[#efb848] px-4 py-2.5 text-sm font-semibold text-[#090b0f] hover:bg-[#ffd46f]" href="/sign-up">
               Başlayın <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
             </Link>

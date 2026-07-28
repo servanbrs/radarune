@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 
 import { canAccessAdmin, toAdminActor } from "@/features/admin/server/admin-context";
 import { SignOutButton } from "@/features/authentication/components/sign-out-button";
+import { UserMenu } from "@/features/authentication/components/user-menu";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { creatorAccessService } from "@/features/authorization/server/creator-access.service";
 
@@ -38,10 +40,9 @@ export default async function AppLayout({
       href: "/dashboard",
       label: "Ana Sayfa",
     },
-    {
-      href: "/discover",
-      label: "Keşfet",
-    },
+    { href: "/discover", label: "Keşfet" },
+    { href: "/about", label: "Hakkımızda" },
+    { href: "/contact", label: "İletişim" },
   ];
 
   if (creatorAccess.showBecomeArtist) {
@@ -157,21 +158,12 @@ export default async function AppLayout({
           </nav>
 
           <div className="hidden shrink-0 items-center gap-3 lg:flex">
-            <div className="hidden max-w-[180px] text-right xl:block">
-              <p className="truncate text-sm font-semibold">
-                {user.name}
-              </p>
-
-              <p className="truncate text-xs text-muted">
-                {user.email}
-              </p>
-            </div>
-
-            <SignOutButton />
+            <ThemeToggle />
+            <UserMenu email={user.email} name={user.name} />
           </div>
 
           <details className="group relative lg:hidden">
-            <summary className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-xl border border-line bg-white text-lg [&::-webkit-details-marker]:hidden">
+            <summary className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-xl border border-line bg-surface text-lg [&::-webkit-details-marker]:hidden">
               ☰
             </summary>
 

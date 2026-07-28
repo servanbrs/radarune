@@ -41,23 +41,23 @@ export function AuthShell({
               </div>
             </div>
             <div className="grid gap-4 md:grid-cols-3">
-              <div className="rounded-[1.5rem] border bg-white/70 p-5">
+              <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.045] p-5">
                 <p className="text-xs uppercase tracking-[0.24em] text-muted">
                   Sağlayıcılar
                 </p>
-                  <p className="mt-3 text-2xl font-semibold">5 adaptör</p>
+                <p className="mt-3 text-2xl font-semibold text-white">5 adaptör</p>
               </div>
-              <div className="rounded-[1.5rem] border bg-white/70 p-5">
+              <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.045] p-5">
                 <p className="text-xs uppercase tracking-[0.24em] text-muted">
                   Metadata
                 </p>
-                  <p className="mt-3 text-2xl font-semibold">ISRC / UPC uyumlu</p>
+                <p className="mt-3 text-2xl font-semibold text-white">ISRC / UPC uyumlu</p>
               </div>
-              <div className="rounded-[1.5rem] border bg-white/70 p-5">
+              <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.045] p-5">
                 <p className="text-xs uppercase tracking-[0.24em] text-muted">
                   Architecture
                 </p>
-                  <p className="mt-3 text-2xl font-semibold">Temiz, modüler</p>
+                <p className="mt-3 text-2xl font-semibold text-white">Temiz, modüler</p>
               </div>
             </div>
           </div>
