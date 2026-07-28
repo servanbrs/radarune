@@ -153,6 +153,7 @@ export function DiscoverFeedCard({
         ) : null}
 
         <div className="mt-5 flex items-center gap-3 border-t border-line pt-4">
+          {!isAuthenticated ? <Link className="rounded-full border border-line px-3 py-2 text-xs font-semibold text-muted" href="/sign-in">Etkileşim için giriş</Link> : null}
           {item.sourceType === "RADARUNE" ? (
             <button
               className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
