@@ -30,6 +30,15 @@
   background-color: var(--surface-strong) !important;
 }
 
+body:has([data-admin-theme="dark"]) > div > header,
+body:has([data-admin-theme="dark"]) header {
+  background-color: #0f1a1d !important;
+  border-color: #26383a !important;
+  color: #eef7f5;
+}
+body:has([data-admin-theme="dark"]) header a,
+body:has([data-admin-theme="dark"]) header button { color: #c7d8d4; }
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
