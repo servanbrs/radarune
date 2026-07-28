@@ -3,6 +3,14 @@ import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/server/prisma/prisma";
 
 export class SocialRepository {
+  async addTrackToPlaylist(organizationId: string, userId: string, playlistId: string, trackId: string) {
+    const playlist = await prisma.playlist.findFirst({ where: { id: playlistId, ownerUserId: userId, organizationId }, select: { id: true } });
+    if (!playlist) throw new Error("Playlist bulunamadı veya bu playlist size ait değil.");
+    const track = await prisma.track.findFirst({ where: { id: trackId, organizationId }, select: { id: true, releaseId: true } });
+    if (!track) throw new Error("Parça bulunamadı.");
+    const last = await prisma.playlistTrack.aggregate({ where: { playlistId }, _max: { sortOrder: true } });
+    return prisma.playlistTrack.upsert({ where: { playlistId_trackId: { playlistId, trackId } }, update: {}, create: { playlistId, trackId, releaseId: track.releaseId, sortOrder: (last._max.sortOrder ?? -1) + 1 }, select: { id: true } });
+  }
   async followArtist(organizationId: string, userId: string, artistId: string) {
     return prisma.follow.upsert({
       where: { userId_artistId: { userId, artistId } },

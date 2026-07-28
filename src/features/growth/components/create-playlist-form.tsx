@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -20,6 +21,7 @@ function isPlaylistResponse(value: unknown): value is PlaylistResponse {
 
 export function CreatePlaylistForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [rootError, setRootError] = useState<string | null>(null);
   const form = useForm<z.input<typeof createPlaylistSchema>, unknown, CreatePlaylistInput>({
     resolver: zodResolver(createPlaylistSchema),
@@ -38,6 +40,8 @@ export function CreatePlaylistForm() {
       setRootError("Playlist yanıtı doğrulanamadı.");
       return;
     }
+    const trackId = searchParams.get("trackId");
+    if (trackId) await fetch(`/api/growth/playlists/${payload.id}/tracks`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ trackId }) });
     router.replace(`/playlists/${payload.id}`);
   });
 

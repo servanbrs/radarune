@@ -13,6 +13,7 @@ import {
 import type { DiscoverFeedItem } from "@/features/growth/server/services/discover.service";
 import { DiscoverLikeButton } from "@/features/growth/components/discover-like-button";
 import { DiscoverCommentForm } from "@/features/growth/components/discover-comment-form";
+import { DiscoverSaveButton } from "@/features/growth/components/discover-save-button";
 
 type DiscoverFeedCardProps = {
   item: DiscoverFeedItem;
@@ -157,6 +158,7 @@ export function DiscoverFeedCard({
         <div className="mt-5 flex items-center gap-3 border-t border-line pt-4">
           {!isAuthenticated ? <Link className="rounded-full border border-line px-3 py-2 text-xs font-semibold text-muted" href="/sign-in">Etkileşim için giriş</Link> : null}
           {isAuthenticated && item.sourceType === "RADARUNE" && (item.trackId || item.releaseId) ? <DiscoverLikeButton releaseId={item.releaseId} trackId={item.trackId} /> : null}
+          {isAuthenticated && item.sourceType === "RADARUNE" && item.trackId ? <DiscoverSaveButton trackId={item.trackId} /> : null}
           {item.sourceType === "RADARUNE" ? (
             <button
               className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"

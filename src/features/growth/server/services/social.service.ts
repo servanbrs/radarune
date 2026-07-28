@@ -88,6 +88,10 @@ export class SocialService {
     });
   }
 
+  async addTrackToPlaylist(actor: FinanceActorContext, playlistId: string, trackId: string) {
+    return socialRepository.addTrackToPlaylist(actor.organizationId, actor.userId, playlistId, trackId);
+  }
+
   async getPlaylistById(userId: string, id: string) {
     return socialRepository.findPlaylistByIdForViewer(id, userId);
   }
