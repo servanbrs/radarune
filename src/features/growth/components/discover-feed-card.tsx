@@ -12,6 +12,7 @@ import {
 
 import type { DiscoverFeedItem } from "@/features/growth/server/services/discover.service";
 import { DiscoverLikeButton } from "@/features/growth/components/discover-like-button";
+import { DiscoverCommentForm } from "@/features/growth/components/discover-comment-form";
 
 type DiscoverFeedCardProps = {
   item: DiscoverFeedItem;
@@ -201,6 +202,7 @@ export function DiscoverFeedCard({
             </Link>
           ) : null}
         </div>
+        {isAuthenticated && item.sourceType === "RADARUNE" && (item.trackId || item.releaseId) ? <DiscoverCommentForm releaseId={item.releaseId} trackId={item.trackId} /> : null}
       </div>
     </article>
   );
