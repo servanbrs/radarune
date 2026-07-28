@@ -12,16 +12,16 @@ export function AdminStatCard({
   href?: string;
 }) {
   const toneClass = {
-    neutral: "bg-[#17272a] text-[#eef7f5]",
-    good: "bg-[#12372f] text-[#a5f3d0]",
-    warn: "bg-[#3b2e12] text-[#f8d98b]",
-    danger: "bg-[#3b1821] text-[#ffb4c0]",
+    neutral: "bg-surface text-foreground",
+    good: "bg-accent/10 text-foreground",
+    warn: "bg-[#d99b241c] text-foreground",
+    danger: "bg-[#d94b5a1c] text-foreground",
   }[tone];
 
   const content = <>
-      <p className="text-xs uppercase tracking-[0.22em] text-[#9aada9]">{label}</p>
+      <p className="text-xs uppercase tracking-[0.22em] text-muted">{label}</p>
       <p className="mt-3 text-3xl font-semibold">{value}</p>
     </>;
-  const className = `block rounded-3xl border border-[#31484b] p-5 shadow-[0_12px_40px_rgba(0,0,0,0.22)] ${toneClass}`;
-  return href ? <Link className={`${className} transition hover:-translate-y-1 hover:border-[#44c7ad]`} href={href}>{content}</Link> : <article className={className}>{content}</article>;
+  const className = `block rounded-3xl border border-line p-5 shadow-[0_12px_40px_rgba(19,19,19,0.08)] ${toneClass}`;
+  return href ? <Link className={`${className} transition hover:-translate-y-1 hover:border-accent`} href={href}>{content}</Link> : <article className={className}>{content}</article>;
 }

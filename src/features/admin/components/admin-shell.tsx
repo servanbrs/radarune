@@ -125,11 +125,11 @@ export function AdminShell({
   description: string;
 }) {
   return (
-    <main className="page-shell min-w-0 flex-col bg-[#0b1114] text-[#eef7f5]" data-admin-theme="dark" style={{ backgroundColor: "#0b1114", color: "#eef7f5" }}>
-      <div className="mb-5 flex w-full items-center justify-between rounded-2xl border border-[#26383a] bg-[#111d20] px-4 py-3"><span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#44c7ad]">Yönetim</span><Link className="text-sm font-semibold text-[#9aada9] hover:text-[#eef7f5]" href="/dashboard">Çalışma alanına dön →</Link></div>
+    <main className="admin-theme page-shell min-w-0 flex-col bg-background text-foreground" data-admin-theme="auto">
+      <div className="admin-context-bar mb-5 flex w-full items-center justify-between rounded-2xl border border-line bg-surface px-4 py-3"><span className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Yönetim</span><Link className="text-sm font-semibold text-muted hover:text-foreground" href="/dashboard">Çalışma alanına dön →</Link></div>
       <div className="grid min-w-0 w-full gap-5 xl:grid-cols-[260px_minmax(0,1fr)]">
         {/* Admin sidebar */}
-        <aside className="panel sticky top-24 block h-fit max-h-[calc(100vh-7rem)] overflow-y-auto border-[#26383a] bg-[#111d20] p-4 text-[#eef7f5]" style={{ backgroundColor: "#111d20", borderColor: "#26383a" }}>
+        <aside className="panel admin-sidebar sticky top-24 block h-fit max-h-[calc(100vh-7rem)] overflow-y-auto bg-surface p-4 text-foreground">
           <div className="border-b border-line px-3 pb-4">
             <p className="text-xs uppercase tracking-[0.24em] text-muted">
               Radarune
@@ -147,7 +147,7 @@ export function AdminShell({
 
         {/* Sayfa içeriği */}
         <section className="flex min-w-0 flex-col gap-5">
-          <header className="panel min-w-0 border-[#26383a] bg-[#111d20] p-5 text-[#eef7f5] sm:p-6 md:p-8" style={{ backgroundColor: "#111d20", borderColor: "#26383a" }}>
+          <header className="panel admin-page-header min-w-0 bg-surface p-5 text-foreground sm:p-6 md:p-8">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
               Radarune Yönetim
             </p>

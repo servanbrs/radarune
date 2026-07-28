@@ -89,18 +89,9 @@ export default async function AppLayout({
   }
 
   return (
-    <div className={`flex min-h-screen min-w-0 flex-col ${adminTheme ? "admin-route-theme" : ""}`}>
+    <div className="flex min-h-screen min-w-0 flex-col">
       <header
-        className={`sticky top-0 z-50 border-b border-line/70 bg-surface/95 backdrop-blur-xl ${adminTheme ? "admin-shell-header" : ""}`}
-        style={
-          adminTheme
-            ? {
-                backgroundColor: "#0f1a1d",
-                borderColor: "#26383a",
-                color: "#eef7f5",
-              }
-            : undefined
-        }
+        className="sticky top-0 z-50 border-b border-line/70 bg-surface/95 text-foreground backdrop-blur-xl"
       >
         <div className="mx-auto flex min-h-16 w-full max-w-[1600px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
           <Link
