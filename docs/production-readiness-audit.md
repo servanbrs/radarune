@@ -37,6 +37,7 @@ Date: 2026-07-28
 - Creator artist application form, persistence, audit trail and admin review entrypoint
 - Atomic artist-application moderation transitions
 - Tenant-scoped Discover events, import moderation and mobile notifications
+- Retry Operations Center page with real retry endpoint
 
 ## Highest-priority gaps
 
