@@ -42,6 +42,19 @@ html[data-theme="dark"] {
   background-color: var(--surface-strong) !important;
 }
 
+/* Normalize legacy light utilities inside the dark admin shell. */
+main[data-admin-theme="dark"] .bg-white,
+main[data-admin-theme="dark"] .bg-white\/60,
+main[data-admin-theme="dark"] .bg-white\/70,
+main[data-admin-theme="dark"] .bg-white\/80 {
+  background-color: #17272a !important;
+  color: #eef7f5 !important;
+}
+main[data-admin-theme="dark"] .hover\:bg-white:hover { background-color: #1d3437 !important; }
+main[data-admin-theme="dark"] .text-foreground { color: #eef7f5 !important; }
+main[data-admin-theme="dark"] .text-muted { color: #9aada9 !important; }
+main[data-admin-theme="dark"] { color-scheme: dark; }
+
 [data-admin-theme="dark"] input,
 [data-admin-theme="dark"] select,
 [data-admin-theme="dark"] textarea {
@@ -65,6 +78,11 @@ html[data-theme="dark"] .bg-white,
 html[data-theme="dark"] .bg-white\/60,
 html[data-theme="dark"] .bg-white\/70,
 html[data-theme="dark"] .bg-white\/80 { background-color: #111d20 !important; }
+html[data-theme="dark"] .bg-white,
+html[data-theme="dark"] .bg-white\/60,
+html[data-theme="dark"] .bg-white\/70,
+html[data-theme="dark"] .bg-white\/80 { color: #eef7f5 !important; }
+html[data-theme="dark"] .hover\:bg-white:hover { background-color: #1d3437 !important; }
 
 body:has(main[data-admin-theme="dark"]) > div > header,
 body:has(main[data-admin-theme="dark"]) header {
