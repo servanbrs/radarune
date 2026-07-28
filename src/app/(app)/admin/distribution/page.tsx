@@ -184,6 +184,14 @@ export default async function AdminDistributionPage() {
                 <Activity className="size-4" />
                 Sistem sağlığı
               </Link>
+
+              <Link
+                className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold transition hover:bg-black/5"
+                href="/admin/distribution/dead-letter"
+              >
+                <ShieldAlert className="size-4" />
+                Dead letter
+              </Link>
             </div>
           </div>
 
