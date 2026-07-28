@@ -1173,7 +1173,7 @@ export function ReleaseWizard({
         ) : null}
       </section>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="sticky bottom-3 z-20 -mx-2 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface/95 p-2 shadow-xl backdrop-blur md:-mx-4 md:p-3">
         <div className="flex flex-wrap gap-3">
           {currentStepIndex > 0 ? (
             <Button
