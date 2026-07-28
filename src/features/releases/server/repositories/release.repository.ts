@@ -429,30 +429,37 @@ export class ReleaseRepository {
     releaseId: string;
     organizationId: string;
     actorUserId: string;
+    expectedPreviousStatus: "DRAFT" | "REVISION_REQUESTED";
   }, client: DatabaseClient = prisma) {
-    return client.release.update({
+    const updated = await client.release.updateMany({
       where: {
         id: params.releaseId,
+        organizationId: params.organizationId,
+        status: params.expectedPreviousStatus,
       },
       data: {
         status: "PENDING_REVIEW",
         submittedByUserId: params.actorUserId,
         submittedAt: new Date(),
-        statusHistory: {
-          create: {
-            organizationId: params.organizationId,
-            previousStatus: "DRAFT",
-            status: "PENDING_REVIEW",
-            actorUserId: params.actorUserId,
-            reason: "Yayın admin incelemesine gönderildi.",
-          },
-        },
-      },
-      select: {
-        id: true,
-        status: true,
       },
     });
+
+    if (updated.count !== 1) {
+      throw new Error("Yayın durumu değişti; lütfen sayfayı yenileyip tekrar deneyin.");
+    }
+
+    await client.releaseStatusHistory.create({
+      data: {
+        organizationId: params.organizationId,
+        releaseId: params.releaseId,
+        previousStatus: params.expectedPreviousStatus,
+        status: "PENDING_REVIEW",
+        actorUserId: params.actorUserId,
+        reason: "Yayın admin incelemesine gönderildi.",
+      },
+    });
+
+    return { id: params.releaseId, status: "PENDING_REVIEW" as const };
   }
 
   async attachUpload(params: {

@@ -20,4 +20,27 @@ describe("ReleaseRepository.attachUpload", () => {
       kind: "ARTWORK",
     }, client)).rejects.toThrow("bu organizasyona ait değil");
   });
+
+  it("submission için organization ve beklenen status ile atomic guard kullanır", async () => {
+    const updateMany = vi.fn().mockResolvedValue({ count: 0 });
+    const client = {
+      release: { updateMany },
+      releaseStatusHistory: { create: vi.fn() },
+    } as never;
+
+    await expect(new ReleaseRepository().submitRelease({
+      releaseId: "release_1",
+      organizationId: "org_1",
+      actorUserId: "user_1",
+      expectedPreviousStatus: "DRAFT",
+    }, client)).rejects.toThrow("Yayın durumu değişti");
+
+    expect(updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        id: "release_1",
+        organizationId: "org_1",
+        status: "DRAFT",
+      },
+    }));
+  });
 });

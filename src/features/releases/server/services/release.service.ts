@@ -339,10 +339,11 @@ export class ReleaseService {
       }
 
       const submitted = await releaseRepository.submitRelease({
-        releaseId,
-        organizationId: actor.organizationId,
-        actorUserId: actor.userId,
-      }, tx);
+      releaseId,
+      organizationId: actor.organizationId,
+      actorUserId: actor.userId,
+      expectedPreviousStatus: release.status as "DRAFT" | "REVISION_REQUESTED",
+    }, tx);
 
       await auditLogService.create({
         organizationId: actor.organizationId,
