@@ -65,17 +65,17 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
         </div>
       </header>
 
-      <section className="relative z-10 mx-auto grid max-w-7xl gap-16 px-5 pb-24 pt-20 md:px-10 md:pb-32 md:pt-32 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+      <section className="relative z-10 mx-auto grid max-w-7xl gap-12 px-5 pb-20 pt-16 md:px-10 md:pb-24 md:pt-24 lg:min-h-[calc(100vh-5.5rem)] lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16 lg:py-20">
         <div>
           <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#efb848]/30 bg-[#efb848]/10 px-3 py-1.5 text-xs font-medium tracking-[0.14em] text-[#ffd46f]">
             <CircleDot className="h-3.5 w-3.5" aria-hidden="true" />
             MÜZİK OPERASYONLARI İÇİN
           </div>
-          <h1 className="max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.05em] md:text-7xl lg:text-[5.7rem]">
-            Müziğinizi ileri taşıyan <span className="text-[#efb848]">operasyon katmanı.</span>
+          <h1 className="max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.05em] md:text-7xl lg:text-[5.25rem]">
+            Müziğinizi yayınlayın, <span className="text-[#efb848]">kitlenizi büyütün.</span>
           </h1>
           <p className="mt-8 max-w-xl text-lg leading-8 text-white/60 md:text-xl">
-            Radarune; sanatçılar, label&apos;lar ve dağıtım ekipleri için release yönetimini, provider süreçlerini, finansal raporlamayı ve keşfi tek bir üretim alanında birleştirir.
+            Radarune; sanatçılar, label&apos;lar ve dağıtım ekipleri için yayın hazırlığını, hak kontrollerini, dağıtımı ve geliri tek bir üretim alanında birleştirir.
           </p>
           <div className="mt-10 flex flex-wrap items-center gap-4">
             <Link className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 font-semibold text-[#090b0f] hover:bg-[#efb848]" href="/sign-up">
