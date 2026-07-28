@@ -22,7 +22,7 @@ export default async function AdminReleasesPage() {
         <SimpleTable
           columns={["Yayın", "Sanatçı", "Tür", "UPC", "Durum", "Track", "Güncelleme"]}
           rows={releases.items.map((release) => [
-            <Link className="font-semibold hover:underline" href={`/admin/releases/${release.id}`} key={release.id}>{release.title}</Link>,
+            <span className="flex flex-col gap-1" key={release.id}><Link className="font-semibold hover:underline" href={`/admin/releases/${release.id}`}>{release.title}</Link><Link className="text-xs text-accent hover:underline" href={`/releases/${release.id}/edit`}>Yayını düzenle</Link></span>,
             release.artists.map((item) => item.artist.name).join(", ") || "Sanatçı yok",
             release.type,
             release.upc ?? "Sağlayıcı atayabilir",

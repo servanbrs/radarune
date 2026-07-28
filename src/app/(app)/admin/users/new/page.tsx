@@ -1,0 +1,3 @@
+import Link from "next/link";
+import { AdminShell } from "@/features/admin/components/admin-shell";
+export default function NewAdminUserPage(){return <AdminShell title="Kullanıcı ekle" description="Yeni kullanıcı daveti güvenli kayıt akışı üzerinden tamamlanır."><section className="panel max-w-xl p-6"><p className="text-sm leading-7 text-muted">Kullanıcı hesabı oluşturmak için davet/kayıt akışını kullanın. Şifreleri admin panelinde saklamıyoruz.</p><Link className="mt-6 inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground" href="/sign-up">Kayıt formunu aç</Link></section></AdminShell>}

@@ -1,0 +1,4 @@
+import Link from "next/link";
+import { AdminShell } from "@/features/admin/components/admin-shell";
+const cards = [["Yayın kuyruğu","/admin/releases","Bekleyen yayınları incele ve düzenleme iste."],["Import inceleme","/admin/import-review","ISRC/UPC eşleşmelerini ve hak uyarılarını kontrol et."],["Sosyal moderasyon","/admin/social","Yorum, rapor ve playlist içeriklerini yönet."]] as const;
+export default function ModeratorPage(){return <AdminShell title="Moderatör paneli" description="Yayın, import ve sosyal içerik kararlarını tek operasyon ekranından yönetin."><div className="grid gap-4 md:grid-cols-3">{cards.map(([title,href,description])=><Link className="panel p-6 transition hover:-translate-y-1 hover:border-accent" href={href} key={href}><p className="text-lg font-semibold">{title}</p><p className="mt-2 text-sm leading-6 text-muted">{description}</p><span className="mt-5 inline-flex text-sm font-semibold text-accent">Aç →</span></Link>)}</div></AdminShell>}

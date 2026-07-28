@@ -31,6 +31,7 @@ export default async function AdminUsersPage() {
       title="Kullanıcı yönetimi"
       description="Kullanıcı rollerini, hesap durumlarını, e-posta doğrulamalarını ve organizasyon üyeliklerini yönetin."
     >
+      <div className="flex justify-end"><Link className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground" href="/admin/users/new">Kullanıcı ekle</Link></div>
       <section className="panel min-w-0 p-3 sm:p-4 md:p-6">
         <SimpleTable
           columns={[

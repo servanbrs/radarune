@@ -7,6 +7,7 @@ const adminNavigationGroups = [
     items: [
       { href: "/admin", label: "Genel Bakış" },
       { href: "/admin/users", label: "Kullanıcılar" },
+      { href: "/admin/users/new", label: "Kullanıcı ekle" },
       { href: "/admin/artists", label: "Sanatçılar" },
       { href: "/admin/applications", label: "Başvurular" },
     ],
@@ -15,6 +16,7 @@ const adminNavigationGroups = [
     title: "Yayın ve dağıtım",
     items: [
       { href: "/admin/releases", label: "Yayın Moderasyonu" },
+      { href: "/admin/moderation", label: "Moderatör paneli" },
       { href: "/admin/distribution", label: "Dağıtım" },
       { href: "/admin/providers", label: "Providerlar" },
       { href: "/admin/import-sources", label: "Otomatik Import" },
