@@ -402,7 +402,7 @@ export class DiscoverService {
       },
     });
 
-    if (!track || track.release.status !== "LIVE") {
+    if (!track || track.organizationId !== actor.organizationId || track.release.status !== "LIVE") {
       throw new Error(
         "Discover event için uygun track bulunamadı.",
       );
