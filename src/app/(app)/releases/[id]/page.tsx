@@ -41,6 +41,7 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
   if (!release) {
     notFound();
   }
+  const artworkUpload = release.uploads.find((upload) => upload.id === release.artworkUploadId);
 
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-6 py-10 md:px-10">
@@ -61,6 +62,10 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        <section className="rounded-3xl border border-line bg-surface p-6 lg:row-span-2">
+          <h2 className="text-xl font-semibold">Kapak görseli</h2>
+          {artworkUpload ? <img alt={`${release.title} kapak görseli`} className="mt-5 aspect-square w-full max-w-md rounded-3xl object-cover" src={`/api/storage/private/${artworkUpload.id}`} /> : <div className="mt-5 grid aspect-square w-full max-w-md place-items-center rounded-3xl border border-dashed border-line bg-surface-strong text-center text-sm text-muted">Henüz kapak yüklenmedi.<br />Yayın düzenleme ekranından kapak ekleyin.</div>}
+        </section>
         <section className="rounded-3xl border border-line bg-surface p-6">
           <h2 className="text-xl font-semibold">Metadata</h2>
           <dl className="mt-5 grid gap-4 text-sm md:grid-cols-2">
@@ -115,16 +120,16 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
       <section className="rounded-3xl border border-line bg-surface p-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase text-muted">AI Intelligence</p>
-            <h2 className="mt-2 text-xl font-semibold">Release readiness</h2>
+            <p className="text-xs font-semibold uppercase text-muted">Radarune zekâ</p>
+            <h2 className="mt-2 text-xl font-semibold">Yayın hazırlık skoru</h2>
           </div>
           <span className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold">
             Skor: {intelligence?.readiness?.score ?? "Henüz hesaplanmadı"}
           </span>
         </div>
         <div className="mt-5 grid gap-3 md:grid-cols-3">
-          <DetailItem label="Blocking issue" value={String(intelligence?.readiness?.blockingCount ?? release.validationIssues.filter((issue) => issue.blocking).length)} />
-          <DetailItem label="Warning issue" value={String(intelligence?.readiness?.warningCount ?? release.validationIssues.filter((issue) => issue.severity === "WARNING").length)} />
+          <DetailItem label="Engelleyici hata" value={String(intelligence?.readiness?.blockingCount ?? release.validationIssues.filter((issue) => issue.blocking).length)} />
+          <DetailItem label="Uyarı" value={String(intelligence?.readiness?.warningCount ?? release.validationIssues.filter((issue) => issue.severity === "WARNING").length)} />
           <DetailItem label="Son analiz" value={intelligence?.readiness?.createdAt.toLocaleString("tr-TR") ?? "Yok"} />
         </div>
         <p className="mt-4 text-sm leading-7 text-muted">
