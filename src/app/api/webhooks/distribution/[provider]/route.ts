@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { providerWebhookService } from "@/features/distribution-hub/server/services/provider-webhook.service";
+import { distributionProviderKeys, type DistributionProviderKey } from "@/features/distribution-hub/domain/provider";
 
 export async function POST(
   request: Request,
@@ -10,12 +11,11 @@ export async function POST(
   },
 ) {
   const params = await context.params;
-  const provider = params.provider.toUpperCase() as
-    | "ONE_RPM"
-    | "FUGA"
-    | "SYMPHONIC"
-    | "REVELATOR"
-    | "INTERNAL";
+  const candidate = params.provider.toUpperCase();
+  if (!distributionProviderKeys.includes(candidate as DistributionProviderKey)) {
+    return NextResponse.json({ error: "Bilinmeyen distribution provider." }, { status: 404 });
+  }
+  const provider = candidate as DistributionProviderKey;
   const body = await request.text();
 
   const headerEntries = Array.from(request.headers.entries());

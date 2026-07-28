@@ -8,6 +8,23 @@ import { distributionProviderConfigurationService } from "@/features/distributio
 import { releaseRepository } from "@/features/releases/server/repositories/release.repository";
 import { prisma } from "@/server/prisma/prisma";
 
+const MAX_WEBHOOK_AGE_MS = 24 * 60 * 60 * 1000;
+const MAX_WEBHOOK_CLOCK_SKEW_MS = 5 * 60 * 1000;
+
+function parsePayload(body: string): Prisma.InputJsonValue {
+  try {
+    const parsed: unknown = JSON.parse(body);
+    return parsed !== null && typeof parsed === "object" ? parsed as Prisma.InputJsonValue : { value: parsed as string | number | boolean | null };
+  } catch {
+    return { rawBody: body.slice(0, 100_000) };
+  }
+}
+
+export function isWebhookTimestampWithinWindow(timestamp: Date, now = Date.now()) {
+  const occurredAt = timestamp.getTime();
+  return Number.isFinite(occurredAt) && occurredAt >= now - MAX_WEBHOOK_AGE_MS && occurredAt <= now + MAX_WEBHOOK_CLOCK_SKEW_MS;
+}
+
 export class ProviderWebhookService {
   async handleWebhook(
     provider: "ONE_RPM" | "FUGA" | "SYMPHONIC" | "REVELATOR" | "INTERNAL",
@@ -48,7 +65,7 @@ export class ProviderWebhookService {
             ? "INVALID_SIGNATURE"
             : "FAILED",
         signatureVerified: false,
-        payload: JSON.parse(body) as Prisma.InputJsonValue,
+        payload: parsePayload(body),
         headers: headers as unknown as Prisma.InputJsonValue,
         errorMessage: normalized.message,
       });
@@ -75,6 +92,25 @@ export class ProviderWebhookService {
       };
     }
 
+    if (!isWebhookTimestampWithinWindow(normalized.data.occurredAt)) {
+      const event = await providerWebhookEventRepository.create({
+        provider,
+        externalEventId: normalized.data.eventId,
+        processingStatus: "FAILED",
+        signatureVerified: true,
+        payload: parsePayload(body),
+        headers: headers as unknown as Prisma.InputJsonValue,
+        normalizedPayload: normalized.data as unknown as Prisma.InputJsonValue,
+        errorMessage: "Webhook timestamp geçersiz veya replay penceresi dışında.",
+      });
+
+      return {
+        success: false as const,
+        statusCode: 409,
+        data: event,
+      };
+    }
+
     const delivery = normalized.data.externalReleaseId
       ? await releaseDeliveryRepository.findByExternalReleaseId(
           provider,
@@ -94,7 +130,7 @@ export class ProviderWebhookService {
           externalEventId: normalized.data.eventId,
           processingStatus: "PENDING",
           signatureVerified: true,
-          payload: JSON.parse(body) as Prisma.InputJsonValue,
+          payload: parsePayload(body),
           headers: headers as unknown as Prisma.InputJsonValue,
           normalizedPayload: normalized.data as unknown as Prisma.InputJsonValue,
         },
