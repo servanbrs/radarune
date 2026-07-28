@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { headers } from "next/headers";
 
 import { canAccessAdmin, toAdminActor } from "@/features/admin/server/admin-context";
 import { SignOutButton } from "@/features/authentication/components/sign-out-button";
@@ -17,8 +16,6 @@ export default async function AppLayout({
 }: Readonly<{
   children: ReactNode;
 }>) {
-  const pathname = (await headers()).get("x-pathname") ?? "";
-  const adminTheme = pathname.startsWith("/admin");
   const { organization, user } =
     await authSessionService.getDashboardContext();
 
@@ -30,6 +27,7 @@ export default async function AppLayout({
   });
 
   const adminAccess = canAccessAdmin(actor);
+  const adminTheme = adminAccess;
 
   const creatorAccess = creatorAccessService.getAccess({
     systemRole: user.systemRole,
@@ -91,7 +89,7 @@ export default async function AppLayout({
 
   return (
     <div className={`flex min-h-screen min-w-0 flex-col ${adminTheme ? "admin-route-theme" : ""}`}>
-      <header className="sticky top-0 z-50 border-b border-line/70 bg-surface/95 backdrop-blur-xl">
+      <header className={`sticky top-0 z-50 border-b border-line/70 bg-surface/95 backdrop-blur-xl ${adminTheme ? "admin-shell-header" : ""}`}>
         <div className="mx-auto flex min-h-16 w-full max-w-[1600px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
           <Link
             className="min-w-0 shrink-0"

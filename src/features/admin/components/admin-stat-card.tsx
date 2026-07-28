@@ -9,9 +9,9 @@ export function AdminStatCard({
 }) {
   const toneClass = {
     neutral: "bg-[#17272a] text-[#eef7f5]",
-    good: "bg-[#d9f7eb] text-[#06382d]",
-    warn: "bg-[#fff6d9] text-[#5a2d00]",
-    danger: "bg-[#ffe7eb] text-[#5d061d]",
+    good: "bg-[#12372f] text-[#a5f3d0]",
+    warn: "bg-[#3b2e12] text-[#f8d98b]",
+    danger: "bg-[#3b1821] text-[#ffb4c0]",
   }[tone];
 
   return (
