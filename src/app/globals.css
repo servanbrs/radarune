@@ -30,14 +30,16 @@
   background-color: var(--surface-strong) !important;
 }
 
-body:has([data-admin-theme="dark"]) > div > header,
-body:has([data-admin-theme="dark"]) header {
+body:has(main[data-admin-theme="dark"]) > div > header,
+body:has(main[data-admin-theme="dark"]) header {
   background-color: #0f1a1d !important;
   border-color: #26383a !important;
   color: #eef7f5;
 }
-body:has([data-admin-theme="dark"]) header a,
-body:has([data-admin-theme="dark"]) header button { color: #c7d8d4; }
+body:has(main[data-admin-theme="dark"]) header a,
+body:has(main[data-admin-theme="dark"]) header button { color: #c7d8d4; }
+main[data-admin-theme="dark"] .panel { background-color: #111d20 !important; border-color: #26383a !important; color: #eef7f5; }
+main[data-admin-theme="dark"] .bg-background { background-color: #0b1114 !important; }
 
 @theme inline {
   --color-background: var(--background);
