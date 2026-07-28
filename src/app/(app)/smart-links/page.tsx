@@ -19,7 +19,8 @@ export default async function SmartLinksPage() {
       <section className="panel flex flex-wrap items-center justify-between gap-4 p-6">
         <div>
           <p className="text-xs uppercase tracking-[0.24em] text-muted">Smart Link</p>
-          <h1 className="mt-3 text-3xl font-semibold">Pazarlama linkleri</h1>
+          <h1 className="mt-3 text-3xl font-semibold">Akıllı bağlantılar</h1>
+          <p className="mt-2 max-w-xl text-sm leading-7 text-muted">Spotify, Apple Music ve tüm platformlarınızı tek bir SEO uyumlu sayfada birleştirin.</p>
         </div>
         <Button><Link href="/smart-links/new">Yeni Smart Link</Link></Button>
       </section>

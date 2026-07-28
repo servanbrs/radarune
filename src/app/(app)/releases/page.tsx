@@ -18,7 +18,7 @@ export default async function ReleasesPage() {
     <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-6 py-10 md:px-10">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase text-muted">Release Management</p>
+          <p className="text-xs font-semibold uppercase text-muted">Yayın yönetimi</p>
           <h1 className="mt-2 text-3xl font-semibold">Yayınlar</h1>
         </div>
         <Button>

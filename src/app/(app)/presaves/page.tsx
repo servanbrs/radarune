@@ -19,7 +19,8 @@ export default async function PreSavesPage() {
       <section className="panel flex flex-wrap items-center justify-between gap-4 p-6">
         <div>
           <p className="text-xs uppercase tracking-[0.24em] text-muted">Pre-save</p>
-          <h1 className="mt-3 text-3xl font-semibold">Pre-save kampanyaları</h1>
+          <h1 className="mt-3 text-3xl font-semibold">Ön kayıt kampanyaları</h1>
+          <p className="mt-2 max-w-xl text-sm leading-7 text-muted">Yeni yayınlarınızı duyurun, hayranlarınızdan güvenli ön kayıt toplayın.</p>
         </div>
         <Button><Link href="/presaves/new">Yeni kampanya</Link></Button>
       </section>

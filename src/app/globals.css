@@ -85,6 +85,7 @@ html.admin-active body header a, html.admin-active body header button { color: #
 .admin-shell-header .text-muted { color: #9aada9 !important; }
 .admin-shell-header .text-foreground { color: #eef7f5 !important; }
 .admin-shell-header .bg-surface { background-color: #111d20 !important; }
+header details.group:hover > div { display: grid; }
 main[data-admin-theme="dark"] .panel { background-color: #111d20 !important; border-color: #26383a !important; color: #eef7f5; }
 main[data-admin-theme="dark"] article.panel { background-color: #111d20 !important; border-color: #26383a !important; }
 main[data-admin-theme="dark"] .text-muted { color: #9aada9 !important; }
