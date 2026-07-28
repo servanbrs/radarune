@@ -14,22 +14,21 @@ import { DiscoverFeedClient } from "@/features/growth/components/discover-feed-c
 import { discoverService } from "@/features/growth/server/services/discover.service";
 
 export default async function DiscoverPage() {
-  const { organization, user } =
-    await authSessionService.getDashboardContext();
-
-  const actor = toAdminActor({
-    organizationId: organization.organization.id,
-    membershipRole: organization.role,
-    systemRole: user.systemRole,
-    userId: user.id,
+  const session = await authSessionService.getOptionalSession();
+  const dashboard = session ? await authSessionService.getDashboardContext() : null;
+  const discoverActor = dashboard
+    ? toAdminActor({
+        organizationId: dashboard.organization.organization.id,
+        membershipRole: dashboard.organization.role,
+        systemRole: dashboard.user.systemRole,
+        userId: dashboard.user.id,
+      })
+    : undefined;
+  const creatorAccess = creatorAccessService.getAccess({
+    systemRole: dashboard?.user.systemRole ?? "USER",
   });
 
-  const creatorAccess =
-    creatorAccessService.getAccess({
-      systemRole: user.systemRole,
-    });
-
-  const feed = await discoverService.getFeed(actor);
+  const feed = await discoverService.getFeed(discoverActor);
 
   const radaruneCount = feed.filter(
     (item) => item.provider === "RADARUNE",
@@ -128,12 +127,16 @@ export default async function DiscoverPage() {
             <Link
               className="mt-7 inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-white"
               href={
-                creatorAccess.canCreateReleases
+                !session
+                  ? "/sign-up"
+                  : creatorAccess.canCreateReleases
                   ? "/releases/new"
                   : "/become"
               }
             >
-              {creatorAccess.canCreateReleases
+              {!session
+                ? "Üye ol ve etkileşime geç"
+                : creatorAccess.canCreateReleases
                 ? "Yeni yayın oluştur"
                 : "Sanatçı başvurusu yap"}
 
