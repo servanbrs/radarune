@@ -14,8 +14,8 @@ export function AdminStatCard({
   const toneClass = {
     neutral: "bg-surface text-foreground",
     good: "bg-accent/10 text-foreground",
-    warn: "bg-[#d99b241c] text-foreground",
-    danger: "bg-[#d94b5a1c] text-foreground",
+    warn: "bg-amber-500/10 text-foreground",
+    danger: "bg-danger/10 text-foreground",
   }[tone];
 
   const content = <>
