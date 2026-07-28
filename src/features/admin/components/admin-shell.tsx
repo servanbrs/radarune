@@ -128,7 +128,7 @@ export function AdminShell({
       <div className="mb-5 flex items-center justify-between rounded-2xl border border-line bg-surface px-4 py-3"><span className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Yönetim</span><Link className="text-sm font-semibold text-muted hover:text-foreground" href="/dashboard">Çalışma alanına dön →</Link></div>
       <div className="grid min-w-0 w-full gap-5 xl:grid-cols-[260px_minmax(0,1fr)]">
         {/* Mobil admin menüsü */}
-        <details className="panel group xl:hidden">
+        <details className="hidden panel group">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-semibold [&::-webkit-details-marker]:hidden">
             <span>Admin menüsü</span>
 
@@ -143,7 +143,7 @@ export function AdminShell({
         </details>
 
         {/* Masaüstü admin sidebar */}
-        <aside className="panel sticky top-24 hidden h-fit max-h-[calc(100vh-7rem)] overflow-y-auto p-4 xl:block">
+        <aside className="panel sticky top-24 block h-fit max-h-[calc(100vh-7rem)] overflow-y-auto p-4">
           <div className="border-b border-line px-3 pb-4">
             <p className="text-xs uppercase tracking-[0.24em] text-muted">
               Radarune
