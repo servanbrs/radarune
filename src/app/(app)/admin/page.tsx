@@ -36,22 +36,22 @@ export default async function AdminPage() {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-2">
-        <article className="panel p-6">
+        <article className="panel border-[#26383a] bg-[#111d20] p-6">
           <h2 className="text-lg font-semibold">Yayın durum dağılımı</h2>
           <div className="mt-4 space-y-3">
             {dashboard.releaseStatusDistribution.map((item) => (
-              <div className="flex items-center justify-between rounded-2xl border border-line bg-white/70 px-4 py-3" key={item.status}>
+              <div className="flex items-center justify-between rounded-2xl border border-[#26383a] bg-[#17272a] px-4 py-3" key={item.status}>
                 <span className="text-sm font-medium">{item.status}</span>
                 <span className="text-sm text-muted">{item._count._all}</span>
               </div>
             ))}
           </div>
         </article>
-        <article className="panel p-6">
+        <article className="panel border-[#26383a] bg-[#111d20] p-6">
           <h2 className="text-lg font-semibold">Distribution job dağılımı</h2>
           <div className="mt-4 space-y-3">
             {dashboard.jobStatusDistribution.map((item) => (
-              <div className="flex items-center justify-between rounded-2xl border border-line bg-white/70 px-4 py-3" key={item.status}>
+              <div className="flex items-center justify-between rounded-2xl border border-[#26383a] bg-[#17272a] px-4 py-3" key={item.status}>
                 <span className="text-sm font-medium">{item.status}</span>
                 <span className="text-sm text-muted">{item._count._all}</span>
               </div>
