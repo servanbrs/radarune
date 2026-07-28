@@ -4,6 +4,7 @@ import { artistService } from "@/features/artist/server/services/artist.service"
 import { labelService } from "@/features/label/server/services/label.service";
 import { ReleaseWizard } from "@/features/releases/components/release-wizard";
 import { releaseService } from "@/features/releases/server/services/release.service";
+import { canAccessAdmin } from "@/features/admin/server/admin-context";
 
 type EditReleasePageProps = {
   params: Promise<{
@@ -30,11 +31,14 @@ export default async function EditReleasePage({ params }: EditReleasePageProps) 
     notFound();
   }
 
+  const adminMode = canAccessAdmin(actor);
+
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-6 py-10 md:px-10">
       <div>
-        <p className="text-xs font-semibold uppercase text-muted">Yayın düzenle</p>
+        <p className="text-xs font-semibold uppercase text-muted">{adminMode ? "Admin yayın düzenleme" : "Sanatçı yayın düzenleme"}</p>
         <h1 className="mt-2 text-3xl font-semibold">{release.title}</h1>
+        <p className="mt-3 max-w-2xl rounded-2xl border border-line bg-surface px-4 py-3 text-sm text-muted">{adminMode ? "Bu görünüm metadata, doğrulama ve moderasyon düzeltmeleri için kullanılır." : "Bu görünüm yalnızca size ait yayın metadata alanlarını ve parçalarınızı düzenlemek için kullanılır."}</p>
       </div>
       <ReleaseWizard
         artists={artists.map((artist) => ({ id: artist.id, name: artist.name }))}
