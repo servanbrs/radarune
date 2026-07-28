@@ -198,7 +198,9 @@ export class DistributionJobService {
       };
     }
 
-    const job = await prisma.$transaction(async (tx) => {
+    let job;
+    try {
+      job = await prisma.$transaction(async (tx) => {
       const created = await distributionJobRepository.create(
         {
           organizationId: actor.organizationId,
@@ -237,6 +239,7 @@ export class DistributionJobService {
           {
             status: "QUEUED",
             previousStatus: "APPROVED",
+            organizationId: actor.organizationId,
             actorUserId: actor.userId,
             reason: "Yayın dağıtım kuyruğuna alındı.",
             metadata: {
@@ -282,7 +285,20 @@ export class DistributionJobService {
       );
 
       return created;
-    });
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        const existing = await distributionJobRepository.findByIdempotencyKey(idempotencyKey);
+        if (existing && existing.organizationId === actor.organizationId) {
+          return {
+            success: true as const,
+            data: { id: existing.id, status: existing.status },
+            message: "Aynı idempotency anahtarı için mevcut job döndürüldü.",
+          };
+        }
+      }
+      throw error;
+    }
 
     return {
       success: true as const,

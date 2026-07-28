@@ -83,6 +83,13 @@ export class DistributionJobRepository {
     });
   }
 
+  async findByIdempotencyKey(idempotencyKey: string, client: DatabaseClient = prisma) {
+    return client.distributionJob.findUnique({
+      where: { idempotencyKey },
+      select: { id: true, status: true, organizationId: true },
+    });
+  }
+
   async create(input: {
     organizationId: string;
     createdByUserId?: string;
