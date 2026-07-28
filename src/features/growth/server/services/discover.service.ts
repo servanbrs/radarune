@@ -301,6 +301,23 @@ export class DiscoverService {
       }),
     ]);
 
+    // Do not leave the pool empty just because this user has already seen
+    // every track in the first page. Refill from the catalog in that case.
+    if (releases.length === 0 && seenTrackIds.length > 0) {
+      const refill = await prisma.release.findMany({
+        where: { ...organizationFilter, status: { in: ["LIVE", "DISTRIBUTED"] }, tracks: { some: {} } },
+        orderBy: [{ liveAt: "desc" }, { createdAt: "desc" }],
+        take: 60,
+        select: {
+          id: true, title: true, primaryGenre: true, liveAt: true, createdAt: true,
+          tracks: { orderBy: { trackNumber: "asc" }, take: 1, select: { id: true, title: true, trackNumber: true } },
+          artists: { orderBy: { sortOrder: "asc" }, take: 3, select: { artist: { select: { id: true, name: true, slug: true } } } },
+          _count: { select: { releaseLikes: true } },
+        },
+      });
+      releases.push(...refill);
+    }
+
     const radaruneItems: RadaruneDiscoverItem[] = releases.map(
       (release) => {
         const recommendationScore =
@@ -402,7 +419,7 @@ export class DiscoverService {
       },
     });
 
-    if (!track || track.organizationId !== actor.organizationId || track.release.status !== "LIVE") {
+    if (!track || track.organizationId !== actor.organizationId || !["LIVE", "DISTRIBUTED"].includes(track.release.status)) {
       throw new Error(
         "Discover event için uygun track bulunamadı.",
       );
