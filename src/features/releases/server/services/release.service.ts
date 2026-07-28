@@ -257,6 +257,9 @@ export class ReleaseService {
       previouslyReleased: release.previouslyReleased,
       upc: release.upc,
       artworkUploadId: release.artworkUploadId,
+      ...(release.uploads.find((upload) => upload.id === release.artworkUploadId)?.status
+        ? { artworkUploadStatus: release.uploads.find((upload) => upload.id === release.artworkUploadId)!.status }
+        : {}),
       stores: release.stores,
       tracks: release.tracks.map((track) => ({
         id: track.id,
@@ -264,6 +267,9 @@ export class ReleaseService {
         previouslyReleased: track.previouslyReleased,
         isrc: track.isrc,
         audioUploadId: track.audioUploadId,
+        ...(track.uploads.find((upload) => upload.id === track.audioUploadId)?.status
+          ? { audioUploadStatus: track.uploads.find((upload) => upload.id === track.audioUploadId)!.status }
+          : {}),
         contributors: track.contributors.map((item) => ({
           role: item.role,
         })),
@@ -309,6 +315,9 @@ export class ReleaseService {
         previouslyReleased: release.previouslyReleased,
         upc: release.upc,
         artworkUploadId: release.artworkUploadId,
+        ...(release.uploads.find((upload) => upload.id === release.artworkUploadId)?.status
+          ? { artworkUploadStatus: release.uploads.find((upload) => upload.id === release.artworkUploadId)!.status }
+          : {}),
         stores: release.stores,
         tracks: release.tracks.map((track) => ({
           id: track.id,
@@ -316,6 +325,9 @@ export class ReleaseService {
           previouslyReleased: track.previouslyReleased,
           isrc: track.isrc,
           audioUploadId: track.audioUploadId,
+          ...(track.uploads.find((upload) => upload.id === track.audioUploadId)?.status
+            ? { audioUploadStatus: track.uploads.find((upload) => upload.id === track.audioUploadId)!.status }
+            : {}),
           contributors: track.contributors.map((item) => ({
             role: item.role,
           })),

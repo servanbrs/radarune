@@ -82,6 +82,25 @@ describe("releaseValidatorService", () => {
     expect(issues.some((issue) => issue.code === "AUDIO_REQUIRED")).toBe(true);
   });
 
+  it("tamamlanmamış upload ile submit'i engeller", () => {
+    const issues = releaseValidatorService.validateForSubmit({
+      ...validRelease,
+      artworkUploadStatus: "PENDING",
+      tracks: [{
+        id: "track_1",
+        instrumental: false,
+        previouslyReleased: false,
+        isrc: null,
+        audioUploadId: "audio_1",
+        contributors: validContributors,
+        audioUploadStatus: "PENDING",
+      }],
+    });
+
+    expect(issues.some((issue) => issue.code === "ARTWORK_UPLOAD_NOT_READY")).toBe(true);
+    expect(issues.some((issue) => issue.code === "AUDIO_UPLOAD_NOT_READY")).toBe(true);
+  });
+
   it("besteci ve söz yazarı eksiklerini bildirir", () => {
     const issues = releaseValidatorService.validateForSubmit({
       ...validRelease,

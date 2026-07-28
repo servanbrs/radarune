@@ -79,7 +79,18 @@ export class ReleaseModerationService {
       }
 
       releaseStateService.assertTransition(release.status as ReleaseStatusValue, "APPROVED");
-      const issues = releaseValidatorService.validateForSubmit(release);
+      const issues = releaseValidatorService.validateForSubmit({
+        ...release,
+        ...(release.uploads.find((upload) => upload.id === release.artworkUploadId)?.status
+          ? { artworkUploadStatus: release.uploads.find((upload) => upload.id === release.artworkUploadId)!.status }
+          : {}),
+        tracks: release.tracks.map((track) => ({
+          ...track,
+          ...(track.uploads.find((upload) => upload.id === track.audioUploadId)?.status
+            ? { audioUploadStatus: track.uploads.find((upload) => upload.id === track.audioUploadId)!.status }
+            : {}),
+        })),
+      });
       const hasBlockingIssue = issues.some((issue) => issue.severity === "ERROR");
       if (hasBlockingIssue) {
         throw new Error("Kritik validation hatası olan yayın onaylanamaz.");

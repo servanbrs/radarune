@@ -14,6 +14,7 @@ type ValidationRelease = {
   previouslyReleased: boolean;
   upc: string | null;
   artworkUploadId: string | null;
+  artworkUploadStatus?: "PENDING" | "READY" | "FAILED";
   stores: Array<{ storeCode: string }>;
   tracks: Array<{
     id: string;
@@ -21,6 +22,7 @@ type ValidationRelease = {
     previouslyReleased: boolean;
     isrc: string | null;
     audioUploadId: string | null;
+    audioUploadStatus?: "PENDING" | "READY" | "FAILED";
     contributors: Array<{
       role: string;
     }>;
@@ -94,6 +96,15 @@ export class ReleaseValidatorService {
         severity: "ERROR",
       });
     }
+    if (release.artworkUploadId && release.artworkUploadStatus && release.artworkUploadStatus !== "READY") {
+      issues.push({
+        fieldPath: "artwork",
+        step: "artwork",
+        code: "ARTWORK_UPLOAD_NOT_READY",
+        message: "Kapak yüklemesi henüz tamamlanmadı veya geçersiz.",
+        severity: "ERROR",
+      });
+    }
 
     if (release.stores.length === 0) {
       issues.push({
@@ -113,6 +124,16 @@ export class ReleaseValidatorService {
           step: "tracks",
           code: "AUDIO_REQUIRED",
           message: `${index + 1}. parça için ses dosyası yüklenmelidir.`,
+          severity: "ERROR",
+          trackId: track.id,
+        });
+      }
+      if (track.audioUploadId && track.audioUploadStatus && track.audioUploadStatus !== "READY") {
+        issues.push({
+          fieldPath: `${prefix}.audio`,
+          step: "tracks",
+          code: "AUDIO_UPLOAD_NOT_READY",
+          message: `${index + 1}. parça için ses yüklemesi henüz tamamlanmadı veya geçersiz.`,
           severity: "ERROR",
           trackId: track.id,
         });
