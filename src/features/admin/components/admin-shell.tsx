@@ -75,6 +75,7 @@ const adminNavigationGroups = [
     title: "Sistem",
     items: [
       { href: "/admin/settings", label: "Site Ayarları" },
+      { href: "/admin/settings#smtp", label: "SMTP ve e-posta" },
       { href: "/admin/audit-logs", label: "İşlem Kayıtları" },
       { href: "/admin/system-logs", label: "Sistem Logları" },
       {
