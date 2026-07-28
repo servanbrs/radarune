@@ -105,12 +105,16 @@ export class ImportRepository {
     return prisma.externalMediaSource.findUnique({ where: { organizationId_provider_externalId: { organizationId, provider, externalId } } });
   }
 
-  async findMatchingTrack(organizationId: string, title: string, durationMs: number | null) {
+  async findMatchingTrack(organizationId: string, title: string, durationMs: number | null, codes?: { isrc?: string | null | undefined; upc?: string | null | undefined }) {
     return prisma.track.findFirst({
       where: {
         organizationId,
         release: { status: "LIVE" },
-        title: { equals: title },
+        OR: [
+          ...(codes?.isrc ? [{ isrc: codes.isrc }] : []),
+          ...(codes?.upc ? [{ release: { upc: codes.upc } }] : []),
+          { title: { equals: title } },
+        ],
         ...(durationMs === null ? {} : { durationMs: { gte: durationMs - 2_000, lte: durationMs + 2_000 } }),
       },
       select: { id: true, releaseId: true },

@@ -263,12 +263,12 @@ export class ImportSourceService {
         await prisma.importItem.create({ data: { organizationId, runId, sourceId, externalMediaSourceId: existing.id, provider: metadata.provider, externalId: metadata.externalId, title: metadata.title, artistName: metadata.artistName, durationMs: metadata.durationMs, status: "DUPLICATE", matchConfidence: "EXACT" } });
         return "DUPLICATE" as const;
       }
-      const matchingTrack = await importRepository.findMatchingTrack(organizationId, metadata.title, metadata.durationMs);
+      const matchingTrack = await importRepository.findMatchingTrack(organizationId, metadata.title, metadata.durationMs, { isrc: metadata.isrc, upc: metadata.upc });
       const status = requiresReview || matchingTrack ? "PENDING_REVIEW" : "IMPORTED";
       await prisma.$transaction(async (client) => {
         const external = await client.externalMediaSource.create({ data: { organizationId, provider: metadata.provider, externalId: metadata.externalId, externalUrl: metadata.externalUrl, normalizedUrl: normalizedUrlForStorage(metadata.externalUrl), embedUrl: metadata.embedUrl, title: metadata.title, artistName: metadata.artistName, durationMs: metadata.durationMs, thumbnailUrl: metadata.thumbnailUrl, publishedAt: metadata.publishedAt, playable: metadata.playable, embeddable: metadata.embeddable, regionRestrictions: metadata.regionRestrictions as Prisma.InputJsonValue, metadataHash: metadata.metadataHash, lastCheckedAt: new Date(), status: metadata.playable ? "ACTIVE" : "UNAVAILABLE", artistId } });
         const item = await client.importItem.create({ data: { organizationId, runId, sourceId, externalMediaSourceId: external.id, provider: metadata.provider, externalId: metadata.externalId, title: metadata.title, artistName: metadata.artistName, durationMs: metadata.durationMs, status, matchConfidence: matchingTrack ? "HIGH" : "NONE" } });
-        if (matchingTrack) await client.importMatch.create({ data: { organizationId, importItemId: item.id, trackId: matchingTrack.id, releaseId: matchingTrack.releaseId, artistId, confidence: "HIGH", reason: "Başlık ve süre eşleşmesi bulundu; otomatik birleştirme yapılmadı.", automatic: true } });
+        if (matchingTrack) await client.importMatch.create({ data: { organizationId, importItemId: item.id, trackId: matchingTrack.id, releaseId: matchingTrack.releaseId, artistId, confidence: metadata.isrc || metadata.upc ? "EXACT" : "HIGH", reason: metadata.isrc || metadata.upc ? "ISRC/UPC eşleşmesi bulundu. Hak sahipliği doğrulanmadan otomatik dağıtım yapılmaz." : "Başlık ve süre eşleşmesi bulundu; hak sahipliği doğrulanmadan otomatik birleştirme yapılmadı.", automatic: Boolean(metadata.isrc || metadata.upc) } });
       });
       return status === "IMPORTED" ? ("IMPORTED" as const) : ("PENDING_REVIEW" as const);
     } catch {

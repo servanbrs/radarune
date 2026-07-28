@@ -25,6 +25,7 @@ export function SignUpForm() {
       email: "",
       password: "",
       confirmPassword: "",
+      acceptTerms: false,
     },
   });
 
@@ -62,6 +63,8 @@ export function SignUpForm() {
           {...form.register("name")}
         />
       </Field>
+
+      <label className="flex items-start gap-3 text-sm text-muted"><input className="mt-1 size-4 accent-accent" type="checkbox" {...form.register("acceptTerms")} /><span><Link className="font-medium text-foreground underline" href="/terms">Kullanım koşullarını</Link>{" "}ve{" "}<Link className="font-medium text-foreground underline" href="/privacy">gizlilik politikasını</Link> kabul ediyorum.{form.formState.errors.acceptTerms?.message ? <span className="mt-1 block text-xs text-danger">{form.formState.errors.acceptTerms.message}</span> : null}</span></label>
 
       <Field
         error={form.formState.errors.email?.message}

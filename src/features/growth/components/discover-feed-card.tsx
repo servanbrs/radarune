@@ -16,6 +16,7 @@ type DiscoverFeedCardProps = {
   item: DiscoverFeedItem;
   rank: number;
   onPlay?: (item: DiscoverFeedItem) => void;
+  isAuthenticated?: boolean;
 };
 
 const dateFormatter = new Intl.DateTimeFormat(
@@ -42,7 +43,7 @@ function sourceLabel(item: DiscoverFeedItem) {
 export function DiscoverFeedCard({
   item,
   rank,
-  onPlay,
+  onPlay, isAuthenticated = false,
 }: DiscoverFeedCardProps) {
   const radaruneArtworkUrl =
     item.sourceType === "RADARUNE" &&

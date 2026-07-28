@@ -16,6 +16,7 @@ export const signUpFormSchema = z
     email: z.email("Geçerli bir e-posta adresi girin."),
     password: passwordPolicySchema,
     confirmPassword: passwordPolicySchema,
+    acceptTerms: z.boolean().refine((value) => value, "Kullanım koşullarını ve gizlilik politikasını kabul etmelisiniz."),
   })
   .refine((value) => value.password === value.confirmPassword, {
     message: "Şifreler eşleşmiyor.",

@@ -16,6 +16,7 @@ type SpotifyTrack = {
   preview_url?: string | null;
   artists?: Array<{ name?: string }>;
   album?: { images?: Array<{ url?: string }>; release_date?: string };
+  external_ids?: { isrc?: string };
 };
 
 type SpotifyResponse = { items?: SpotifyTrack[]; tracks?: { items?: Array<{ track?: SpotifyTrack }> } };
@@ -104,6 +105,7 @@ export class SpotifyProviderService implements ExternalProviderAdapter {
       embedUrl: this.getEmbedUrl(id),
       title,
       artistName: track.artists?.map((artist) => artist.name?.trim()).filter((name): name is string => Boolean(name)).join(", ") || null,
+      isrc: track.external_ids?.isrc?.trim() || null,
       durationMs: typeof track.duration_ms === "number" ? track.duration_ms : null,
       thumbnailUrl: track.album?.images?.[0]?.url ?? null,
       publishedAt: track.album?.release_date ? new Date(track.album.release_date) : null,

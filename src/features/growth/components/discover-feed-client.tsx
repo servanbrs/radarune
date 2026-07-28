@@ -5,6 +5,7 @@ import { useState } from "react";
 import { DiscoverFeedCard } from "@/features/growth/components/discover-feed-card";
 import { GlobalPlayer } from "@/features/growth/components/global-player";
 import type { DiscoverFeedItem } from "@/features/growth/server/services/discover.service";
+import Link from "next/link";
 import {
   playerCapabilities,
   type PlayerItem,
@@ -12,10 +13,11 @@ import {
 
 type DiscoverFeedClientProps = {
   feed: DiscoverFeedItem[];
+  isAuthenticated?: boolean;
 };
 
 export function DiscoverFeedClient({
-  feed,
+  feed, isAuthenticated = false,
 }: DiscoverFeedClientProps) {
   const [currentItem, setCurrentItem] =
     useState<PlayerItem | null>(null);
@@ -50,6 +52,7 @@ export function DiscoverFeedClient({
             key={item.id}
             onPlay={playRadaruneItem}
             rank={index + 1}
+            isAuthenticated={isAuthenticated}
           />
         ))}
       </section>
@@ -58,7 +61,8 @@ export function DiscoverFeedClient({
   <GlobalPlayer item={currentItem} />
 ) : (
   <GlobalPlayer />
-)}
+      )}
+      {!isAuthenticated ? <div className="mt-8 rounded-2xl border border-line bg-surface p-5 text-center text-sm text-muted">Beğenme, yorum ve kaydetme özellikleri için <Link className="font-semibold text-accent" href="/sign-in">giriş yapın</Link>.</div> : null}
     </>
   );
 }

@@ -22,6 +22,8 @@ export type ExternalMediaMetadata = {
   embedUrl: string | null;
   title: string;
   artistName: string | null;
+  isrc?: string | null;
+  upc?: string | null;
   durationMs: number | null;
   thumbnailUrl: string | null;
   publishedAt: Date | null;

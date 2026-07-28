@@ -107,7 +107,7 @@ export default async function DiscoverPage() {
         </section>
 
         {feed.length > 0 ? (
-          <DiscoverFeedClient feed={feed} />
+          <DiscoverFeedClient feed={feed} isAuthenticated={Boolean(session)} />
         ) : (
           <section className="mt-6 rounded-[2rem] border border-dashed border-line bg-surface px-6 py-16 text-center">
             <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-accent/10 text-accent">
