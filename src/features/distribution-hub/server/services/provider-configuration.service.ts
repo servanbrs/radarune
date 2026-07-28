@@ -99,9 +99,15 @@ export class DistributionProviderConfigurationService {
       };
     }
 
+    const existing = await distributionProviderConfigurationRepository.findByOrganizationAndProvider(
+      actor.organizationId,
+      parsed.data.provider,
+    );
+    const existingCredentials = parseStoredCredentials(existing?.credentialsEncrypted);
+    const mergedCredentials = { ...existingCredentials, ...parsed.data.credentials };
     const credentialsEncrypted =
-      Object.keys(parsed.data.credentials).length > 0
-        ? encryptDistributionSecret(JSON.stringify(parsed.data.credentials))
+      Object.keys(mergedCredentials).length > 0
+        ? encryptDistributionSecret(JSON.stringify(mergedCredentials))
         : null;
     const webhookSecretEncrypted = parsed.data.webhookSecret
       ? encryptDistributionSecret(parsed.data.webhookSecret)

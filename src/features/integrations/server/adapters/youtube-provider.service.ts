@@ -52,16 +52,16 @@ function videoId(item: YouTubeItem): string | null {
 export class YouTubeProviderService implements ExternalProviderAdapter {
   readonly key = "YOUTUBE" as const;
 
-  validateConfiguration(): ProviderResult<{ configured: true }> {
-    return env.YOUTUBE_API_KEY
+  validateConfiguration(apiKeyOverride?: string): ProviderResult<{ configured: true }> {
+    return (apiKeyOverride ?? env.YOUTUBE_API_KEY)
       ? { success: true, data: { configured: true } }
       : providerConfigurationRequired("YOUTUBE", ["YOUTUBE_API_KEY"]);
   }
 
-  async testConnection(): Promise<ProviderResult<{ checkedAt: Date }>> {
-    const config = this.validateConfiguration();
+  async testConnection(apiKeyOverride?: string): Promise<ProviderResult<{ checkedAt: Date }>> {
+    const config = this.validateConfiguration(apiKeyOverride);
     if (!config.success) return config;
-    const response = await this.request("i18nRegions", { part: "snippet", maxResults: "1" });
+    const response = await this.request("i18nRegions", { part: "snippet", maxResults: "1" }, apiKeyOverride);
     if (!response.success) return response;
     return { success: true, data: { checkedAt: new Date() } };
   }
@@ -159,11 +159,11 @@ export class YouTubeProviderService implements ExternalProviderAdapter {
     return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(externalId)}`;
   }
 
-  private async request(path: string, params: Record<string, string>) {
-    const config = this.validateConfiguration();
+  private async request(path: string, params: Record<string, string>, apiKeyOverride?: string) {
+    const config = this.validateConfiguration(apiKeyOverride);
     if (!config.success) return config;
     const url = new URL(`https://www.googleapis.com/youtube/v3/${path}`);
-    Object.entries({ ...params, key: env.YOUTUBE_API_KEY ?? "" }).forEach(([key, value]) => url.searchParams.set(key, value));
+    Object.entries({ ...params, key: apiKeyOverride ?? env.YOUTUBE_API_KEY ?? "" }).forEach(([key, value]) => url.searchParams.set(key, value));
     try {
       const response = await fetch(url, { headers: { Accept: "application/json" }, cache: "no-store" });
       const payload: unknown = await response.json();

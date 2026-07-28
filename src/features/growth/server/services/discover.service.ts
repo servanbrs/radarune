@@ -318,6 +318,24 @@ export class DiscoverService {
       releases.push(...refill);
     }
 
+    // Discover is a public listening surface. If a member's personal
+    // workspace has no live catalog yet, fall back to the public catalog
+    // instead of rendering an empty pool.
+    if (releases.length === 0 && actor) {
+      const publicRefill = await prisma.release.findMany({
+        where: { status: { in: ["LIVE", "DISTRIBUTED"] }, tracks: { some: {} } },
+        orderBy: [{ liveAt: "desc" }, { createdAt: "desc" }],
+        take: 60,
+        select: {
+          id: true, title: true, primaryGenre: true, liveAt: true, createdAt: true,
+          tracks: { orderBy: { trackNumber: "asc" }, take: 1, select: { id: true, title: true, trackNumber: true } },
+          artists: { orderBy: { sortOrder: "asc" }, take: 3, select: { artist: { select: { id: true, name: true, slug: true } } } },
+          _count: { select: { releaseLikes: true } },
+        },
+      });
+      releases.push(...publicRefill);
+    }
+
     const radaruneItems: RadaruneDiscoverItem[] = releases.map(
       (release) => {
         const recommendationScore =
@@ -419,7 +437,7 @@ export class DiscoverService {
       },
     });
 
-    if (!track || track.organizationId !== actor.organizationId || !["LIVE", "DISTRIBUTED"].includes(track.release.status)) {
+    if (!track || !["LIVE", "DISTRIBUTED"].includes(track.release.status)) {
       throw new Error(
         "Discover event için uygun track bulunamadı.",
       );
