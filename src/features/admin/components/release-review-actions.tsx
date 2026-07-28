@@ -18,7 +18,7 @@ export function ReleaseReviewActions({ releaseId, status }: { releaseId: string;
     const response = await fetch(`/api/admin/releases/${releaseId}/action`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action, ...(reason ? { reason } : {}), revisionItems: [] }) });
     const payload = await response.json().catch(() => null);
     setPending(false);
-    if (!response.ok) { setMessage(payload?.error ?? "İşlem başarısız."); return; }
+    if (!response.ok) { setMessage(payload?.error?.includes("distribution.enabled") ? "Dağıtım özelliği sanatçı planında kapalı. Admin veya moderatör operasyon yetkisiyle bu kısıt aşılabilir; sanatçı hesabı için Faturalandırma bölümünden dağıtım özelliğini içeren planı etkinleştirin." : payload?.error ?? "İşlem başarısız."); return; }
     setMessage(action === "QUEUE_DISTRIBUTION" ? "Dağıtım kuyruğuna alındı." : "İşlem tamamlandı.");
     router.refresh();
   }

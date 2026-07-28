@@ -91,7 +91,7 @@ export class DiscoverService {
   async getPublicCandidates(): Promise<PublicDiscoverCandidate[]> {
   const candidates = await prisma.release.findMany({
     where: {
-      status: "LIVE",
+      status: { in: ["LIVE", "DISTRIBUTED"] },
       tracks: {
         some: {},
       },
@@ -205,7 +205,7 @@ export class DiscoverService {
       prisma.release.findMany({
         where: {
           ...organizationFilter,
-          status: "LIVE",
+          status: { in: ["LIVE", "DISTRIBUTED"] },
           tracks: {
             some: {
               ...(seenTrackIds.length > 0

@@ -123,12 +123,16 @@ export class DistributionJobService {
   async createJob(actor: FinanceActorContext, input: CreateDistributionJobInput) {
     assertManagePermission(actor);
 
-    await entitlementService.assertFeatureEnabled(
-      {
-        organizationId: actor.organizationId,
-      },
-      "distribution.enabled",
-    );
+    // Moderation and operations staff must be able to fulfil a release even
+    // when the artist's commercial plan does not include self-service delivery.
+    // Regular artist/user submissions remain protected by the plan entitlement.
+    const operationsRole = ["OWNER", "ADMIN", "SUPER_ADMIN", "MODERATOR"].includes(actor.systemRole ?? "") || actor.membershipRole === "OWNER";
+    if (!operationsRole) {
+      await entitlementService.assertFeatureEnabled(
+        { organizationId: actor.organizationId },
+        "distribution.enabled",
+      );
+    }
 
     const parsed = createDistributionJobSchema.safeParse(input);
 
