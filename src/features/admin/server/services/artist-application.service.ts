@@ -5,7 +5,7 @@ import { assertAdminPermission } from "@/features/admin/server/admin-context";
 import { artistApplicationRepository } from "@/features/admin/server/repositories/artist-application.repository";
 import { notificationService } from "@/features/admin/server/services/notification.service";
 import { auditLogService } from "@/features/finance/server/services/audit-log.service";
-import type { ArtistApplicationActionInput } from "@/features/admin/schemas/admin.schema";
+import { createArtistApplicationSchema, type ArtistApplicationActionInput, type CreateArtistApplicationInput } from "@/features/admin/schemas/admin.schema";
 import type { FinanceActorContext } from "@/features/finance/server/services/finance-access.service";
 
 function slugify(value: string) {
@@ -19,6 +19,39 @@ function slugify(value: string) {
 }
 
 export class ArtistApplicationService {
+  async createApplication(actor: FinanceActorContext, input: CreateArtistApplicationInput) {
+    const parsed = createArtistApplicationSchema.safeParse(input);
+    if (!parsed.success) {
+      return { success: false as const, message: Object.values(parsed.error.flatten().fieldErrors).flat().find(Boolean) ?? "Başvuru bilgileri geçerli değil." };
+    }
+
+    const existing = await artistApplicationRepository.findOpenForUser(actor.userId, actor.organizationId);
+    if (existing) {
+      return { success: false as const, message: "Zaten incelenmekte olan bir sanatçı başvurunuz var.", data: existing };
+    }
+
+    const application = await artistApplicationRepository.create({
+      organizationId: actor.organizationId,
+      userId: actor.userId,
+      stageName: parsed.data.stageName,
+      legalName: parsed.data.legalName,
+      biography: parsed.data.biography,
+      ...(parsed.data.spotifyArtistUrl ? { spotifyArtistUrl: parsed.data.spotifyArtistUrl } : {}),
+      ...(parsed.data.appleMusicArtistUrl ? { appleMusicArtistUrl: parsed.data.appleMusicArtistUrl } : {}),
+      ...(parsed.data.youtubeChannelUrl ? { youtubeChannelUrl: parsed.data.youtubeChannelUrl } : {}),
+    });
+
+    await auditLogService.create({
+      organizationId: actor.organizationId,
+      actorUserId: actor.userId,
+      action: "ARTIST_APPLICATION_CREATED",
+      entityType: "ArtistApplication",
+      entityId: application.id,
+      metadata: { stageName: application.stageName },
+    });
+
+    return { success: true as const, data: application };
+  }
   async listApplications(actor: FinanceActorContext, params: { page: number; pageSize: number; search?: string }) {
     assertAdminPermission(actor, "artists.review");
     return artistApplicationRepository.list({ ...params, organizationId: actor.organizationId });

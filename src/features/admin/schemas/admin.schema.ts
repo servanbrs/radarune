@@ -22,6 +22,15 @@ export const artistApplicationActionSchema = z.object({
   adminNotes: z.string().trim().max(4000).optional(),
 });
 
+export const createArtistApplicationSchema = z.object({
+  stageName: z.string().trim().min(2).max(160),
+  legalName: z.string().trim().min(2).max(200),
+  biography: z.string().trim().min(20).max(5000),
+  spotifyArtistUrl: z.string().url().optional().or(z.literal("")),
+  appleMusicArtistUrl: z.string().url().optional().or(z.literal("")),
+  youtubeChannelUrl: z.string().url().optional().or(z.literal("")),
+});
+
 export const releaseModerationActionSchema = z.object({
   action: z.enum(["APPROVE", "REJECT", "REQUEST_REVISION", "QUEUE_DISTRIBUTION"]),
   reason: z.string().trim().max(2000).optional(),
@@ -73,5 +82,6 @@ export type AdminPaginationInput = z.infer<typeof adminPaginationSchema>;
 export type UpdateUserRoleInput = z.infer<typeof updateUserRoleSchema>;
 export type UpdateUserStatusInput = z.infer<typeof updateUserStatusSchema>;
 export type ArtistApplicationActionInput = z.infer<typeof artistApplicationActionSchema>;
+export type CreateArtistApplicationInput = z.infer<typeof createArtistApplicationSchema>;
 export type ReleaseModerationActionInput = z.infer<typeof releaseModerationActionSchema>;
 export type UpdateAdminSettingInput = z.infer<typeof updateAdminSettingSchema>;

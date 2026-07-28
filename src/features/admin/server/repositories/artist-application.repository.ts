@@ -4,6 +4,50 @@ import { prisma } from "@/server/prisma/prisma";
 import type { DatabaseClient } from "@/server/prisma/database-client";
 
 export class ArtistApplicationRepository {
+  async findOpenForUser(userId: string, organizationId: string, client: DatabaseClient = prisma) {
+    return client.artistApplication.findFirst({
+      where: {
+        userId,
+        organizationId,
+        status: { in: ["PENDING", "UNDER_REVIEW", "REVISION_REQUESTED"] },
+      },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, status: true, stageName: true },
+    });
+  }
+
+  async create(input: {
+    organizationId: string;
+    userId: string;
+    stageName: string;
+    legalName: string;
+    biography: string;
+    spotifyArtistUrl?: string;
+    appleMusicArtistUrl?: string;
+    youtubeChannelUrl?: string;
+  }, client: DatabaseClient = prisma) {
+    return client.artistApplication.create({
+      data: {
+        organizationId: input.organizationId,
+        userId: input.userId,
+        stageName: input.stageName,
+        legalName: input.legalName,
+        biography: input.biography,
+        spotifyArtistUrl: input.spotifyArtistUrl || null,
+        appleMusicArtistUrl: input.appleMusicArtistUrl || null,
+        youtubeChannelUrl: input.youtubeChannelUrl || null,
+        statusHistory: {
+          create: {
+            organizationId: input.organizationId,
+            status: "PENDING",
+            actorUserId: input.userId,
+            reason: "Sanatçı başvurusu oluşturuldu.",
+          },
+        },
+      },
+      select: { id: true, status: true, stageName: true },
+    });
+  }
   async list(params: { organizationId: string; page: number; pageSize: number; search?: string }) {
     const where: Prisma.ArtistApplicationWhereInput = {
       organizationId: params.organizationId,

@@ -8,6 +8,7 @@ import {
 
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { creatorAccessService } from "@/features/authorization/server/creator-access.service";
+import { ArtistApplicationForm } from "@/features/admin/components/artist-application-form";
 
 export default async function BecomePage() {
   const { user } =
@@ -118,13 +119,7 @@ export default async function BecomePage() {
             </li>
           </ul>
 
-          <button
-            className="mt-8 w-full cursor-not-allowed rounded-full bg-foreground/50 px-5 py-3 text-sm font-semibold text-white"
-            disabled
-            type="button"
-          >
-            Başvuru formu yakında açılacak
-          </button>
+          <ArtistApplicationForm />
         </article>
 
         <article className="rounded-[2rem] border border-line bg-surface p-7 sm:p-8">
@@ -161,13 +156,7 @@ export default async function BecomePage() {
             </li>
           </ul>
 
-          <button
-            className="mt-8 w-full cursor-not-allowed rounded-full border border-line px-5 py-3 text-sm font-semibold text-muted"
-            disabled
-            type="button"
-          >
-            Başvuru formu yakında açılacak
-          </button>
+          <ArtistApplicationForm />
         </article>
       </section>
     </main>
