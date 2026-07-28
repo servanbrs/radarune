@@ -122,7 +122,7 @@ export function AdminShell({
   description: string;
 }) {
   return (
-    <main className="page-shell min-w-0">
+    <main className="page-shell min-w-0" data-admin-theme="dark">
       <div className="grid min-w-0 w-full gap-5 xl:grid-cols-[260px_minmax(0,1fr)]">
         {/* Mobil admin menüsü */}
         <details className="panel group xl:hidden">

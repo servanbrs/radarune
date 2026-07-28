@@ -12,6 +12,17 @@
   --danger: #b42318;
 }
 
+[data-admin-theme="dark"] {
+  --background: #0b1114;
+  --foreground: #eef7f5;
+  --muted: #9aada9;
+  --line: #26383a;
+  --surface: #111d20;
+  --surface-strong: #182a2c;
+  --accent: #44c7ad;
+  --danger: #ff7b7b;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
