@@ -192,6 +192,13 @@ export default async function AdminDistributionPage() {
                 <ShieldAlert className="size-4" />
                 Dead letter
               </Link>
+
+              <Link
+                className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold transition hover:bg-black/5"
+                href="/admin/distribution/retry"
+              >
+                Retry kuyruğu
+              </Link>
             </div>
           </div>
 
