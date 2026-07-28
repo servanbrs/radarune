@@ -43,4 +43,23 @@ describe("ReleaseRepository.attachUpload", () => {
       },
     }));
   });
+
+  it("moderation status güncellemesinde stale transition'ı reddeder", async () => {
+    const updateMany = vi.fn().mockResolvedValue({ count: 0 });
+    const client = {
+      release: { updateMany },
+      releaseStatusHistory: { create: vi.fn() },
+    } as never;
+
+    await expect(new ReleaseRepository().updateStatus("release_1", {
+      status: "APPROVED",
+      previousStatus: "PENDING_REVIEW",
+      organizationId: "org_1",
+      reason: "approve",
+    }, client)).rejects.toThrow("Yayın durumu değişti");
+
+    expect(updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: "release_1", organizationId: "org_1", status: "PENDING_REVIEW" },
+    }));
+  });
 });

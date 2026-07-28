@@ -162,42 +162,49 @@ export class ReleaseRepository {
         | "TAKEDOWN_REQUESTED"
         | "REMOVED";
       previousStatus?: string;
+      organizationId?: string;
       actorUserId?: string;
       reason: string;
       metadata?: Record<string, unknown>;
     },
     client: DatabaseClient = prisma,
   ) {
-    return client.release.update({
+    const updated = await client.release.updateMany({
       where: {
         id,
+        ...(input.organizationId ? { organizationId: input.organizationId } : {}),
+        ...(isReleaseStatus(input.previousStatus) ? { status: input.previousStatus } : {}),
       },
       data: {
         status: input.status,
         ...(input.status === "APPROVED" ? { approvedAt: new Date() } : {}),
         ...(input.status === "REJECTED" ? { rejectedAt: new Date() } : {}),
         ...(input.status === "LIVE" ? { liveAt: new Date() } : {}),
-        statusHistory: {
-          create: {
-            organizationId: (await client.release.findUniqueOrThrow({
-              where: { id },
-              select: { organizationId: true },
-            })).organizationId,
-            previousStatus: isReleaseStatus(input.previousStatus)
-              ? input.previousStatus
-              : null,
-            status: input.status,
-            actorUserId: input.actorUserId ?? null,
-            reason: input.reason,
-            metadata: input.metadata ? (input.metadata as Prisma.InputJsonValue) : Prisma.JsonNull,
-          },
-        },
-      },
-      select: {
-        id: true,
-        status: true,
       },
     });
+
+    if (updated.count !== 1) {
+      throw new Error("Yayın durumu değişti; işlem artık geçerli değil.");
+    }
+
+    const organizationId = input.organizationId ?? (await client.release.findUniqueOrThrow({
+      where: { id },
+      select: { organizationId: true },
+    })).organizationId;
+
+    await client.releaseStatusHistory.create({
+      data: {
+        organizationId,
+        releaseId: id,
+        previousStatus: isReleaseStatus(input.previousStatus) ? input.previousStatus : null,
+        status: input.status,
+        actorUserId: input.actorUserId ?? null,
+        reason: input.reason,
+        metadata: input.metadata ? (input.metadata as Prisma.InputJsonValue) : Prisma.JsonNull,
+      },
+    });
+
+    return { id, status: input.status };
   }
 
   async createDraft(params: {

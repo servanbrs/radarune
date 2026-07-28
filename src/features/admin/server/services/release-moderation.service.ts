@@ -90,6 +90,7 @@ export class ReleaseModerationService {
         {
           status: "APPROVED",
           previousStatus: release.status,
+          organizationId: actor.organizationId,
           actorUserId: actor.userId,
           reason: "Yayın admin tarafından onaylandı.",
         },
@@ -157,6 +158,7 @@ export class ReleaseModerationService {
         {
           status: "REVISION_REQUESTED",
           previousStatus,
+          organizationId: actor.organizationId,
           actorUserId: actor.userId,
           reason: input.reason ?? "Yayın için revizyon istendi.",
           metadata: { revisionItemCount: input.revisionItems.length },
@@ -209,7 +211,7 @@ export class ReleaseModerationService {
       releaseStateService.assertTransition(previousStatus, nextStatus);
       const updated = await releaseRepository.updateStatus(
         releaseId,
-        { status: nextStatus, previousStatus, actorUserId: actor.userId, reason },
+        { status: nextStatus, previousStatus, organizationId: actor.organizationId, actorUserId: actor.userId, reason },
         tx,
       );
 
