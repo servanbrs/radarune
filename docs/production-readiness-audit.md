@@ -26,6 +26,18 @@ Date: 2026-07-28
 - Signed provider webhook verification and persisted webhook events
 - Organization-scoped finance, discover and mobile service layers
 
+## Completed after the initial audit
+
+- Tenant-scoped upload attachment and release submission concurrency guard
+- Atomic admin release moderation transitions
+- Idempotent distribution enqueue under unique-key races
+- Provider webhook provider validation, malformed-payload handling and replay window
+- Tenant-scoped webhook release transitions
+- Media upload readiness validation before release submission
+- Creator artist application form, persistence, audit trail and admin review entrypoint
+- Atomic artist-application moderation transitions
+- Tenant-scoped Discover events, import moderation and mobile notifications
+
 ## Highest-priority gaps
 
 1. Release lifecycle names are coarser than the target contract (`PENDING_REVIEW`, `REVISION_REQUESTED`, `DISTRIBUTED`, `REMOVED`). Expanding these requires a non-destructive data migration and coordinated updates to state guards, UI labels, provider mapping and tests.
