@@ -8,10 +8,10 @@ export function AdminStatCard({
   tone?: "neutral" | "good" | "warn" | "danger";
 }) {
   const toneClass = {
-    neutral: "bg-white/70",
-    good: "bg-emerald-50 text-emerald-950",
-    warn: "bg-amber-50 text-amber-950",
-    danger: "bg-rose-50 text-rose-950",
+    neutral: "bg-[#17272a] text-[#eef7f5]",
+    good: "bg-[#d9f7eb] text-[#06382d]",
+    warn: "bg-[#fff6d9] text-[#5a2d00]",
+    danger: "bg-[#ffe7eb] text-[#5d061d]",
   }[tone];
 
   return (

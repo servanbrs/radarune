@@ -6,6 +6,7 @@ import {
   toAdminActor,
 } from "@/features/admin/server/admin-context";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
+import { AdminThemeBridge } from "@/features/admin/components/admin-theme-bridge";
 
 export default async function AdminLayout({
   children,
@@ -30,5 +31,5 @@ export default async function AdminLayout({
     redirect("/dashboard");
   }
 
-  return <>{children}</>;
+  return <><AdminThemeBridge />{children}</>;
 }
