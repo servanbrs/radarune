@@ -479,7 +479,9 @@ export function ReleaseWizard({
 
   function runAsync(task: () => Promise<void>) {
     startTransition(() => {
-      void task();
+      void task().catch((error: unknown) => {
+        toast.error(error instanceof Error ? error.message : "Adım kaydedilemedi. Lütfen tekrar deneyin.");
+      });
     });
   }
 

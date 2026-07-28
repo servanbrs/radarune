@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ChevronDown, KeyRound, Settings, UserRound } from "lucide-react";
 import { SignOutButton } from "@/features/authentication/components/sign-out-button";
 
-export function UserMenu({ name, email }: { name: string; email: string }) {
+export function UserMenu({ name, email, adminAccess, artistAccess }: { name: string; email: string; adminAccess?: boolean; artistAccess?: boolean }) {
   return (
     <details className="group relative">
       <summary className="flex cursor-pointer list-none items-center gap-2 rounded-full border border-line bg-surface px-3 py-2 [&::-webkit-details-marker]:hidden">
@@ -20,6 +20,9 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
           <p className="mt-1 truncate text-xs text-muted">{email}</p>
         </div>
         <nav className="grid gap-1 py-2">
+          {adminAccess ? <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-muted hover:bg-surface-strong hover:text-foreground" href="/admin"><Settings className="h-4 w-4" /> Yönetim paneli</Link> : null}
+          {adminAccess ? <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-muted hover:bg-surface-strong hover:text-foreground" href="/admin/moderation"><Settings className="h-4 w-4" /> Moderatör paneli</Link> : null}
+          {artistAccess ? <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-muted hover:bg-surface-strong hover:text-foreground" href="/artist-profile"><UserRound className="h-4 w-4" /> Sanatçı paneli</Link> : null}
           <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-muted hover:bg-surface-strong hover:text-foreground" href="/settings">
             <UserRound className="h-4 w-4" /> Profil ayarları
           </Link>

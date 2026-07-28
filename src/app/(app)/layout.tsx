@@ -147,19 +147,11 @@ export default async function AppLayout({
               </details>
             ) : null}
 
-            {adminAccess ? (
-              <Link
-                className="ml-1 whitespace-nowrap rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
-                href="/admin"
-              >
-                Yönetim
-              </Link>
-            ) : null}
           </nav>
 
           <div className="hidden shrink-0 items-center gap-3 lg:flex">
             <ThemeToggle />
-            <UserMenu email={user.email} name={user.name} />
+            <UserMenu adminAccess={adminAccess} artistAccess={creatorAccess.isArtist} email={user.email} name={user.name} />
           </div>
 
           <details className="group relative lg:hidden">

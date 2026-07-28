@@ -42,6 +42,30 @@ html[data-theme="dark"] {
   background-color: var(--surface-strong) !important;
 }
 
+[data-admin-theme="dark"] input,
+[data-admin-theme="dark"] select,
+[data-admin-theme="dark"] textarea {
+  background-color: #17272a !important;
+  border-color: #31484b !important;
+  color: #eef7f5 !important;
+}
+[data-admin-theme="dark"] input::placeholder,
+[data-admin-theme="dark"] textarea::placeholder { color: #8da09c !important; }
+
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea {
+  background-color: #17272a !important;
+  border-color: #31484b !important;
+  color: #eef7f5 !important;
+}
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder { color: #8da09c !important; }
+html[data-theme="dark"] .bg-white,
+html[data-theme="dark"] .bg-white\/60,
+html[data-theme="dark"] .bg-white\/70,
+html[data-theme="dark"] .bg-white\/80 { background-color: #111d20 !important; }
+
 body:has(main[data-admin-theme="dark"]) > div > header,
 body:has(main[data-admin-theme="dark"]) header {
   background-color: #0f1a1d !important;
