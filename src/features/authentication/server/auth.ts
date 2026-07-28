@@ -23,6 +23,9 @@ export const auth = betterAuth({
     minPasswordLength: passwordPolicy.minLength,
     maxPasswordLength: passwordPolicy.maxLength,
   },
+  ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
+    ? { socialProviders: { google: { clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET } } }
+    : {}),
   user: {
     modelName: "User",
   },

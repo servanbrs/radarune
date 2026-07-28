@@ -115,6 +115,10 @@ export function SignUpForm() {
         {isPending ? "Hesap oluşturuluyor..." : "Hesap oluştur"}
       </Button>
 
+      <Button className="w-full" onClick={() => void authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" })} type="button" variant="secondary">
+        Google ile kayıt ol
+      </Button>
+
       <Link className="text-sm font-medium text-muted hover:text-foreground" href="/sign-in">
         Zaten hesabınız var mı? Giriş yapın.
       </Link>

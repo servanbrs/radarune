@@ -81,6 +81,10 @@ export function SignInForm() {
         {isPending ? "Giriş yapılıyor..." : "Giriş yap"}
       </Button>
 
+      <Button className="w-full" onClick={() => void authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" })} type="button" variant="secondary">
+        Google ile devam et
+      </Button>
+
       <Link className="text-sm font-medium text-muted hover:text-foreground" href="/sign-up">
         Hesabınız yok mu? Kayıt olun.
       </Link>
