@@ -92,10 +92,10 @@ function AdminNavigation() {
       className="grid gap-6"
     >
       {adminNavigationGroups.map((group) => (
-        <section key={group.title}>
-          <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted">
+        <details className="group" key={group.title} open>
+          <summary className="cursor-pointer list-none px-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted [&::-webkit-details-marker]:hidden">
             {group.title}
-          </p>
+          </summary>
 
           <div className="mt-2 grid gap-1">
             {group.items.map((item) => (
@@ -108,7 +108,7 @@ function AdminNavigation() {
               </Link>
             ))}
           </div>
-        </section>
+        </details>
       ))}
     </nav>
   );
