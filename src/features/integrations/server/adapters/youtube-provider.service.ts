@@ -167,7 +167,12 @@ export class YouTubeProviderService implements ExternalProviderAdapter {
     try {
       const response = await fetch(url, { headers: { Accept: "application/json" }, cache: "no-store" });
       const payload: unknown = await response.json();
-      if (response.status === 403) return { success: false as const, code: "RATE_LIMITED" as const, message: "YouTube API kotası veya erişim sınırı aşıldı." };
+      if (response.status === 403) {
+        const reason = isObject(payload) && isObject(payload.error) && Array.isArray(payload.error.errors)
+          ? String((payload.error.errors[0] as Record<string, unknown> | undefined)?.reason ?? "")
+          : "";
+        return { success: false as const, code: "RATE_LIMITED" as const, message: reason === "API_KEY_HTTP_REFERRER_BLOCKED" ? "YouTube anahtarı web sitesi kısıtlamasıyla engellendi. Sunucu kullanımı için Google Cloud'da IP kısıtlaması kullanın." : "YouTube API kotası veya erişim sınırı aşıldı." };
+      }
       if (response.status === 404) return { success: false as const, code: "NOT_FOUND" as const, message: "YouTube kaynağı bulunamadı." };
       if (!response.ok) return this.normalizeError(new Error("YouTube API isteği başarısız oldu."));
       return { success: true as const, data: readResponse(payload) };

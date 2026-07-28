@@ -206,6 +206,12 @@ export function ReleaseWizard({
   const currentStepIndex = steps.findIndex(
     (step) => step.id === currentStep,
   );
+  const missingRights = (watchedValues.tracks ?? []).flatMap((track, index) => {
+    const roles = new Set((track.contributors ?? []).map((contributor) => contributor.role));
+    return !roles.has("COMPOSER") || (!track.instrumental && !roles.has("LYRICIST"))
+      ? [`${index + 1}. parça için ${!roles.has("COMPOSER") ? "besteci" : "söz yazarı"} ekleyin.`]
+      : [];
+  });
 
   async function validateCurrentStep(step: StepId) {
     if (step === "details") {
@@ -910,6 +916,7 @@ export function ReleaseWizard({
                 eksiksiz girin.
               </p>
             </div>
+            {missingRights.length > 0 ? <div className="rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">{missingRights.join(" ")} Sözlü parçalarda besteci ve söz yazarı zorunludur.</div> : null}
 
             {(form.getValues("tracks") ?? []).map((track, index) => (
               <TrackRightsEditor
