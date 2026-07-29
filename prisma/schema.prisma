@@ -1507,10 +1507,13 @@ model Label {
   name                 String
   slug                 String
   legalName            String?
+  parentLabelId        String?
   status               LabelStatus           @default(ACTIVE)
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
   organization         Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  parentLabel          Label?                @relation("LabelHierarchy", fields: [parentLabelId], references: [id], onDelete: SetNull)
+  childLabels          Label[]                @relation("LabelHierarchy")
   createdByUser        User?                 @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
   artistLinks          LabelArtist[]
   financialAdjustments FinancialAdjustment[]
@@ -1525,6 +1528,7 @@ model Label {
   @@unique([organizationId, slug])
   @@index([organizationId])
   @@index([createdByUserId])
+  @@index([parentLabelId])
 }
 
 model Artist {
