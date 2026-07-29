@@ -12,6 +12,7 @@ import { intelligenceRepository } from "@/features/intelligence/server/repositor
 import { metadataValidationService } from "@/features/intelligence/server/services/metadata-validation.service";
 import { releaseReadinessService } from "@/features/intelligence/server/services/release-readiness.service";
 import { releaseAccessService } from "@/features/releases/server/services/release-access.service";
+import { aiProviderRegistry } from "@/features/intelligence/server/adapters/ai-provider-registry";
 
 export class ReleaseIntelligenceService {
   async validateRelease(actor: FinanceActorContext, releaseId: string) {
@@ -96,6 +97,43 @@ export class ReleaseIntelligenceService {
     return {
       readiness,
       validationIssues: release.validationIssues,
+    };
+  }
+
+  async getSubmissionAssistant(actor: FinanceActorContext, releaseId: string) {
+    const release = await intelligenceRepository.findReleaseDetail(releaseId);
+    if (!release) throw new Error("Yayın bulunamadı.");
+    releaseAccessService.assertCanViewRelease(actor, release);
+    const validation = await this.validateRelease(actor, releaseId);
+    const metadata = {
+      title: release.title,
+      versionTitle: release.versionTitle,
+      type: release.type,
+      language: release.primaryLanguage,
+      genre: release.primaryGenre,
+      secondaryGenre: release.secondaryGenre,
+      plannedReleaseDate: release.plannedReleaseDate,
+      originalReleaseDate: release.originalReleaseDate,
+      previouslyReleased: release.previouslyReleased,
+      upc: release.upc,
+      stores: release.stores.map((store) => store.storeCode),
+      artworkUploaded: release.uploads.some((upload) => upload.kind === "ARTWORK"),
+      tracks: release.tracks.map((track) => ({ title: track.title, isrc: track.isrc, audioUploaded: Boolean(track.audioUploadId), instrumental: track.instrumental })),
+    };
+    const provider = aiProviderRegistry.get("OPENAI");
+    const ai = await provider.analyzeStructuredMetadata({ metadata });
+    const fallback = validation.issues.slice(0, 8).map((issue) => ({ field: issue.fieldPath, action: issue.suggestedAction ?? issue.message, priority: issue.blocking ? "high" : "medium" }));
+    const structured = ai.success && ai.data.structuredResult && typeof ai.data.structuredResult === "object" ? ai.data.structuredResult as { summary?: string; suggestions?: unknown[] } : null;
+    return {
+      readiness: validation.readiness,
+      issues: validation.issues,
+      assistant: {
+        provider: ai.success ? "OPENAI" : "INTERNAL_RULE_ENGINE",
+        configured: ai.success,
+        summary: structured?.summary ?? (validation.issues.length ? "Yayın gönderimden önce aşağıdaki alanları tamamlayın." : "Yayın gönderime hazır görünüyor."),
+        suggestions: Array.isArray(structured?.suggestions) ? structured.suggestions : fallback,
+        providerMessage: ai.success ? undefined : ai.message,
+      },
     };
   }
 

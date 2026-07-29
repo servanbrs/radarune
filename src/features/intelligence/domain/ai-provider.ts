@@ -22,7 +22,7 @@ export interface AiProviderAdapter {
   validateConfiguration(): Promise<AiProviderResult<{ configured: boolean }>>;
   testConnection(): Promise<AiProviderResult<{ latencyMs: number }>>;
   analyzeText(input: { text: string }): Promise<AiProviderResult<{ structuredResult: unknown }>>;
-  analyzeStructuredMetadata(input: { metadata: unknown }): Promise<AiProviderResult<{ structuredResult: unknown }>>;
+  analyzeStructuredMetadata(input: { metadata: unknown } | { release: unknown }): Promise<AiProviderResult<{ structuredResult: unknown }>>;
   analyzeImage(input: { uploadId: string }): Promise<AiProviderResult<{ structuredResult: unknown }>>;
   createEmbedding(input: { text: string }): Promise<AiProviderResult<{ embedding: number[] }>>;
   estimateUsage(input: { textLength: number }): Promise<AiProviderResult<{ unitCount: number }>>;

@@ -173,6 +173,11 @@ export function ReleaseWizard({
   const [issues, setIssues] = useState<ReleaseIssue[]>(
     initialRelease?.validationIssues ?? [],
   );
+  const [assistant, setAssistant] = useState<{
+    readiness?: { score?: number; blockingCount?: number; warningCount?: number };
+    assistant?: { configured?: boolean; summary?: string; suggestions?: Array<{ field?: string; action?: string; priority?: string }>; providerMessage?: string };
+  } | null>(null);
+  const [assistantPending, setAssistantPending] = useState(false);
   const [artworkUploaded, setArtworkUploaded] = useState(
     Boolean(initialRelease?.artworkUploadId),
   );
@@ -485,6 +490,23 @@ export function ReleaseWizard({
     }
 
     return true;
+  }
+
+  async function runSubmissionAssistant() {
+    setAssistantPending(true);
+    try {
+      const targetReleaseId = await ensureRelease(form.getValues());
+      if (!targetReleaseId) return;
+      const response = await fetch(`/api/intelligence/releases/${targetReleaseId}/assistant`, { method: "POST" });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.success) {
+        toast.error(result.message ?? "Yayın yardımcısı çalıştırılamadı.");
+        return;
+      }
+      setAssistant(result.data);
+    } finally {
+      setAssistantPending(false);
+    }
   }
 
   function runAsync(task: () => Promise<void>) {
@@ -1182,6 +1204,38 @@ export function ReleaseWizard({
             </div>
 
             <ValidationSummary issues={issues} />
+
+            <div className="rounded-2xl border border-accent/30 bg-accent/5 p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Radarune AI</p>
+                  <p className="mt-1 font-semibold">Yayın hazırlık yardımcısı</p>
+                  <p className="mt-1 text-sm text-muted">Göndermeden önce eksikleri, metadata kalitesini ve önerilen düzeltmeleri kontrol edin.</p>
+                </div>
+                <Button type="button" variant="secondary" disabled={assistantPending || isPending} onClick={runSubmissionAssistant}>
+                  {assistantPending ? "Kontrol ediliyor…" : "AI ile kontrol et"}
+                </Button>
+              </div>
+              {assistant ? (
+                <div className="mt-4 space-y-3 border-t border-line/60 pt-4">
+                  <div className="flex flex-wrap items-center gap-3 text-sm">
+                    <span className="rounded-full bg-surface px-3 py-1 font-semibold">Hazırlık skoru: {assistant.readiness?.score ?? "—"}/100</span>
+                    <span className="text-muted">{assistant.readiness?.blockingCount ?? 0} engel · {assistant.readiness?.warningCount ?? 0} uyarı</span>
+                  </div>
+                  <p className="text-sm leading-6">{assistant.assistant?.summary}</p>
+                  {assistant.assistant?.suggestions?.length ? (
+                    <ul className="space-y-2 text-sm text-muted">
+                      {assistant.assistant.suggestions.slice(0, 6).map((suggestion, index) => (
+                        <li key={`${suggestion.field ?? "öneri"}-${index}`} className="rounded-xl bg-surface/70 px-3 py-2">
+                          <span className="font-medium text-foreground">{suggestion.field ?? "Yayın"}:</span> {suggestion.action}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  {!assistant.assistant?.configured && assistant.assistant?.providerMessage ? <p className="text-xs text-muted">Harici AI yapılandırılmadı; skor ve öneriler dahili doğrulama kurallarıyla üretildi.</p> : null}
+                </div>
+              ) : null}
+            </div>
 
             <div className="rounded-2xl border border-line bg-white p-5">
               <div className="flex gap-3">
