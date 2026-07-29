@@ -20,6 +20,7 @@ export const createLabelSchema = z.object({
     .max(160, "Legal name must be 160 characters or less.")
     .optional()
     .transform((value) => value || undefined),
+  parentLabelId: z.string().cuid().optional().nullable(),
 });
 
 export type CreateLabelInput = z.infer<typeof createLabelSchema>;

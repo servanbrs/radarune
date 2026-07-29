@@ -13,6 +13,7 @@ const organizationContextSelect = {
       id: true,
       name: true,
       slug: true,
+      defaultLocale: true,
       tenantStatus: true,
       createdAt: true,
       updatedAt: true,

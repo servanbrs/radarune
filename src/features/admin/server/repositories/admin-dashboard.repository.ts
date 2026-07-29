@@ -35,6 +35,7 @@ export class AdminDashboardRepository {
       importedItems,
       activeImportedSources,
       recentImports,
+      allUserDates,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.user.count({ where: { accountStatus: "ACTIVE" } }),
@@ -94,6 +95,7 @@ export class AdminDashboardRepository {
           externalMediaSource: { select: { title: true, artistName: true, provider: true } },
         },
       }),
+      prisma.user.findMany({ select: { createdAt: true } }),
     ]);
 
     const [dailyUsers, dailyReleases, releaseStatusDistribution, jobStatusDistribution] =
@@ -120,6 +122,7 @@ export class AdminDashboardRepository {
         }),
       ]);
 
+    const userGrowth = this.bucketUsers(allUserDates.map((row) => row.createdAt));
     return {
       cards: {
         totalUsers,
@@ -137,6 +140,7 @@ export class AdminDashboardRepository {
         failedDistributionJobs,
       },
       dailyUsers: this.bucketByDay(dailyUsers),
+      userGrowth,
       dailyReleases: this.bucketByDay(dailyReleases),
       releaseStatusDistribution,
       jobStatusDistribution,
@@ -157,6 +161,22 @@ export class AdminDashboardRepository {
       const key = row.createdAt.toISOString().slice(0, 10);
       return { ...result, [key]: (result[key] ?? 0) + row._count._all };
     }, {});
+  }
+
+  private bucketUsers(dates: Date[]) {
+    const daily: Record<string, number> = {};
+    const monthly: Record<string, number> = {};
+    const yearly: Record<string, number> = {};
+    for (const date of dates) {
+      const iso = date.toISOString();
+      const day = iso.slice(0, 10);
+      const month = iso.slice(0, 7);
+      const year = iso.slice(0, 4);
+      daily[day] = (daily[day] ?? 0) + 1;
+      monthly[month] = (monthly[month] ?? 0) + 1;
+      yearly[year] = (yearly[year] ?? 0) + 1;
+    }
+    return { daily, monthly, yearly };
   }
 }
 

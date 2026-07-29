@@ -26,7 +26,7 @@ function normalizeSlug(value: string) {
     .replace(/^-|-$/g, "");
 }
 
-export function CreateLabelForm() {
+export function CreateLabelForm({ labels = [] }: { labels?: Array<{ id: string; name: string }> }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [rootMessage, setRootMessage] = useState<string | null>(null);
@@ -37,6 +37,7 @@ export function CreateLabelForm() {
       name: "",
       slug: "",
       legalName: "",
+      parentLabelId: null,
     },
   });
 
@@ -83,6 +84,13 @@ export function CreateLabelForm() {
             },
           })}
         />
+      </Field>
+
+      <Field htmlFor="label-parent" label="Tür">
+        <select className="mt-2 w-full rounded-xl border border-line bg-white px-4 py-3 text-sm" id="label-parent" {...form.register("parentLabelId")}>
+          <option value="">Ana label</option>
+          {labels.map((label) => <option key={label.id} value={label.id}>Sublabel · {label.name}</option>)}
+        </select>
       </Field>
 
       <Field

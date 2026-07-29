@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { creatorAccessService } from "@/features/authorization/server/creator-access.service";
 import { GlobalSearch } from "@/components/global-search";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 type NavigationItem = {
   href: string;
@@ -35,35 +36,36 @@ export default async function AppLayout({
   const creatorAccess = creatorAccessService.getAccess({
     systemRole: user.systemRole,
   });
+  const english = organization.organization.defaultLocale === "en-US";
 
   const primaryNavigation: NavigationItem[] = [
     {
       href: "/dashboard",
-      label: "Ana Sayfa",
+      label: english ? "Home" : "Ana Sayfa",
     },
-    { href: "/discover", label: "Keşfet" },
-    { href: "/about", label: "Hakkımızda" },
-    { href: "/contact", label: "İletişim" },
+    { href: "/discover", label: english ? "Discover" : "Keşfet" },
+    { href: "/about", label: english ? "About" : "Hakkımızda" },
+    { href: "/contact", label: english ? "Contact" : "İletişim" },
   ];
 
   if (creatorAccess.showBecomeArtist) {
     primaryNavigation.push({
       href: "/become",
-      label: "Sanatçı Ol",
+      label: english ? "Become an artist" : "Sanatçı Ol",
     });
   }
 
   if (creatorAccess.canCreateReleases) {
     primaryNavigation.push({
       href: "/releases",
-      label: "Yayınlar",
+      label: english ? "Releases" : "Yayınlar",
     });
   }
 
   if (creatorAccess.canManageArtists) {
     primaryNavigation.push({
       href: "/artists",
-      label: "Sanatçılar",
+      label: english ? "Artists" : "Sanatçılar",
     });
   }
 
@@ -143,6 +145,7 @@ export default async function AppLayout({
           </nav>
 
           <div className="hidden shrink-0 items-center gap-3 lg:flex">
+            <LanguageSwitcher locale={organization.organization.defaultLocale} />
             <ThemeToggle />
             <UserMenu adminAccess={adminAccess} artistAccess={creatorAccess.isArtist} email={user.email} name={user.name} />
           </div>

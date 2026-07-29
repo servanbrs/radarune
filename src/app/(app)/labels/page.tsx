@@ -23,7 +23,7 @@ export default async function LabelsPage() {
           </div>
           {canCreate ? (
             <div className="mt-8">
-              <CreateLabelForm />
+              <CreateLabelForm labels={labels.map(({ id, name }) => ({ id, name }))} />
             </div>
           ) : (
             <p className="mt-8 rounded-2xl border bg-white/60 px-4 py-3 text-sm text-muted">
@@ -51,6 +51,7 @@ export default async function LabelsPage() {
                     <div>
                       <h3 className="text-lg font-semibold">{label.name}</h3>
                       <p className="mt-1 text-sm text-muted">Slug: {label.slug}</p>
+                      <p className="mt-1 text-xs uppercase tracking-wider text-accent">{label.parentLabel ? `Sublabel · ${label.parentLabel.name}` : "Ana label"}</p>
                     </div>
                     <span className="rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-muted">
                       {label.status}

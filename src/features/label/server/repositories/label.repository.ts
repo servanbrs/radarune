@@ -16,6 +16,8 @@ export class LabelRepository {
         name: true,
         slug: true,
         legalName: true,
+        parentLabelId: true,
+        parentLabel: { select: { id: true, name: true } },
         status: true,
         createdAt: true,
         _count: {
@@ -55,11 +57,13 @@ export class LabelRepository {
         name: input.name,
         slug: input.slug,
         legalName: input.legalName ?? null,
+        parentLabelId: input.parentLabelId ?? null,
       },
       select: {
         id: true,
         name: true,
         slug: true,
+        parentLabelId: true,
       },
     });
   }
