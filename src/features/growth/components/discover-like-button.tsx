@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Heart } from "lucide-react";
 
-export function DiscoverLikeButton({ trackId, releaseId, externalMediaId }: { trackId?: string | null; releaseId?: string | null; externalMediaId?: string | null }) {
+export function DiscoverLikeButton({ trackId, releaseId, externalMediaId }: { trackId?: string | null | undefined; releaseId?: string | null | undefined; externalMediaId?: string | null | undefined }) {
   const [state, setState] = useState<"idle" | "liked" | "error">("idle");
   async function like() {
     if (state === "liked") return;
