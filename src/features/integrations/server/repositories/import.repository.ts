@@ -31,6 +31,7 @@ export class ImportRepository {
         lastError: true,
         createdAt: true,
         _count: { select: { runs: true } },
+        runs: { orderBy: { startedAt: "desc" }, take: 1, select: { detectedCount: true, importedCount: true, duplicateCount: true, failedCount: true } },
       },
     });
   }

@@ -35,6 +35,8 @@ function providerImportEnabled(provider: ExternalProviderKey) {
 }
 
 function sourceReference(type: ImportSourceCreateInput["type"], rawUrl: string): SourceReference | null {
+  if (type === "YOUTUBE_SEARCH") return { provider: "YOUTUBE", externalId: rawUrl };
+  if (type === "SPOTIFY_SEARCH") return { provider: "SPOTIFY", externalId: rawUrl };
   const url = new URL(rawUrl);
   if (type.startsWith("YOUTUBE")) {
     const playlistId = url.searchParams.get("list");
@@ -70,12 +72,18 @@ function spotifyTracks(value: unknown): unknown[] {
   return response.items ?? [];
 }
 
+function artistSlug(value: string) {
+  return value.toLocaleLowerCase("tr-TR").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/ı/g, "i").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80) || "sanatci";
+}
+
 export class ImportSourceService {
   async create(actor: FinanceActorContext, input: unknown) {
     assertAdminPermission(actor, "imports.manage");
     const parsed = importSourceCreateSchema.parse(input);
     const provider = providerForType(parsed.type);
-    const reference = sourceReference(parsed.type, parsed.url);
+    const searchType = parsed.type === "YOUTUBE_SEARCH" || parsed.type === "SPOTIFY_SEARCH";
+    const sourceUrl = parsed.url || (searchType ? `search://${parsed.type.toLowerCase()}?q=${encodeURIComponent(parsed.query ?? parsed.name)}` : "");
+    const reference = sourceUrl ? sourceReference(parsed.type, searchType ? (parsed.query ?? parsed.name) : sourceUrl) : null;
     if (!provider || !reference) {
       throw new Error("Import kaynağı için desteklenen provider URL’si ve kimliği gereklidir.");
     }
@@ -94,7 +102,7 @@ export class ImportSourceService {
       type: parsed.type,
       provider,
       providerExternalId: reference.externalId,
-      url: parsed.url,
+      url: sourceUrl,
       name: parsed.name,
       artistId: parsed.artistId ?? null,
       active: configuration.success && importEnabled && parsed.active,
@@ -104,6 +112,7 @@ export class ImportSourceService {
       minDurationMs: parsed.minDurationMs ?? null,
       maxDurationMs: parsed.maxDurationMs ?? null,
       maxAgeDays: parsed.maxAgeDays ?? null,
+      maxItems: parsed.maxItems,
       frequencyMinutes: parsed.frequencyMinutes,
       scheduleMode: parsed.scheduleMode,
       status,
@@ -195,7 +204,7 @@ export class ImportSourceService {
   async moderate(actor: FinanceActorContext, itemId: string, input: unknown) {
     assertAdminPermission(actor, "imports.review");
     const parsed = importModerationDecisionSchema.parse(input) as ImportModerationDecisionInput;
-    const item = await prisma.importItem.findFirst({ where: { id: itemId, organizationId: actor.organizationId }, select: { id: true, status: true } });
+    const item = await prisma.importItem.findFirst({ where: { id: itemId, organizationId: actor.organizationId }, select: { id: true, status: true, externalMediaSourceId: true } });
     if (!item) throw new Error("Import kaydı bulunamadı.");
     if (!["PENDING_REVIEW", "DETECTED"].includes(item.status)) throw new Error("Import kaydı artık incelenebilir durumda değil.");
     return prisma.$transaction(async (client) => {
@@ -205,6 +214,9 @@ export class ImportSourceService {
       });
       if (updatedCount.count !== 1) throw new Error("Import kaydı durumu değişti; işlem artık geçerli değil.");
       const updated = await client.importItem.findUniqueOrThrow({ where: { id: item.id }, select: { id: true, status: true } });
+      if (item.externalMediaSourceId) {
+        await client.externalMediaSource.update({ where: { id: item.externalMediaSourceId }, data: { status: parsed.decision === "APPROVED" ? "ACTIVE" : "BLOCKED" } });
+      }
       await client.importModerationDecision.create({ data: { importItemId: item.id, actorUserId: actor.userId, decision: parsed.decision, reason: parsed.reason } });
       await auditLogService.create({ organizationId: actor.organizationId, actorUserId: actor.userId, action: `IMPORT_${parsed.decision}`, entityType: "ImportItem", entityId: item.id, metadata: { reason: parsed.reason } }, client);
       return updated;
@@ -222,9 +234,27 @@ export class ImportSourceService {
     });
   }
 
-  private async fetchSourceMetadata(source: { type: string; provider: "YOUTUBE" | "SPOTIFY" | null; providerExternalId: string | null; lastCheckedAt: Date | null }, credentials: Record<string, string> | null) {
+  private async fetchSourceMetadata(source: { type: string; provider: "YOUTUBE" | "SPOTIFY" | null; providerExternalId: string | null; lastCheckedAt: Date | null; maxItems?: number }, credentials: Record<string, string> | null) {
     if (!source.provider || !source.providerExternalId) return { success: false as const, code: "PROVIDER_ERROR" as const, message: "Import provider kimliği eksik." };
     if (source.provider === "YOUTUBE") {
+      if (source.type === "YOUTUBE_SEARCH") {
+        const query = source.providerExternalId;
+        if (!query) return { success: false as const, code: "PROVIDER_ERROR" as const, message: "YouTube arama terimi eksik." };
+        const items: unknown[] = [];
+        let pageToken: string | undefined;
+        const maxItems = Math.min(source.maxItems ?? 100, 200);
+        for (let page = 0; page < 4 && items.length < maxItems; page += 1) {
+          const response = await youtubeProviderService.searchMusic(query, pageToken, credentials?.apiKey);
+          if (!response.success) return response;
+          items.push(...(response.data.items ?? []));
+          pageToken = response.data.nextPageToken;
+          if (!pageToken) break;
+        }
+        const ids = items.slice(0, maxItems).map(externalIdFromYouTubeItem).filter((id): id is string => Boolean(id));
+        const details = await youtubeProviderService.getVideos(ids, credentials?.apiKey);
+        if (!details.success) return details;
+        return youtubeProviderService.detectNewVideos(details.data.items ?? [], source.lastCheckedAt ?? undefined);
+      }
       if (source.type === "YOUTUBE_CHANNEL") {
         const response = await youtubeProviderService.listChannelVideos(source.providerExternalId, undefined, credentials?.apiKey);
         if (!response.success) return response;
@@ -242,6 +272,11 @@ export class ImportSourceService {
     }
 
     const provider = spotifyProviderService;
+    if (source.type === "SPOTIFY_SEARCH") {
+      const response = await provider.searchTracks(source.providerExternalId, credentials ?? undefined);
+      if (!response.success) return response;
+      return provider.detectNewReleases(spotifyTracks(response.data).slice(0, Math.min(source.maxItems ?? 100, 200)), new Set());
+    }
     const response = source.type === "SPOTIFY_ARTIST"
       ? await provider.getArtistAlbums(source.providerExternalId, credentials ?? undefined)
       : source.type === "SPOTIFY_PLAYLIST"
@@ -274,9 +309,25 @@ export class ImportSourceService {
       const matchingTrack = await importRepository.findMatchingTrack(organizationId, metadata.title, metadata.durationMs, { isrc: metadata.isrc, upc: metadata.upc });
       const status = requiresReview || matchingTrack ? "PENDING_REVIEW" : "IMPORTED";
       await prisma.$transaction(async (client) => {
-        const external = await client.externalMediaSource.create({ data: { organizationId, provider: metadata.provider, externalId: metadata.externalId, externalUrl: metadata.externalUrl, normalizedUrl: normalizedUrlForStorage(metadata.externalUrl), embedUrl: metadata.embedUrl, title: metadata.title, artistName: metadata.artistName, durationMs: metadata.durationMs, thumbnailUrl: metadata.thumbnailUrl, publishedAt: metadata.publishedAt, playable: metadata.playable, embeddable: metadata.embeddable, regionRestrictions: metadata.regionRestrictions as Prisma.InputJsonValue, metadataHash: metadata.metadataHash, lastCheckedAt: new Date(), status: metadata.playable ? "ACTIVE" : "UNAVAILABLE", artistId } });
+        let resolvedArtistId = artistId;
+        if (!resolvedArtistId && metadata.artistName) {
+          const existingArtist = await client.artist.findFirst({ where: { organizationId, name: metadata.artistName }, select: { id: true } });
+          if (existingArtist) resolvedArtistId = existingArtist.id;
+          else {
+            const baseSlug = artistSlug(metadata.artistName);
+            let slug = baseSlug;
+            for (let attempt = 2; attempt < 100; attempt += 1) {
+              const taken = await client.artist.findFirst({ where: { organizationId, slug }, select: { id: true } });
+              if (!taken) break;
+              slug = `${baseSlug}-${attempt}`;
+            }
+            const createdArtist = await client.artist.create({ data: { organizationId, name: metadata.artistName, slug, sortName: metadata.artistName, type: "SOLO", profilePublishedAt: new Date(), ...(metadata.provider === "YOUTUBE" ? { youtubeProfileUrl: metadata.externalUrl } : { spotifyProfileUrl: metadata.externalUrl }) }, select: { id: true } });
+            resolvedArtistId = createdArtist.id;
+          }
+        }
+        const external = await client.externalMediaSource.create({ data: { organizationId, provider: metadata.provider, externalId: metadata.externalId, externalUrl: metadata.externalUrl, normalizedUrl: normalizedUrlForStorage(metadata.externalUrl), embedUrl: metadata.embedUrl, title: metadata.title, artistName: metadata.artistName, durationMs: metadata.durationMs, thumbnailUrl: metadata.thumbnailUrl, publishedAt: metadata.publishedAt, playable: metadata.playable, embeddable: metadata.embeddable, regionRestrictions: metadata.regionRestrictions as Prisma.InputJsonValue, metadataHash: metadata.metadataHash, lastCheckedAt: new Date(), status: status === "IMPORTED" && metadata.playable ? "ACTIVE" : "UNAVAILABLE", artistId: resolvedArtistId } });
         const item = await client.importItem.create({ data: { organizationId, runId, sourceId, externalMediaSourceId: external.id, provider: metadata.provider, externalId: metadata.externalId, title: metadata.title, artistName: metadata.artistName, durationMs: metadata.durationMs, status, matchConfidence: matchingTrack ? "HIGH" : "NONE" } });
-        if (matchingTrack) await client.importMatch.create({ data: { organizationId, importItemId: item.id, trackId: matchingTrack.id, releaseId: matchingTrack.releaseId, artistId, confidence: metadata.isrc || metadata.upc ? "EXACT" : "HIGH", reason: metadata.isrc || metadata.upc ? "ISRC/UPC eşleşmesi bulundu. Hak sahipliği doğrulanmadan otomatik dağıtım yapılmaz." : "Başlık ve süre eşleşmesi bulundu; hak sahipliği doğrulanmadan otomatik birleştirme yapılmadı.", automatic: Boolean(metadata.isrc || metadata.upc) } });
+        if (matchingTrack) await client.importMatch.create({ data: { organizationId, importItemId: item.id, trackId: matchingTrack.id, releaseId: matchingTrack.releaseId, artistId: resolvedArtistId, confidence: metadata.isrc || metadata.upc ? "EXACT" : "HIGH", reason: metadata.isrc || metadata.upc ? "ISRC/UPC eşleşmesi bulundu. Hak sahipliği doğrulanmadan otomatik dağıtım yapılmaz." : "Başlık ve süre eşleşmesi bulundu; hak sahipliği doğrulanmadan otomatik birleştirme yapılmadı.", automatic: Boolean(metadata.isrc || metadata.upc) } });
       });
       return status === "IMPORTED" ? ("IMPORTED" as const) : ("PENDING_REVIEW" as const);
     } catch {

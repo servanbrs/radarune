@@ -15,7 +15,7 @@ export default async function ImportSourcesPage() {
       <ImportSourceCreateForm />
       <section className="panel p-6">
         <SimpleTable columns={["Kaynak", "Provider", "Durum", "Son kontrol", "Çalışma"]} rows={sources.map((source) => [
-          <div key={source.id}><p className="font-semibold">{source.name}</p><p className="mt-1 text-xs text-muted">{source.url}</p></div>,
+          <div key={source.id}><p className="font-semibold">{source.name}</p><p className="mt-1 text-xs text-muted">{source.url.startsWith("search://") ? "Arama tabanlı kaynak" : source.url}</p>{source.runs[0] ? <p className="mt-1 text-xs text-muted">Son çekim: {source.runs[0].detectedCount} bulundu · {source.runs[0].importedCount} alındı · {source.runs[0].duplicateCount} tekrar</p> : null}</div>,
           source.provider ?? "-",
           source.status,
           source.lastCheckedAt?.toLocaleString("tr-TR") ?? "Henüz çalışmadı",

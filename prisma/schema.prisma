@@ -626,11 +626,13 @@ enum ExternalMediaStatus {
 }
 
 enum ImportSourceType {
+  YOUTUBE_SEARCH
   YOUTUBE_CHANNEL
   YOUTUBE_PLAYLIST
   SPOTIFY_ARTIST
   SPOTIFY_PLAYLIST
   SPOTIFY_ALBUM
+  SPOTIFY_SEARCH
   MANUAL_URL
 }
 
@@ -2858,6 +2860,7 @@ model ImportSource {
   minDurationMs      Int?
   maxDurationMs      Int?
   maxAgeDays         Int?
+  maxItems           Int                  @default(100)
   contentFilter      Json?
   frequencyMinutes   Int                    @default(60)
   scheduleMode       ImportScheduleMode     @default(CRON)

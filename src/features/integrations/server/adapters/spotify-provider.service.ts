@@ -99,6 +99,10 @@ export class SpotifyProviderService implements ExternalProviderAdapter {
   async getPlaylist(id: string, credentialsOverride?: { clientId?: string; clientSecret?: string }) { return this.getResource(`playlists/${encodeURIComponent(id)}`, credentialsOverride); }
   async listPlaylistTracks(id: string, credentialsOverride?: { clientId?: string; clientSecret?: string }) { return this.getResource(`playlists/${encodeURIComponent(id)}/tracks?limit=100`, credentialsOverride); }
 
+  async searchTracks(query: string, credentialsOverride?: { clientId?: string; clientSecret?: string }) {
+    return this.getResource(`search?q=${encodeURIComponent(query)}&type=track&limit=50`, credentialsOverride);
+  }
+
   detectNewReleases(items: unknown[], knownExternalIds: ReadonlySet<string>): ProviderResult<ExternalMediaMetadata[]> {
     const normalized: ExternalMediaMetadata[] = [];
     for (const item of items) {

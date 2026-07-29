@@ -83,6 +83,18 @@ export class YouTubeProviderService implements ExternalProviderAdapter {
     }, apiKeyOverride);
   }
 
+  async searchMusic(query: string, pageToken?: string, apiKeyOverride?: string) {
+    return this.request("search", {
+      part: "snippet",
+      q: query,
+      type: "video",
+      videoCategoryId: "10",
+      order: "date",
+      maxResults: "50",
+      ...(pageToken ? { pageToken } : {}),
+    }, apiKeyOverride);
+  }
+
   async getPlaylist(playlistId: string) {
     return this.request("playlists", { part: "snippet,status", id: playlistId });
   }
