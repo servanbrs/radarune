@@ -8,7 +8,10 @@ export async function POST(request: Request) {
   if (!actor) return NextResponse.json({ error: "Oturum bulunamadı." }, { status: 401 });
 
   const parsed = createArtistApplicationSchema.safeParse(await request.json());
-  if (!parsed.success) return NextResponse.json({ error: "Başvuru bilgileri geçerli değil." }, { status: 422 });
+  if (!parsed.success) {
+    const issues = parsed.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`);
+    return NextResponse.json({ error: issues.join(" ") || "Başvuru bilgileri geçerli değil." }, { status: 422 });
+  }
 
   const result = await artistApplicationService.createApplication(actor, parsed.data);
   return NextResponse.json(result, { status: result.success ? 201 : 409 });

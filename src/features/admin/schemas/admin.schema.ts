@@ -23,12 +23,12 @@ export const artistApplicationActionSchema = z.object({
 });
 
 export const createArtistApplicationSchema = z.object({
-  stageName: z.string().trim().min(2).max(160),
-  legalName: z.string().trim().min(2).max(200),
-  biography: z.string().trim().min(20).max(5000),
-  spotifyArtistUrl: z.string().url().optional().or(z.literal("")),
-  appleMusicArtistUrl: z.string().url().optional().or(z.literal("")),
-  youtubeChannelUrl: z.string().url().optional().or(z.literal("")),
+  stageName: z.string().trim().min(2, "Sahne adı en az 2 karakter olmalıdır.").max(160),
+  legalName: z.string().trim().min(2, "Yasal ad en az 2 karakter olmalıdır.").max(200),
+  biography: z.string().trim().min(10, "Biyografi en az 10 karakter olmalıdır.").max(5000),
+  spotifyArtistUrl: z.preprocess((value) => value === "" ? undefined : value, z.string().url("Spotify bağlantısı geçerli değil.").optional()),
+  appleMusicArtistUrl: z.preprocess((value) => value === "" ? undefined : value, z.string().url("Apple Music bağlantısı geçerli değil.").optional()),
+  youtubeChannelUrl: z.preprocess((value) => value === "" ? undefined : value, z.string().url("YouTube bağlantısı geçerli değil.").optional()),
 });
 
 export const releaseModerationActionSchema = z.object({
