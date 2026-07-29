@@ -30,24 +30,24 @@ export class SpotifyProviderService implements ExternalProviderAdapter {
   private accessToken: string | null = null;
   private tokenExpiresAt = 0;
 
-  validateConfiguration(): ProviderResult<{ configured: true }> {
+  validateConfiguration(credentialsOverride?: { clientId?: string; clientSecret?: string }): ProviderResult<{ configured: true }> {
     const missing = [
-      !env.SPOTIFY_CLIENT_ID ? "SPOTIFY_CLIENT_ID" : null,
-      !env.SPOTIFY_CLIENT_SECRET ? "SPOTIFY_CLIENT_SECRET" : null,
+      !(credentialsOverride?.clientId ?? env.SPOTIFY_CLIENT_ID) ? "SPOTIFY_CLIENT_ID" : null,
+      !(credentialsOverride?.clientSecret ?? env.SPOTIFY_CLIENT_SECRET) ? "SPOTIFY_CLIENT_SECRET" : null,
     ].filter((value): value is string => value !== null);
     return missing.length > 0
       ? providerConfigurationRequired("SPOTIFY", missing)
       : { success: true, data: { configured: true } };
   }
 
-  async getAccessToken(): Promise<ProviderResult<{ accessToken: string; expiresAt: Date }>> {
-    const config = this.validateConfiguration();
+  async getAccessToken(credentialsOverride?: { clientId?: string; clientSecret?: string }): Promise<ProviderResult<{ accessToken: string; expiresAt: Date }>> {
+    const config = this.validateConfiguration(credentialsOverride);
     if (!config.success) return config;
     if (this.accessToken && Date.now() < this.tokenExpiresAt - 30_000) {
       return { success: true, data: { accessToken: this.accessToken, expiresAt: new Date(this.tokenExpiresAt) } };
     }
     try {
-      const credentials = Buffer.from(`${env.SPOTIFY_CLIENT_ID}:${env.SPOTIFY_CLIENT_SECRET}`).toString("base64");
+      const credentials = Buffer.from(`${credentialsOverride?.clientId ?? env.SPOTIFY_CLIENT_ID}:${credentialsOverride?.clientSecret ?? env.SPOTIFY_CLIENT_SECRET}`).toString("base64");
       const response = await fetch("https://accounts.spotify.com/api/token", {
         method: "POST",
         headers: { Authorization: `Basic ${credentials}`, "Content-Type": "application/x-www-form-urlencoded" },
@@ -66,8 +66,8 @@ export class SpotifyProviderService implements ExternalProviderAdapter {
     }
   }
 
-  async testConnection(): Promise<ProviderResult<{ checkedAt: Date }>> {
-    const token = await this.getAccessToken();
+  async testConnection(credentialsOverride?: { clientId?: string; clientSecret?: string }): Promise<ProviderResult<{ checkedAt: Date }>> {
+    const token = await this.getAccessToken(credentialsOverride);
     if (!token.success) return token;
     const response = await this.request("browse/categories", token.data.accessToken);
     if (!response.success) return response;
