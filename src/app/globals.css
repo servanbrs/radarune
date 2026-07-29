@@ -223,6 +223,18 @@ html[data-theme="light"] .landing-shell .landing-dark-card .landing-card-primary
 html[data-theme="light"] .landing-shell .landing-dark-card .landing-card-muted {
   color: rgba(248, 250, 252, 0.58) !important;
 }
+html[data-theme="light"] .landing-shell .landing-dark-card > *:not(.landing-cta-card),
+html[data-theme="light"] .landing-shell .landing-dark-card > *:not(.landing-cta-card) * {
+  color: #f8fafc !important;
+}
+html[data-theme="light"] .landing-shell .landing-dark-card .landing-card-muted,
+html[data-theme="light"] .landing-shell .landing-dark-card .landing-card-muted * {
+  color: rgba(248, 250, 252, 0.58) !important;
+}
+html[data-theme="light"] .landing-shell .landing-dark-card .landing-cta-card,
+html[data-theme="light"] .landing-shell .landing-dark-card .landing-cta-card * {
+  color: #090b0f !important;
+}
 
 /* Legacy admin/review cards occasionally carry the dark-theme text utility
    on a light surface. Keep image overlays untouched, but restore readable
