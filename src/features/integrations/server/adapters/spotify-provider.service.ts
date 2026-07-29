@@ -25,6 +25,13 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
+function spotifyErrorMessage(value: string) {
+  if (value.toLowerCase().includes("active premium subscription required")) {
+    return "Spotify API için uygulama sahibinin aktif Premium aboneliği gerekiyor. Abonelik değişikliğinden sonra erişimin açılması birkaç saat sürebilir.";
+  }
+  return value;
+}
+
 export class SpotifyProviderService implements ExternalProviderAdapter {
   readonly key = "SPOTIFY" as const;
   private accessToken: string | null = null;
@@ -65,7 +72,7 @@ export class SpotifyProviderService implements ExternalProviderAdapter {
         const detail = isObject(payload) && isObject(payload.error) && typeof payload.error_description === "string"
           ? payload.error_description
           : rawBody.trim().slice(0, 240);
-        return this.normalizeError(new Error(detail || `Spotify access token alınamadı (HTTP ${response.status}).`));
+        return this.normalizeError(new Error(spotifyErrorMessage(detail || `Spotify access token alınamadı (HTTP ${response.status}).`)));
       }
       this.accessToken = payload.access_token;
       this.tokenExpiresAt = Date.now() + payload.expires_in * 1_000;
@@ -164,7 +171,7 @@ export class SpotifyProviderService implements ExternalProviderAdapter {
         const detail = isObject(payload) && typeof payload.error_description === "string"
           ? payload.error_description
           : rawBody.trim().slice(0, 240);
-        return this.normalizeError(new Error(detail || `Spotify API isteği başarısız oldu (HTTP ${response.status}).`));
+        return this.normalizeError(new Error(spotifyErrorMessage(detail || `Spotify API isteği başarısız oldu (HTTP ${response.status}).`)));
       }
       if (!payload) return this.normalizeError(new Error(`Spotify API geçersiz yanıt döndürdü (HTTP ${response.status}).`));
       return { success: true as const, data: payload as SpotifyResponse };
