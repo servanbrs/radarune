@@ -47,28 +47,8 @@ export default async function AppLayout({
       label: tr("Ana Sayfa", "Home", "Startseite"),
     },
     { href: "/discover", label: tr("Keşfet", "Discover", "Entdecken") },
+    { href: "/lists", label: tr("Listeler", "Lists", "Listen") },
   ];
-
-  if (creatorAccess.showBecomeArtist) {
-    primaryNavigation.push({
-      href: "/become",
-      label: tr("Sanatçı Ol", "Become an artist", "Künstler werden"),
-    });
-  }
-
-  if (creatorAccess.canCreateReleases) {
-    primaryNavigation.push({
-      href: "/releases",
-      label: tr("Yayınlar", "Releases", "Veröffentlichungen"),
-    });
-  }
-
-  if (creatorAccess.canManageArtists) {
-    primaryNavigation.push({
-      href: "/artists",
-      label: tr("Sanatçılar", "Artists", "Künstler"),
-    });
-  }
 
   const creatorNavigation: NavigationItem[] = [];
 
@@ -122,26 +102,6 @@ export default async function AppLayout({
                 {item.label}
               </Link>
             ))}
-
-            {creatorNavigation.length > 0 ? (
-              <details className="group relative">
-                <summary className="cursor-pointer list-none rounded-xl px-3 py-2 text-sm font-medium text-muted transition hover:bg-white hover:text-foreground [&::-webkit-details-marker]:hidden">
-                  {tr("Araçlar", "Tools", "Werkzeuge")}
-                </summary>
-
-                <div className="absolute right-0 top-12 z-50 grid w-56 gap-1 rounded-2xl border border-line bg-surface p-2 shadow-xl">
-                  {creatorNavigation.map((item) => (
-                    <Link
-                      className="rounded-xl px-3 py-2.5 text-sm font-medium text-muted transition hover:bg-white hover:text-foreground"
-                      href={item.href}
-                      key={item.href}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              </details>
-            ) : null}
 
           </nav>
 

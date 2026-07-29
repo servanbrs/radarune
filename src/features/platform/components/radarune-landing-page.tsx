@@ -3,6 +3,7 @@ import { ArrowUpRight, Check, CircleDot, Compass, Gauge, Headphones, Layers3, Sh
 import type { PublicDiscoverCandidate } from "@/features/growth/server/services/discover.service";
 import { StructuredData } from "@/features/seo/components/structured-data";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 const capabilities = [
   {
@@ -53,8 +54,7 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
           <nav className="hidden items-center gap-8 text-sm text-white/60 md:flex" aria-label="Ana navigasyon">
             <Link className="hover:text-white" href="/">Ana Sayfa</Link>
             <Link className="hover:text-white" href="#discover">Keşfet</Link>
-            <Link className="hover:text-white" href="/about">Hakkımızda</Link>
-            <Link className="hover:text-white" href="/contact">İletişim</Link>
+            <Link className="hover:text-white" href="/lists">Listeler</Link>
           </nav>
           <div className="flex items-center gap-3">
             <Link className="hidden text-sm font-medium text-white/65 hover:text-white sm:inline" href="/sign-in">Giriş yap</Link>
@@ -154,10 +154,10 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {workflowSteps.map((step, index) => (
-            <div className="border-t border-white/20 pt-4" key={step}>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 transition hover:-translate-y-1 hover:border-[#efb848]/40" key={step}>
               <span className="font-mono text-xs text-[#efb848]">0{index + 1}</span>
               <p className="mt-4 text-lg font-semibold">{step}</p>
-              <p className="mt-2 text-sm leading-6 text-white/45">Tekrarlanabilir, denetlenebilir, ekipler için anlaşılır.</p>
+              <p className="mt-2 text-sm leading-6 text-white/55">{["Yayın bilgilerini ve dosyaları hazırla.", "Hak, metadata ve içerik kontrollerini tamamla.", "Doğrulanan içeriği doğru dinleyiciyle buluştur.", "Dinlenme ve oy verilerini takip et."][index]}</p>
             </div>
           ))}
         </div>
@@ -199,15 +199,16 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
         <div className="relative max-w-2xl">
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-black/55">Müziğin için yeni bir başlangıç</p>
           <h2 className="mt-5 text-4xl font-semibold leading-tight tracking-[-0.04em] md:text-6xl">Şarkını bugün duyur, yeni dinleyicilere ulaş.</h2>
-          <Link className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#090b0f] px-6 py-3.5 font-semibold text-white hover:bg-[#20252d]" href="/sign-up">
+          <Link className="mt-8 inline-flex items-center gap-2 rounded-full !bg-[#090b0f] px-6 py-3.5 font-semibold !text-white shadow-lg shadow-black/20 hover:!bg-[#20252d]" href="/sign-up">
             Ücretsiz hesap oluştur <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>
       </section>
 
-      <footer className="relative z-10 mx-auto flex max-w-7xl flex-col gap-3 px-5 py-8 text-xs text-white/35 md:flex-row md:items-center md:justify-between md:px-10">
-        <span className="font-semibold tracking-[0.2em] text-white/55">RADARUNE</span>
-        <span>Sanatçılar ve label ekipleri için müzik operasyonları.</span>
+      <footer className="relative z-10 mx-auto grid max-w-7xl gap-8 px-5 py-12 text-sm text-white/55 md:grid-cols-[1.2fr_1fr_1fr] md:px-10">
+        <div><p className="font-semibold tracking-[0.2em] text-white/80">RADARUNE</p><p className="mt-3 max-w-xs leading-6">Sanatçılar ve label ekipleri için müzik operasyonları.</p><p className="mt-5 text-xs text-white/35">© {new Date().getFullYear()} Radarune</p></div>
+        <nav className="grid content-start gap-3" aria-label="Footer bağlantıları"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">Radarune</p><Link className="hover:text-white" href="/about">Hakkımızda</Link><Link className="hover:text-white" href="/contact">İletişim</Link><Link className="hover:text-white" href="/terms">Kullanım koşulları</Link></nav>
+        <div className="grid content-start gap-3"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">Tercihler</p><label className="flex items-center justify-between gap-3">Dil <LanguageSwitcher locale="tr-TR" /></label></div>
       </footer>
     </main>
   );
