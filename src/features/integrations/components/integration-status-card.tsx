@@ -90,7 +90,10 @@ export function IntegrationStatusCard({
         </p>
       ) : null}
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        <input className="rounded-xl border border-line bg-surface-strong px-3 py-2 text-sm" onChange={(event) => setSecretA(event.target.value)} placeholder={provider === "Spotify" ? "Client ID" : "YouTube API Key"} type="password" value={secretA} />
+        <div className="space-y-2">
+          {isConfigured && !secretA ? <p className="px-1 text-xs text-accent">•••••••••••••••••••• kayıtlı</p> : null}
+          <input className="w-full rounded-xl border border-line bg-surface-strong px-3 py-2 text-sm" onChange={(event) => setSecretA(event.target.value)} placeholder={provider === "Spotify" ? "Client ID (değiştirmek için yazın)" : "YouTube API Key (değiştirmek için yazın)"} type="password" value={secretA} />
+        </div>
         {provider === "Spotify" ? <input className="rounded-xl border border-line bg-surface-strong px-3 py-2 text-sm" onChange={(event) => setSecretB(event.target.value)} placeholder="Client Secret" type="password" value={secretB} /> : null}
         <button className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground sm:col-span-2" disabled={pending || !secretA.trim() || (provider === "Spotify" && !secretB.trim())} onClick={() => void save()} type="button">
           Credential’ları kaydet
