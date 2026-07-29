@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { PublicFooter } from "@/components/public-footer";
 import { PublicAuthHeader } from "@/features/authentication/components/public-auth-header";
 
 type AuthShellProps = {
@@ -90,6 +91,7 @@ export function AuthShell({
         </section>
         </div>
       </main>
+      <PublicFooter />
     </div>
   );
 }
