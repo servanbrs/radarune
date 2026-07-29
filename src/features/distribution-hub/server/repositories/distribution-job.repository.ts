@@ -355,6 +355,8 @@ async updateStatus(
       cancelledAt?: Date | null;
       lockedAt?: Date | null;
       lockedBy?: string | null;
+      provider?: "ONE_RPM" | "FUGA" | "SYMPHONIC" | "REVELATOR" | "INTERNAL";
+      providerConfigurationId?: string | null;
     },
     client: DatabaseClient = prisma,
   ) {
@@ -392,6 +394,8 @@ async updateStatus(
     if (input.lockedBy !== undefined) {
       data.lockedBy = input.lockedBy;
     }
+    if (input.provider !== undefined) data.provider = input.provider;
+    if (input.providerConfigurationId !== undefined) data.providerConfigurationId = input.providerConfigurationId;
 
     return client.distributionJob.update({
       where: {

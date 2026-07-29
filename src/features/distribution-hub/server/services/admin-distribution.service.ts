@@ -4,6 +4,7 @@ import { distributionJobRepository } from "@/features/distribution-hub/server/re
 import { distributionProviderConfigurationRepository } from "@/features/distribution-hub/server/repositories/provider-configuration.repository";
 import { providerWebhookEventRepository } from "@/features/distribution-hub/server/repositories/provider-webhook-event.repository";
 import type { FinanceActorContext } from "@/features/finance/server/services/finance-access.service";
+import type { DistributionJobStatus, DistributionProviderKey } from "@/features/distribution-hub/domain/provider";
 
 function assertView(actor: FinanceActorContext) {
   if (
@@ -39,6 +40,27 @@ export class AdminDistributionService {
     return distributionProviderConfigurationRepository.listHealthChecksByOrganization(
       actor.organizationId,
     );
+  }
+
+  async updateJob(actor: FinanceActorContext, jobId: string, input: { status?: DistributionJobStatus; provider?: DistributionProviderKey; providerConfigurationId?: string | null }) {
+    if (!rbacService.hasEffectivePermission({ membershipRole: actor.membershipRole, systemRole: actor.systemRole, permission: "distribution:manage" })) throw new Error("Dağıtım job yönetme yetkiniz yok.");
+    const job = await distributionJobRepository.findById(jobId);
+    if (!job || job.organizationId !== actor.organizationId) throw new Error("Distribution job bulunamadı.");
+    let providerConfigurationId = input.providerConfigurationId;
+    if (providerConfigurationId) {
+      const configs = await distributionProviderConfigurationRepository.listByOrganizationId(actor.organizationId);
+      const config = configs.find((item) => item.id === providerConfigurationId);
+      if (!config) throw new Error("Provider yapılandırması bulunamadı.");
+      if (input.provider && config.provider !== input.provider) throw new Error("Provider ve yapılandırma eşleşmiyor.");
+    }
+    return distributionJobRepository.updateStatus(jobId, {
+      status: input.status ?? job.status,
+      ...(input.provider ? { provider: input.provider } : {}),
+      ...(providerConfigurationId !== undefined ? { providerConfigurationId } : {}),
+      ...(input.status === "QUEUED" ? { queuedAt: new Date(), nextAttemptAt: new Date(), cancelledAt: null, completedAt: null } : {}),
+      ...(input.status === "CANCELLED" ? { cancelledAt: new Date() } : {}),
+      ...(input.status === "SUCCEEDED" || input.status === "PARTIALLY_SUCCEEDED" ? { completedAt: new Date() } : {}),
+    });
   }
 }
 

@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { rbacService } from "@/features/authorization/server/rbac";
 import { adminDistributionService } from "@/features/distribution-hub/server/services/admin-distribution.service";
+import { distributionProviderConfigurationRepository } from "@/features/distribution-hub/server/repositories/provider-configuration.repository";
+import { DistributionJobControls } from "@/features/distribution-hub/components/distribution-job-controls";
 
 type AdminDistributionJobDetailPageProps = {
   params: Promise<{
@@ -29,6 +31,7 @@ export default async function AdminDistributionJobDetailPage({
     },
     id,
   );
+  const configurations = await distributionProviderConfigurationRepository.listByOrganizationId(organization.organization.id);
 
   if (!job) {
     notFound();
@@ -63,6 +66,13 @@ export default async function AdminDistributionJobDetailPage({
           </p>
         </article>
       </section>
+      <DistributionJobControls
+        jobId={job.id}
+        initialStatus={job.status}
+        initialProvider={job.provider}
+        initialConfigurationId={job.providerConfigurationId}
+        configurations={configurations.map((config) => ({ id: config.id, provider: config.provider, environment: config.environment, isEnabled: config.isEnabled }))}
+      />
     </main>
   );
 }
