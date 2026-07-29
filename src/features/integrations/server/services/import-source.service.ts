@@ -251,9 +251,13 @@ export class ImportSourceService {
           if (!pageToken) break;
         }
         const ids = items.slice(0, maxItems).map(externalIdFromYouTubeItem).filter((id): id is string => Boolean(id));
-        const details = await youtubeProviderService.getVideos(ids, credentials?.apiKey);
-        if (!details.success) return details;
-        return youtubeProviderService.detectNewVideos(details.data.items ?? [], source.lastCheckedAt ?? undefined);
+        const detailItems: unknown[] = [];
+        for (let offset = 0; offset < ids.length; offset += 50) {
+          const details = await youtubeProviderService.getVideos(ids.slice(offset, offset + 50), credentials?.apiKey);
+          if (!details.success) return details;
+          detailItems.push(...(details.data.items ?? []));
+        }
+        return youtubeProviderService.detectNewVideos(detailItems, source.lastCheckedAt ?? undefined);
       }
       if (source.type === "YOUTUBE_CHANNEL") {
         const response = await youtubeProviderService.listChannelVideos(source.providerExternalId, undefined, credentials?.apiKey);
