@@ -34,7 +34,7 @@ export function AuthShell({
                 <h1 className="max-w-xl text-4xl leading-tight font-semibold md:text-6xl">
                   Müzik operasyonu, hak verisi ve dağıtım tek kontrol merkezinde.
                 </h1>
-                <p className="max-w-xl text-base leading-8 text-muted md:text-lg">
+                <p className="max-w-xl text-base leading-8 text-white/70 md:text-lg">
                   Radarune; yayın hazırlığı, dağıtım yönetimi ve provider akışını
                   dağınık tablolar yerine tek bir üretim alanında toplar.
                 </p>
@@ -42,7 +42,7 @@ export function AuthShell({
             </div>
             <div className="grid gap-4 md:grid-cols-3">
               <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.045] p-5">
-                <p className="text-xs uppercase tracking-[0.24em] text-muted">
+                <p className="text-xs uppercase tracking-[0.24em] text-white/60">
                   Sağlayıcılar
                 </p>
                 <p className="mt-3 text-2xl font-semibold text-white">5 adaptör</p>
@@ -75,7 +75,7 @@ export function AuthShell({
               </div>
             </div>
             {children}
-            <p className="text-sm text-muted">
+              <p className="text-sm text-white/65">
               {footerText}{" "}
               <Link className="font-semibold text-accent hover:text-accent/80" href={footerHref}>
                 {footerLinkLabel}
