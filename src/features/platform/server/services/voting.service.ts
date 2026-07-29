@@ -49,6 +49,8 @@ export class VotingService {
           status: "VALID",
         },
       });
+      const recipients = await tx.user.findMany({ where: { accountStatus: "ACTIVE", systemRole: { in: ["SUPER_ADMIN", "ADMIN", "MODERATOR"] } }, select: { id: true } });
+      await tx.notification.createMany({ data: recipients.map((recipient) => ({ organizationId: actor.organizationId, userId: recipient.id, type: "VOTE_CREATED", title: "Yeni oy kullanıldı", message: `${campaign.name} kampanyasında yeni bir oy geldi.`, entityType: "Vote", entityId: vote.id })) });
       await auditLogService.create({ organizationId: actor.organizationId, actorUserId: actor.userId, action: "VOTE_CREATED", entityType: "Vote", entityId: vote.id, metadata: { campaignId: campaign.id, entityType: campaign.entityType } }, tx);
       return vote;
     }).catch((error: unknown) => {
