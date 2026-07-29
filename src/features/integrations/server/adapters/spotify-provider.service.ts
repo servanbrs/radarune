@@ -144,7 +144,13 @@ export class SpotifyProviderService implements ExternalProviderAdapter {
         cache: "no-store",
       });
       const retryAfter = response.headers.get("retry-after");
-      const payload: unknown = await response.json();
+      const rawBody = await response.text();
+      let payload: unknown = null;
+      try {
+        payload = JSON.parse(rawBody);
+      } catch {
+        payload = null;
+      }
       if (response.status === 429) {
         return {
           success: false as const,
@@ -154,7 +160,13 @@ export class SpotifyProviderService implements ExternalProviderAdapter {
         };
       }
       if (response.status === 404) return { success: false as const, code: "NOT_FOUND" as const, message: "Spotify kaynağı bulunamadı." };
-      if (!response.ok) return this.normalizeError(new Error("Spotify API isteği başarısız oldu."));
+      if (!response.ok) {
+        const detail = isObject(payload) && typeof payload.error_description === "string"
+          ? payload.error_description
+          : rawBody.trim().slice(0, 240);
+        return this.normalizeError(new Error(detail || `Spotify API isteği başarısız oldu (HTTP ${response.status}).`));
+      }
+      if (!payload) return this.normalizeError(new Error(`Spotify API geçersiz yanıt döndürdü (HTTP ${response.status}).`));
       return { success: true as const, data: payload as SpotifyResponse };
     } catch (error) {
       return this.normalizeError(error);
