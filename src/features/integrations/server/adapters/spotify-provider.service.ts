@@ -54,9 +54,18 @@ export class SpotifyProviderService implements ExternalProviderAdapter {
         body: "grant_type=client_credentials",
         cache: "no-store",
       });
-      const payload: unknown = await response.json();
+      const rawBody = await response.text();
+      let payload: unknown = null;
+      try {
+        payload = JSON.parse(rawBody);
+      } catch {
+        payload = null;
+      }
       if (!response.ok || !isObject(payload) || typeof payload.access_token !== "string" || typeof payload.expires_in !== "number") {
-        return this.normalizeError(new Error("Spotify access token alınamadı."));
+        const detail = isObject(payload) && isObject(payload.error) && typeof payload.error_description === "string"
+          ? payload.error_description
+          : rawBody.trim().slice(0, 240);
+        return this.normalizeError(new Error(detail || `Spotify access token alınamadı (HTTP ${response.status}).`));
       }
       this.accessToken = payload.access_token;
       this.tokenExpiresAt = Date.now() + payload.expires_in * 1_000;
