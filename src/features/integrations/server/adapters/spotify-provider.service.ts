@@ -85,7 +85,9 @@ export class SpotifyProviderService implements ExternalProviderAdapter {
   async testConnection(credentialsOverride?: { clientId?: string; clientSecret?: string }): Promise<ProviderResult<{ checkedAt: Date }>> {
     const token = await this.getAccessToken(credentialsOverride);
     if (!token.success) return token;
-    const response = await this.request("browse/categories", token.data.accessToken);
+    // Search is the same public Web API surface used by catalog imports and is
+    // a more reliable health check than browse/categories for development apps.
+    const response = await this.request("search?q=radarune&type=track&limit=1", token.data.accessToken);
     if (!response.success) return response;
     return { success: true, data: { checkedAt: new Date() } };
   }
