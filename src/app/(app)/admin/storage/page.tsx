@@ -4,6 +4,7 @@ import { AdminStorageDashboard } from "@/features/admin/storage/components/admin
 import { CreateLocalStorageForm } from "@/features/admin/storage/components/create-local-storage-form";
 import { adminStorageService } from "@/features/admin/storage/server/services/admin-storage.service";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
+import { ExternalStorageHelp } from "@/features/admin/storage/components/external-storage-help";
 
 export default async function AdminStoragePage() {
   const { organization, user } =
@@ -28,6 +29,7 @@ export default async function AdminStoragePage() {
         <AdminStorageDashboard data={data} />
 
         <CreateLocalStorageForm />
+        <ExternalStorageHelp />
       </div>
     </AdminShell>
   );

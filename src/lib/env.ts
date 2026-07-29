@@ -64,6 +64,13 @@ const envSchema = z.object({
   STORAGE_ALLOW_LOCAL_IN_PRODUCTION: z.coerce.boolean().default(false),
   STORAGE_PUBLIC_BASE_URL: z.url().optional(),
   STORAGE_SIGNING_SECRET: z.string().min(32).optional(),
+  STORAGE_S3_ENDPOINT: z.url().optional(),
+  STORAGE_S3_REGION: z.string().min(1).default("us-east-1"),
+  STORAGE_S3_BUCKET: z.string().min(1).optional(),
+  STORAGE_S3_ACCESS_KEY_ID: z.string().min(1).optional(),
+  STORAGE_S3_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+  STORAGE_S3_FORCE_PATH_STYLE: z.coerce.boolean().default(false),
+  STORAGE_S3_PUBLIC_BASE_URL: z.url().optional(),
   PUSH_NOTIFICATION_PROVIDER: z.enum(["EXPO_PUSH", "FCM", "APNS"]).default("EXPO_PUSH"),
 });
 
@@ -127,6 +134,13 @@ const parsedEnv = envSchema.safeParse({
   STORAGE_ALLOW_LOCAL_IN_PRODUCTION: process.env.STORAGE_ALLOW_LOCAL_IN_PRODUCTION,
   STORAGE_PUBLIC_BASE_URL: process.env.STORAGE_PUBLIC_BASE_URL,
   STORAGE_SIGNING_SECRET: process.env.STORAGE_SIGNING_SECRET,
+  STORAGE_S3_ENDPOINT: process.env.STORAGE_S3_ENDPOINT,
+  STORAGE_S3_REGION: process.env.STORAGE_S3_REGION,
+  STORAGE_S3_BUCKET: process.env.STORAGE_S3_BUCKET,
+  STORAGE_S3_ACCESS_KEY_ID: process.env.STORAGE_S3_ACCESS_KEY_ID,
+  STORAGE_S3_SECRET_ACCESS_KEY: process.env.STORAGE_S3_SECRET_ACCESS_KEY,
+  STORAGE_S3_FORCE_PATH_STYLE: process.env.STORAGE_S3_FORCE_PATH_STYLE,
+  STORAGE_S3_PUBLIC_BASE_URL: process.env.STORAGE_S3_PUBLIC_BASE_URL,
   PUSH_NOTIFICATION_PROVIDER: process.env.PUSH_NOTIFICATION_PROVIDER,
 });
 
