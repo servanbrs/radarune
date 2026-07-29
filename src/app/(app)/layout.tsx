@@ -9,6 +9,7 @@ import { authSessionService } from "@/features/authentication/server/services/au
 import { creatorAccessService } from "@/features/authorization/server/creator-access.service";
 import { GlobalSearch } from "@/components/global-search";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { NotificationBell } from "@/features/notifications/components/notification-bell";
 
 type NavigationItem = {
   href: string;
@@ -147,6 +148,7 @@ export default async function AppLayout({
           <div className="hidden shrink-0 items-center gap-3 lg:flex">
             <LanguageSwitcher locale={organization.organization.defaultLocale} />
             <ThemeToggle />
+            <NotificationBell />
             <UserMenu adminAccess={adminAccess} artistAccess={creatorAccess.isArtist} email={user.email} name={user.name} />
           </div>
 

@@ -15,6 +15,11 @@ import type { FinanceActorContext } from "@/features/finance/server/services/fin
 import { prisma } from "@/server/prisma/prisma";
 
 export class SocialService {
+  private async notifyOwner(actor: FinanceActorContext, ownerUserId: string | null | undefined, type: string, title: string, message: string, entityType: string, entityId: string) {
+    if (!ownerUserId || ownerUserId === actor.userId) return;
+    await prisma.notification.create({ data: { organizationId: actor.organizationId, userId: ownerUserId, type, title, message, entityType, entityId } });
+  }
+
   async followArtist(actor: FinanceActorContext, artistId: string) {
     const parsed = followArtistSchema.parse({ artistId });
     const artist = await prisma.artist.findFirst({
@@ -38,10 +43,18 @@ export class SocialService {
     const parsed = likeSchema.parse(input);
     try {
       if (parsed.releaseId) {
-        return await socialRepository.likeRelease(actor.organizationId, actor.userId, parsed.releaseId);
+        const release = await prisma.release.findFirst({ where: { id: parsed.releaseId, organizationId: actor.organizationId }, select: { id: true, title: true, createdByUserId: true } });
+        if (!release) throw new Error("Yayın bulunamadı.");
+        const result = await socialRepository.likeRelease(actor.organizationId, actor.userId, parsed.releaseId);
+        await this.notifyOwner(actor, release.createdByUserId, "RELEASE_LIKE", "Yayınınız beğenildi", `“${release.title}” yayınınza yeni bir beğeni geldi.`, "Release", release.id);
+        return result;
       }
       if (parsed.trackId) {
-        return await socialRepository.likeTrack(actor.organizationId, actor.userId, parsed.trackId);
+        const track = await prisma.track.findFirst({ where: { id: parsed.trackId, organizationId: actor.organizationId }, select: { id: true, title: true, release: { select: { id: true, createdByUserId: true } } } });
+        if (!track) throw new Error("Parça bulunamadı.");
+        const result = await socialRepository.likeTrack(actor.organizationId, actor.userId, parsed.trackId);
+        await this.notifyOwner(actor, track.release.createdByUserId, "TRACK_LIKE", "Parçanız beğenildi", `“${track.title}” parçanıza yeni bir beğeni geldi.`, "Track", track.id);
+        return result;
       }
       if (parsed.externalMediaId) {
         const media = await prisma.externalMediaSource.findFirst({ where: { id: parsed.externalMediaId, organizationId: actor.organizationId, status: "ACTIVE" }, select: { id: true } });
@@ -69,7 +82,7 @@ export class SocialService {
     if (targetCount !== 1) {
       throw new Error("Yorum için tek bir hedef içerik seçilmelidir.");
     }
-    return socialRepository.createComment({
+    const result = await socialRepository.createComment({
       organizationId: actor.organizationId,
       authorUserId: actor.userId,
       content: parsed.content,
@@ -79,6 +92,14 @@ export class SocialService {
       ...(parsed.storyId ? { storyId: parsed.storyId } : {}),
       ...(parsed.parentCommentId ? { parentCommentId: parsed.parentCommentId } : {}),
     });
+    const target = parsed.releaseId
+      ? await prisma.release.findFirst({ where: { id: parsed.releaseId, organizationId: actor.organizationId }, select: { id: true, title: true, createdByUserId: true } })
+      : parsed.trackId
+        ? await prisma.track.findFirst({ where: { id: parsed.trackId, organizationId: actor.organizationId }, select: { id: true, title: true, release: { select: { createdByUserId: true } } } })
+        : null;
+    const ownerId = target && "release" in target ? target.release.createdByUserId : target?.createdByUserId;
+    await this.notifyOwner(actor, ownerId, "COMMENT_CREATED", "Yeni yorum", "İçeriğinizde yeni bir yorum var.", parsed.releaseId ? "Release" : "Track", parsed.releaseId ?? parsed.trackId ?? result.id);
+    return result;
   }
 
   async listComments(input: { releaseId?: string; trackId?: string }) {
