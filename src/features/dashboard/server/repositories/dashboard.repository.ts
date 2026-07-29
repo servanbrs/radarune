@@ -45,6 +45,7 @@ export class DashboardRepository {
           id: true,
           title: true,
           status: true,
+          artworkUploadId: true,
           plannedReleaseDate: true,
           updatedAt: true,
           artists: {

@@ -51,7 +51,7 @@ export function DiscoverFeedCard({
   const radaruneArtworkUrl =
     item.sourceType === "RADARUNE" &&
     item.releaseId
-      ? `/api/growth/releases/${item.releaseId}/artwork`
+      ? `/api/public/v1/releases/${item.releaseId}/artwork`
       : null;
 
   const thumbnailUrl =

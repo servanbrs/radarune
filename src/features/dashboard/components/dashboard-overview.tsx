@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   Activity,
   AlertTriangle,
@@ -36,6 +37,7 @@ type DashboardData = {
     id: string;
     title: string;
     status: string;
+    artworkUploadId: string | null;
     plannedReleaseDate: Date | null;
     updatedAt: Date;
     artists: Array<{
@@ -493,8 +495,8 @@ export function DashboardOverview({
                     href={`/releases/${release.id}`}
                     key={release.id}
                   >
-                    <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-accent/10 text-accent">
-                      <Music2 className="size-5" />
+                    <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-accent/10 text-accent">
+                      {release.artworkUploadId ? <Image alt={`${release.title} kapak görseli`} className="object-cover" fill sizes="48px" src={`/api/storage/private/${release.artworkUploadId}`} unoptimized /> : <Music2 className="size-5" />}
                     </div>
 
                     <div className="min-w-0 flex-1">
