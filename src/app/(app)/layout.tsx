@@ -36,34 +36,37 @@ export default async function AppLayout({
   const creatorAccess = creatorAccessService.getAccess({
     systemRole: user.systemRole,
   });
-  const english = organization.organization.defaultLocale === "en-US";
+  const locale = organization.organization.defaultLocale;
+  const english = locale === "en-US";
+  const german = locale === "de-DE";
+  const tr = (turkish: string, englishText: string, germanText: string) => english ? englishText : german ? germanText : turkish;
 
   const primaryNavigation: NavigationItem[] = [
     {
       href: "/dashboard",
-      label: english ? "Home" : "Ana Sayfa",
+      label: tr("Ana Sayfa", "Home", "Startseite"),
     },
-    { href: "/discover", label: english ? "Discover" : "Keşfet" },
+    { href: "/discover", label: tr("Keşfet", "Discover", "Entdecken") },
   ];
 
   if (creatorAccess.showBecomeArtist) {
     primaryNavigation.push({
       href: "/become",
-      label: english ? "Become an artist" : "Sanatçı Ol",
+      label: tr("Sanatçı Ol", "Become an artist", "Künstler werden"),
     });
   }
 
   if (creatorAccess.canCreateReleases) {
     primaryNavigation.push({
       href: "/releases",
-      label: english ? "Releases" : "Yayınlar",
+      label: tr("Yayınlar", "Releases", "Veröffentlichungen"),
     });
   }
 
   if (creatorAccess.canManageArtists) {
     primaryNavigation.push({
       href: "/artists",
-      label: english ? "Artists" : "Sanatçılar",
+      label: tr("Sanatçılar", "Artists", "Künstler"),
     });
   }
 
@@ -123,7 +126,7 @@ export default async function AppLayout({
             {creatorNavigation.length > 0 ? (
               <details className="group relative">
                 <summary className="cursor-pointer list-none rounded-xl px-3 py-2 text-sm font-medium text-muted transition hover:bg-white hover:text-foreground [&::-webkit-details-marker]:hidden">
-                  Araçlar
+                  {tr("Araçlar", "Tools", "Werkzeuge")}
                 </summary>
 
                 <div className="absolute right-0 top-12 z-50 grid w-56 gap-1 rounded-2xl border border-line bg-surface p-2 shadow-xl">
@@ -205,10 +208,10 @@ export default async function AppLayout({
             <p className="mt-1">Müziğin radarı · Yayın ve keşif platformu</p>
           </div>
           <nav className="flex flex-wrap items-center gap-x-5 gap-y-3">
-            <Link className="hover:text-foreground" href="/about">{english ? "About" : "Hakkımızda"}</Link>
-            <Link className="hover:text-foreground" href="/contact">{english ? "Contact" : "İletişim"}</Link>
-            <Link className="hover:text-foreground" href="/terms">{english ? "Terms" : "Kullanım koşulları"}</Link>
-            <LanguageSwitcher locale={organization.organization.defaultLocale} />
+            <Link className="hover:text-foreground" href="/about">{tr("Hakkımızda", "About", "Über uns")}</Link>
+            <Link className="hover:text-foreground" href="/contact">{tr("İletişim", "Contact", "Kontakt")}</Link>
+            <Link className="hover:text-foreground" href="/terms">{tr("Kullanım koşulları", "Terms", "Nutzungsbedingungen")}</Link>
+            <LanguageSwitcher locale={locale} />
           </nav>
         </div>
       </footer>

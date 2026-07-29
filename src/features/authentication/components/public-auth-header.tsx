@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 type PublicAuthHeaderProps = {
   mode: "sign-in" | "sign-up";
@@ -19,11 +20,10 @@ export function PublicAuthHeader({ mode }: PublicAuthHeaderProps) {
         <nav aria-label="Ana menü" className="hidden items-center gap-5 text-sm font-medium text-muted md:flex">
           <Link className="transition-colors hover:text-foreground" href="/">Ana Sayfa</Link>
           <Link className="transition-colors hover:text-foreground" href="/discover">Keşfet</Link>
-          <Link className="transition-colors hover:text-foreground" href="/about">Hakkımızda</Link>
-          <Link className="transition-colors hover:text-foreground" href="/contact">İletişim</Link>
         </nav>
 
         <div className="flex items-center gap-2">
+          <LanguageSwitcher locale="tr-TR" />
           <ThemeToggle />
           <Link
             className="hidden rounded-full border border-line px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-strong sm:inline-flex"
