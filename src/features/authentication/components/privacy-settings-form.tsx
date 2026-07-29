@@ -1,20 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const defaults = { discoverable: true, updates: true, analytics: false };
 type Preferences = typeof defaults;
 
 export function PrivacySettingsForm() {
-  const [preferences, setPreferences] = useState<Preferences>(defaults);
+  const [preferences, setPreferences] = useState<Preferences>(() => {
+    if (typeof window === "undefined") return defaults;
+    try { const value = window.localStorage.getItem("radarune:privacy-preferences"); return value ? { ...defaults, ...JSON.parse(value) } : defaults; } catch { return defaults; }
+  });
   const [saved, setSaved] = useState(false);
-
-  useEffect(() => {
-    try {
-      const value = window.localStorage.getItem("radarune:privacy-preferences");
-      if (value) setPreferences({ ...defaults, ...JSON.parse(value) });
-    } catch { /* keep defaults */ }
-  }, []);
 
   function update(key: keyof Preferences, value: boolean) {
     const next = { ...preferences, [key]: value };

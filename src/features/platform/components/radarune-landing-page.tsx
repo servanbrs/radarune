@@ -1,26 +1,26 @@
 import Link from "next/link";
-import { ArrowUpRight, Check, ChevronRight, CircleDot, Compass, Gauge, Headphones, Layers3, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, Check, CircleDot, Compass, Gauge, Headphones, Layers3, ShieldCheck } from "lucide-react";
 import type { PublicDiscoverCandidate } from "@/features/growth/server/services/discover.service";
 import { StructuredData } from "@/features/seo/components/structured-data";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const capabilities = [
   {
-    eyebrow: "01 / RELEASES",
-    title: "Yayın fikrinden teslimata, tek akış.",
-    description: "Metadata, artwork, track ve hak sahipliği kontrollerini dağınık araçlardan çıkarıp yönetilebilir bir release akışında toplayın.",
+    eyebrow: "01 / KEŞFET",
+    title: "Yeni müzikleri keşfet.",
+    description: "Yeni sanatçıları ve yayınları keşfet, oyla ve radarına ekle.",
     icon: Layers3,
   },
   {
-    eyebrow: "02 / DISTRIBUTION",
-    title: "Provider süreçlerine tam görünürlük.",
-    description: "Dağıtım sağlayıcılarını, mağaza seçimlerini, job durumlarını ve webhook hareketlerini aynı operasyon merkezinden izleyin.",
+    eyebrow: "02 / DUYUR",
+    title: "Şarkını duyur.",
+    description: "Sanatçı profilini oluştur, yayınını ekle ve doğru dinleyiciyle buluştur.",
     icon: ShieldCheck,
   },
   {
-    eyebrow: "03 / FINANCE",
-    title: "Gelirin nereden geldiğini bilin.",
-    description: "Revenue import, royalty split, statement ve payout süreçlerini denetlenebilir finansal kayıtlarla yönetin.",
+    eyebrow: "03 / ÜCRETSİZ",
+    title: "Tamamen ücretsiz.",
+    description: "Keşfetmek, oy vermek ve müziğini duyurmak için ücret ödeme.",
     icon: Gauge,
   },
 ] as const;
@@ -70,20 +70,20 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
         <div>
           <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#efb848]/30 bg-[#efb848]/10 px-3 py-1.5 text-xs font-medium tracking-[0.14em] text-[#ffd46f]">
             <CircleDot className="h-3.5 w-3.5" aria-hidden="true" />
-            MÜZİK OPERASYONLARI İÇİN
+            MÜZİĞİN RADARI · TAMAMEN ÜCRETSİZ
           </div>
           <h1 className="landing-title max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.05em] md:text-7xl lg:text-[5.25rem]">
-            Müziğinizi yayınlayın, <span className="text-[#efb848]">kitlenizi büyütün.</span>
+            Müziğin radarı.<br /><span className="text-[#efb848]">Şarkını keşfet,</span><br />sesini duyur.
           </h1>
           <p className="mt-8 max-w-xl text-lg leading-8 text-white/60 md:text-xl">
-            Radarune; sanatçılar, label&apos;lar ve dağıtım ekipleri için yayın hazırlığını, hak kontrollerini, dağıtımı ve geliri tek bir üretim alanında birleştirir.
+            Yeni müzikleri keşfet, favorilerini oyla ve kendi şarkını müzikseverlere duyur. Radarune; keşif, paylaşım ve sanatçı görünürlüğünü herkes için ücretsiz sunar.
           </p>
           <div className="mt-10 flex flex-wrap items-center gap-4">
-            <Link className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 font-semibold text-[#090b0f] hover:bg-[#efb848]" href="/sign-up">
-              Çalışma alanı oluştur <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            <Link className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 font-semibold text-[#090b0f] hover:bg-[#efb848]" href="/discover">
+              Şarkı keşfet <Compass className="h-4 w-4" aria-hidden="true" />
             </Link>
-            <Link className="inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3.5 font-semibold text-white/80 hover:border-white/50 hover:text-white" href="#capabilities">
-              Platformu keşfet <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            <Link className="inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3.5 font-semibold text-white/80 hover:border-[#efb848]/60 hover:text-white" href="/sign-up">
+              Şarkını duyur <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
             </Link>
           </div>
         </div>
@@ -94,15 +94,15 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
             <div className="flex items-center justify-between border-b border-white/10 pb-5">
               <div>
                 <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/35">RADARUNE / WORKSPACE</p>
-                <p className="mt-2 text-lg font-semibold">Release operasyonu</p>
+                <p className="mt-2 text-lg font-semibold">Radarune keşif akışı</p>
               </div>
               <span className="rounded-full border border-[#61d2a5]/30 bg-[#61d2a5]/10 px-3 py-1 text-xs text-[#8ae8c2]">Kontrol altında</span>
             </div>
             <div className="grid gap-3 py-5">
               {[
-                ["Metadata", "Doğrulandı"],
-                ["Artwork & audio", "Hazır"],
-                ["Distribution route", "Planlandı"],
+                ["Yeni müzikler", "Her gün"],
+                ["Topluluk oyları", "Gerçek zamanlı"],
+                ["Sanatçı profili", "Ücretsiz"],
               ].map(([label, state]) => (
                 <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-4" key={label}>
                   <div className="flex items-center gap-3">
@@ -118,7 +118,7 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
                 <span className="text-xs font-semibold uppercase tracking-[0.18em]">Tek merkez</span>
                 <ArrowUpRight className="h-5 w-5" aria-hidden="true" />
               </div>
-              <p className="mt-4 max-w-xs text-2xl font-semibold leading-tight">Kataloğunuz için net bir sonraki adım.</p>
+              <p className="mt-4 max-w-xs text-2xl font-semibold leading-tight">İyi müzik doğru dinleyiciyle buluşur.</p>
             </div>
           </div>
         </div>
@@ -126,14 +126,14 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
 
       <section className="relative z-10 border-y border-white/10 bg-white/[0.025] px-5 py-5 md:px-10">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 text-xs uppercase tracking-[0.18em] text-white/35">
-          <span>Release management</span><span>Distribution hub</span><span>Royalty intelligence</span><span>Artist growth</span>
+          <span>Şarkı keşfi</span><span>Topluluk oyları</span><span>Ücretsiz sanatçı profili</span><span>Yeni sesler</span>
         </div>
       </section>
 
       <section className="relative z-10 mx-auto max-w-7xl px-5 py-24 md:px-10 md:py-32" id="capabilities">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#efb848]">Platformun omurgası</p>
-          <h2 className="mt-5 text-4xl font-semibold leading-tight tracking-[-0.04em] md:text-6xl">Daha az araç. Daha çok kontrol.</h2>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#efb848]">Radarune topluluğu</p>
+          <h2 className="mt-5 text-4xl font-semibold leading-tight tracking-[-0.04em] md:text-6xl">Müziği birlikte keşfediyoruz.</h2>
         </div>
         <div className="mt-14 grid gap-4 lg:grid-cols-3">
           {capabilities.map(({ description, eyebrow, icon: Icon, title }) => (
@@ -195,10 +195,10 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
       <section className="relative z-10 mx-5 mb-8 overflow-hidden rounded-[2rem] bg-[#efb848] px-6 py-14 text-[#090b0f] md:mx-auto md:max-w-7xl md:px-12 md:py-20">
         <div className="absolute -right-16 -top-24 h-64 w-64 rounded-full border-[3rem] border-black/10" />
         <div className="relative max-w-2xl">
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-black/55">Bir sonraki release için</p>
-          <h2 className="mt-5 text-4xl font-semibold leading-tight tracking-[-0.04em] md:text-6xl">Kataloğunuzun çalışma alanını kurun.</h2>
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-black/55">Müziğin için yeni bir başlangıç</p>
+          <h2 className="mt-5 text-4xl font-semibold leading-tight tracking-[-0.04em] md:text-6xl">Şarkını bugün duyur, yeni dinleyicilere ulaş.</h2>
           <Link className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#090b0f] px-6 py-3.5 font-semibold text-white hover:bg-[#20252d]" href="/sign-up">
-            Radarune&apos;u deneyin <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            Ücretsiz hesap oluştur <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>
       </section>
