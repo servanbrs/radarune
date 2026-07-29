@@ -18,6 +18,7 @@ import { externalProviderRegistry } from "@/features/integrations/server/provide
 import { spotifyProviderService } from "@/features/integrations/server/adapters/spotify-provider.service";
 import { youtubeProviderService } from "@/features/integrations/server/adapters/youtube-provider.service";
 import { importRepository } from "@/features/integrations/server/repositories/import.repository";
+import { integrationCredentialService } from "@/features/integrations/server/services/integration-credential.service";
 import { prisma } from "@/server/prisma/prisma";
 import type { FinanceActorContext } from "@/features/finance/server/services/finance-access.service";
 
@@ -79,8 +80,12 @@ export class ImportSourceService {
       throw new Error("Import kaynağı için desteklenen provider URL’si ve kimliği gereklidir.");
     }
 
-    const configuration = externalProviderRegistry.get(provider).validateConfiguration();
-    const status = configuration.success && providerImportEnabled(provider)
+    const credentials = await integrationCredentialService.runtime(actor.organizationId, provider);
+    const configuration = provider === "YOUTUBE"
+      ? youtubeProviderService.validateConfiguration(credentials?.apiKey)
+      : spotifyProviderService.validateConfiguration(credentials ?? undefined);
+    const importEnabled = providerImportEnabled(provider) || Boolean(credentials);
+    const status = configuration.success && importEnabled
       ? (parsed.active ? "ACTIVE" : "PAUSED")
       : "CONFIGURATION_REQUIRED";
     return importRepository.createSource({
@@ -92,7 +97,7 @@ export class ImportSourceService {
       url: parsed.url,
       name: parsed.name,
       artistId: parsed.artistId ?? null,
-      active: configuration.success && providerImportEnabled(provider) && parsed.active,
+      active: configuration.success && importEnabled && parsed.active,
       autoPublish: parsed.autoPublish,
       ownershipVerified: false,
       requiresReview: parsed.requiresReview,
@@ -138,9 +143,12 @@ export class ImportSourceService {
     try {
       const providerKey = source.provider;
       if (!providerKey) throw new Error("Import provider bilgisi eksik.");
+      const credentials = await integrationCredentialService.runtime(organizationId, providerKey);
       const provider = externalProviderRegistry.get(providerKey);
-      const configuration = provider.validateConfiguration();
-      if (!providerImportEnabled(providerKey)) {
+      const configuration = providerKey === "YOUTUBE"
+        ? youtubeProviderService.validateConfiguration(credentials?.apiKey)
+        : spotifyProviderService.validateConfiguration(credentials ?? undefined);
+      if (!providerImportEnabled(providerKey) && !credentials) {
         throw new Error(`${providerKey} import özelliği ortamda etkin değil.`);
       }
       if (!configuration.success) {
@@ -153,7 +161,7 @@ export class ImportSourceService {
         sourceId: source.id,
         cursorBefore: source.cursor,
       });
-      const metadata = await this.fetchSourceMetadata(source);
+      const metadata = await this.fetchSourceMetadata(source, credentials);
       if (!metadata.success) {
         await prisma.$transaction(async (client) => {
           await importRepository.finishRun(run.id, { status: "FAILED", completedAt: new Date(), errorMessage: metadata.message }, client);
@@ -214,31 +222,31 @@ export class ImportSourceService {
     });
   }
 
-  private async fetchSourceMetadata(source: { type: string; provider: "YOUTUBE" | "SPOTIFY" | null; providerExternalId: string | null; lastCheckedAt: Date | null }) {
+  private async fetchSourceMetadata(source: { type: string; provider: "YOUTUBE" | "SPOTIFY" | null; providerExternalId: string | null; lastCheckedAt: Date | null }, credentials: Record<string, string> | null) {
     if (!source.provider || !source.providerExternalId) return { success: false as const, code: "PROVIDER_ERROR" as const, message: "Import provider kimliği eksik." };
     if (source.provider === "YOUTUBE") {
       if (source.type === "YOUTUBE_CHANNEL") {
-        const response = await youtubeProviderService.listChannelVideos(source.providerExternalId);
+        const response = await youtubeProviderService.listChannelVideos(source.providerExternalId, undefined, credentials?.apiKey);
         if (!response.success) return response;
         const ids = (response.data.items ?? []).map(externalIdFromYouTubeItem).filter((id): id is string => Boolean(id));
-        const details = await youtubeProviderService.getVideos(ids);
+        const details = await youtubeProviderService.getVideos(ids, credentials?.apiKey);
         if (!details.success) return details;
         return youtubeProviderService.detectNewVideos(details.data.items ?? [], source.lastCheckedAt ?? undefined);
       }
-      const response = await youtubeProviderService.listPlaylistVideos(source.providerExternalId);
+      const response = await youtubeProviderService.listPlaylistVideos(source.providerExternalId, undefined, credentials?.apiKey);
       if (!response.success) return response;
       const ids = (response.data.items ?? []).map(externalIdFromYouTubeItem).filter((id): id is string => Boolean(id));
-      const details = await youtubeProviderService.getVideos(ids);
+      const details = await youtubeProviderService.getVideos(ids, credentials?.apiKey);
       if (!details.success) return details;
       return youtubeProviderService.detectNewVideos(details.data.items ?? [], source.lastCheckedAt ?? undefined);
     }
 
     const provider = spotifyProviderService;
     const response = source.type === "SPOTIFY_ARTIST"
-      ? await provider.getArtistAlbums(source.providerExternalId)
+      ? await provider.getArtistAlbums(source.providerExternalId, credentials ?? undefined)
       : source.type === "SPOTIFY_PLAYLIST"
-        ? await provider.listPlaylistTracks(source.providerExternalId)
-        : await provider.getAlbum(source.providerExternalId);
+        ? await provider.listPlaylistTracks(source.providerExternalId, credentials ?? undefined)
+        : await provider.getAlbum(source.providerExternalId, credentials ?? undefined);
     if (!response.success) return response;
     if (source.type !== "SPOTIFY_ARTIST") return provider.detectNewReleases(spotifyTracks(response.data), new Set());
     const albumIds = (response.data.items ?? [])
@@ -250,7 +258,7 @@ export class ImportSourceService {
       .filter((id): id is string => Boolean(id));
     const tracks: unknown[] = [];
     for (const albumId of albumIds.slice(0, 20)) {
-      const album = await provider.getAlbum(albumId);
+      const album = await provider.getAlbum(albumId, credentials ?? undefined);
       if (album.success) tracks.push(...spotifyTracks(album.data));
     }
     return provider.detectNewReleases(tracks, new Set());

@@ -92,12 +92,12 @@ export class SpotifyProviderService implements ExternalProviderAdapter {
     return { success: true, data: { checkedAt: new Date() } };
   }
 
-  async getArtist(id: string) { return this.getResource(`artists/${encodeURIComponent(id)}`); }
-  async getArtistAlbums(id: string) { return this.getResource(`artists/${encodeURIComponent(id)}/albums?limit=50`); }
-  async getAlbum(id: string) { return this.getResource(`albums/${encodeURIComponent(id)}`); }
-  async getTrack(id: string) { return this.getResource(`tracks/${encodeURIComponent(id)}`); }
-  async getPlaylist(id: string) { return this.getResource(`playlists/${encodeURIComponent(id)}`); }
-  async listPlaylistTracks(id: string) { return this.getResource(`playlists/${encodeURIComponent(id)}/tracks?limit=100`); }
+  async getArtist(id: string, credentialsOverride?: { clientId?: string; clientSecret?: string }) { return this.getResource(`artists/${encodeURIComponent(id)}`, credentialsOverride); }
+  async getArtistAlbums(id: string, credentialsOverride?: { clientId?: string; clientSecret?: string }) { return this.getResource(`artists/${encodeURIComponent(id)}/albums?limit=50`, credentialsOverride); }
+  async getAlbum(id: string, credentialsOverride?: { clientId?: string; clientSecret?: string }) { return this.getResource(`albums/${encodeURIComponent(id)}`, credentialsOverride); }
+  async getTrack(id: string, credentialsOverride?: { clientId?: string; clientSecret?: string }) { return this.getResource(`tracks/${encodeURIComponent(id)}`, credentialsOverride); }
+  async getPlaylist(id: string, credentialsOverride?: { clientId?: string; clientSecret?: string }) { return this.getResource(`playlists/${encodeURIComponent(id)}`, credentialsOverride); }
+  async listPlaylistTracks(id: string, credentialsOverride?: { clientId?: string; clientSecret?: string }) { return this.getResource(`playlists/${encodeURIComponent(id)}/tracks?limit=100`, credentialsOverride); }
 
   detectNewReleases(items: unknown[], knownExternalIds: ReadonlySet<string>): ProviderResult<ExternalMediaMetadata[]> {
     const normalized: ExternalMediaMetadata[] = [];
@@ -140,8 +140,8 @@ export class SpotifyProviderService implements ExternalProviderAdapter {
     return { success: false, code: "PROVIDER_ERROR", message };
   }
 
-  private async getResource(path: string) {
-    const token = await this.getAccessToken();
+  private async getResource(path: string, credentialsOverride?: { clientId?: string; clientSecret?: string }) {
+    const token = await this.getAccessToken(credentialsOverride);
     if (!token.success) return token;
     return this.request(path, token.data.accessToken);
   }

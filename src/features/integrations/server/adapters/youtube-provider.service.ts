@@ -71,7 +71,7 @@ export class YouTubeProviderService implements ExternalProviderAdapter {
     return this.request("channels", { part: "snippet,contentDetails,status", id: channelId });
   }
 
-  async listChannelVideos(channelId: string, pageToken?: string) {
+  async listChannelVideos(channelId: string, pageToken?: string, apiKeyOverride?: string) {
     return this.request("search", {
       part: "snippet",
       channelId,
@@ -80,20 +80,20 @@ export class YouTubeProviderService implements ExternalProviderAdapter {
       order: "date",
       maxResults: "50",
       ...(pageToken ? { pageToken } : {}),
-    });
+    }, apiKeyOverride);
   }
 
   async getPlaylist(playlistId: string) {
     return this.request("playlists", { part: "snippet,status", id: playlistId });
   }
 
-  async listPlaylistVideos(playlistId: string, pageToken?: string) {
+  async listPlaylistVideos(playlistId: string, pageToken?: string, apiKeyOverride?: string) {
     return this.request("playlistItems", {
       part: "snippet,contentDetails,status",
       playlistId,
       maxResults: "50",
       ...(pageToken ? { pageToken } : {}),
-    });
+    }, apiKeyOverride);
   }
 
   async getVideo(videoIdValue: string) {
@@ -103,13 +103,13 @@ export class YouTubeProviderService implements ExternalProviderAdapter {
     });
   }
 
-  async getVideos(videoIds: string[]) {
+  async getVideos(videoIds: string[], apiKeyOverride?: string) {
     const uniqueIds = [...new Set(videoIds)].filter(Boolean);
     if (uniqueIds.length === 0) return { success: true as const, data: { items: [] as YouTubeItem[] } };
     return this.request("videos", {
       part: "snippet,contentDetails,status",
       id: uniqueIds.slice(0, 50).join(","),
-    });
+    }, apiKeyOverride);
   }
 
   detectNewVideos(items: unknown[], publishedAfter?: Date): ProviderResult<ExternalMediaMetadata[]> {
