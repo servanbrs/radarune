@@ -172,13 +172,19 @@ export class DistributionJobService {
       actor.organizationId,
       provider,
     );
+    const manualOneRpm = provider === "ONE_RPM" && (runtimeConfig?.publicMetadata?.mode === "MANUAL" || !runtimeConfig);
+    if (manualOneRpm && !operationsRole) {
+      return {
+        success: false as const,
+        message: "ONErpm manuel dağıtımı yalnızca admin veya moderatör tarafından başlatılabilir.",
+      };
+    }
     const normalizedPayload = normalizePayload(parsed.data.payload);
 
-    const validation = distributionValidationService.validateRelease(
-      provider,
-      normalizedPayload,
-      runtimeConfig,
-    );
+    const validation = manualOneRpm
+      ? { success: true as const, issues: [] }
+      : distributionValidationService.validateRelease(provider, normalizedPayload, runtimeConfig);
+    const jobStatus = manualOneRpm ? "MANUAL_REVIEW" as const : validation.success ? "QUEUED" as const : "PENDING" as const;
     const payloadHash = buildPayloadHash(parsed.data.payload);
     const idempotencyKey = buildIdempotencyKey({
       releaseId: normalizedPayload.releaseId,
@@ -211,7 +217,7 @@ export class DistributionJobService {
           createdByUserId: actor.userId,
           ...(runtimeConfig?.id ? { providerConfigurationId: runtimeConfig.id } : {}),
           provider,
-          status: validation.success ? "QUEUED" : "PENDING",
+          status: jobStatus,
           releaseId: normalizedPayload.releaseId,
           releaseVersion: normalizedPayload.releaseVersion,
           releaseTitle: normalizedPayload.title,
@@ -219,7 +225,7 @@ export class DistributionJobService {
           payloadHash,
           canonicalPayload: normalizedPayload as unknown as Prisma.InputJsonValue,
           maxRetryCount: runtimeConfig?.maxRetryCount ?? 3,
-          ...(validation.success ? { queuedAt: new Date() } : {}),
+          ...(jobStatus === "QUEUED" ? { queuedAt: new Date() } : {}),
         },
         tx,
       );
@@ -232,12 +238,12 @@ export class DistributionJobService {
           provider,
           releaseId: normalizedPayload.releaseId,
           releaseVersion: normalizedPayload.releaseVersion,
-          status: validation.success ? "QUEUED" : "NOT_SENT",
+          status: jobStatus === "QUEUED" ? "QUEUED" : "NOT_SENT",
         },
         tx,
       );
 
-      if (validation.success) {
+      if (validation.success && !manualOneRpm) {
         await releaseRepository.updateStatus(
           normalizedPayload.releaseId,
           {
@@ -259,8 +265,10 @@ export class DistributionJobService {
         {
           organizationId: actor.organizationId,
           jobId: created.id,
-          status: validation.success ? "QUEUED" : "PENDING",
-          message: validation.success
+          status: jobStatus,
+          message: manualOneRpm
+            ? "ONErpm manuel gönderimi için admin operasyon kuyruğuna alındı."
+            : validation.success
             ? "Job kuyruğa alındı."
             : "Job validation incelemesi için bekliyor.",
           metadata: {

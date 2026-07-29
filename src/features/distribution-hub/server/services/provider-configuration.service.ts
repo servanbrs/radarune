@@ -113,6 +113,10 @@ export class DistributionProviderConfigurationService {
       ? encryptDistributionSecret(parsed.data.webhookSecret)
       : null;
 
+    const publicMetadata = {
+      ...parsed.data.publicMetadata,
+      ...(parsed.data.provider === "ONE_RPM" ? { mode: "MANUAL" } : {}),
+    };
     const configuration = await distributionProviderConfigurationRepository.upsert({
       organizationId: actor.organizationId,
       provider: parsed.data.provider,
@@ -129,7 +133,7 @@ export class DistributionProviderConfigurationService {
       isDefault: parsed.data.isDefault,
       ...(credentialsEncrypted !== null ? { credentialsEncrypted } : {}),
       ...(webhookSecretEncrypted !== null ? { webhookSecretEncrypted } : {}),
-      publicMetadata: parsed.data.publicMetadata,
+      publicMetadata,
       enabledCapabilities: parsed.data.enabledCapabilities,
     });
 

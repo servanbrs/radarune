@@ -95,7 +95,7 @@ export class DistributionJobRepository {
     createdByUserId?: string;
     providerConfigurationId?: string;
     provider: "ONE_RPM" | "FUGA" | "SYMPHONIC" | "REVELATOR" | "INTERNAL";
-    status: "PENDING" | "QUEUED";
+    status: "PENDING" | "QUEUED" | "MANUAL_REVIEW";
     releaseId: string;
     releaseVersion: number;
     releaseTitle: string;
