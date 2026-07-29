@@ -16,7 +16,7 @@ export function PublicAuthHeader({ mode }: PublicAuthHeaderProps) {
           <span className="block text-sm font-semibold">Music Platform</span>
         </Link>
 
-        <nav aria-label="Ana menü" className="hidden items-center gap-5 text-sm font-medium text-muted md:flex">
+        <nav aria-label="Ana menü" className="flex items-center gap-3 text-xs font-medium text-muted sm:gap-5 sm:text-sm">
           <Link className="transition-colors hover:text-foreground" href="/">Ana Sayfa</Link>
           <Link className="transition-colors hover:text-foreground" href="/discover">Keşfet</Link>
           <Link className="transition-colors hover:text-foreground" href="/lists">Listeler</Link>

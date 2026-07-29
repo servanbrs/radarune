@@ -52,7 +52,7 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#efb848] text-sm font-bold text-[#090b0f]">R</span>
             <span className="text-sm font-semibold tracking-[0.24em]">RADARUNE</span>
           </Link>
-          <nav className="hidden items-center gap-8 text-sm text-white/60 md:flex" aria-label="Ana navigasyon">
+          <nav className="flex items-center gap-3 text-xs text-white/60 sm:gap-8 sm:text-sm" aria-label="Ana navigasyon">
             <Link className="hover:text-white" href="/">Ana Sayfa</Link>
             <Link className="hover:text-white" href="#discover">Keşfet</Link>
             <Link className="hover:text-white" href="/lists">Listeler</Link>
