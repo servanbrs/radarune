@@ -279,7 +279,6 @@ export class DiscoverService {
 
       prisma.externalMediaSource.findMany({
         where: {
-          ...organizationFilter,
           status: "ACTIVE",
           provider: {
             in: ["YOUTUBE", "SPOTIFY"],

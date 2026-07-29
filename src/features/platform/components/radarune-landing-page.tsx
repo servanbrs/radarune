@@ -68,7 +68,7 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
 
       <section className="relative z-10 mx-auto grid max-w-7xl gap-12 px-5 pb-20 pt-16 md:px-10 md:pb-24 md:pt-24 lg:min-h-[calc(100vh-5.5rem)] lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16 lg:py-20">
         <div>
-          <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#efb848]/30 bg-[#efb848]/10 px-3 py-1.5 text-xs font-medium tracking-[0.14em] text-[#ffd46f]">
+          <div className="landing-eyebrow mb-7 inline-flex items-center gap-2 rounded-full border border-[#efb848]/30 bg-[#efb848]/10 px-3 py-1.5 text-xs font-medium tracking-[0.14em] text-[#ffd46f]">
             <CircleDot className="h-3.5 w-3.5" aria-hidden="true" />
             MÜZİĞİN RADARI · TAMAMEN ÜCRETSİZ
           </div>

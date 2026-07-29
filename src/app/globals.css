@@ -252,6 +252,11 @@ html[data-theme="light"] .landing-shell [class*="text-white"] { color: var(--lan
 html[data-theme="light"] .landing-shell [class*="border-white"] { border-color: rgba(19, 25, 29, 0.14) !important; }
 html[data-theme="light"] .landing-shell [class*="bg-white"] { background-color: rgba(19, 25, 29, 0.05) !important; }
 html[data-theme="light"] .landing-shell .landing-title { color: #13191d !important; }
+html[data-theme="light"] .landing-shell .landing-eyebrow {
+  color: #8a5a00 !important;
+  border-color: rgba(138, 90, 0, 0.28) !important;
+  background-color: rgba(239, 184, 72, 0.18) !important;
+}
 
 /* Dark feature cards keep their own contrast in the light theme. The broad
    landing light-theme utility above intentionally recolors white text on the
