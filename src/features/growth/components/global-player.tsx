@@ -1,68 +1,33 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import type { PlayerItem } from "@/features/player/domain/player-source";
+import { Pause, Play, SkipBack, SkipForward, X } from "lucide-react";
+import { useGlobalPlayer } from "@/features/growth/components/global-player-provider";
 
-export function GlobalPlayer({ item }: { item?: PlayerItem }) {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [playing, setPlaying] = useState(false);
-
-  useEffect(() => {
-    if (!item?.playbackUrl) return;
-    audioRef.current = new Audio(item.playbackUrl);
-    const audio = audioRef.current;
-    const onEnded = () => setPlaying(false);
-    audio.addEventListener("ended", onEnded);
-    return () => {
-      audio.pause();
-      audio.removeEventListener("ended", onEnded);
-      audioRef.current = null;
-    };
-  }, [item?.playbackUrl]);
-
+/** Persistent playback dock rendered by the root layout. */
+export function GlobalPlayer() {
+  const { item, queue, index, playing, position, duration, toggle, next, previous, seek, close } = useGlobalPlayer();
   if (!item || (!item.playbackUrl && !item.embedUrl)) return null;
 
-  async function togglePlayback() {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (playing) {
-      audio.pause();
-      setPlaying(false);
-      return;
-    }
-    try {
-      await audio.play();
-      setPlaying(true);
-    } catch {
-      setPlaying(false);
-    }
-  }
-
   return (
-    <div className="fixed inset-x-4 bottom-4 z-50 overflow-hidden rounded-3xl border border-line bg-surface/95 p-4 text-foreground shadow-xl backdrop-blur md:inset-x-auto md:right-6 md:w-96">
-      {item.embedUrl ? (
-        <iframe
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          className={item.source === "SPOTIFY_EMBED" ? "mb-3 h-[152px] w-full rounded-2xl" : "mb-3 aspect-video w-full rounded-2xl"}
-          src={item.embedUrl}
-          title={`${item.title} oynatıcı`}
-        />
-      ) : null}
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <p className="text-xs uppercase tracking-[0.22em] text-muted">Radarune Player</p>
-          <p className="mt-1 text-sm font-semibold">{item.title}</p>
-          <p className="mt-1 text-xs text-muted">{item.artistName} · {item.sourceLabel}</p>
+    <div className="fixed inset-x-0 bottom-0 z-[60] border-t border-line bg-surface/95 px-3 py-2.5 text-foreground shadow-[0_-12px_40px_rgba(0,0,0,0.16)] backdrop-blur-xl sm:px-5">
+      <div className="mx-auto flex max-w-[1500px] items-center gap-2.5 sm:gap-4">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold">{item.title}</p>
+          <p className="truncate text-xs text-muted">{item.artistName} · {item.sourceLabel} · {index + 1}/{queue.length || 1}</p>
         </div>
-        {item.playbackUrl ? (
-          <button
-            className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-white"
-            onClick={() => void togglePlayback()}
-            type="button"
-          >
-            {playing ? "Duraklat" : "Oynat"}
-          </button>
+        {item.embedUrl ? (
+          <iframe
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            className="hidden h-14 w-28 rounded-lg border border-line sm:block sm:w-44"
+            src={item.embedUrl}
+            title={`${item.title} oynatıcı`}
+          />
         ) : null}
+        <button aria-label="Önceki şarkı" className="rounded-full border border-line p-2" onClick={previous} type="button"><SkipBack className="size-4" /></button>
+        <button aria-label={playing ? "Duraklat" : "Oynat"} className="rounded-full bg-foreground p-3 text-white" onClick={() => void toggle()} type="button">{playing ? <Pause className="size-4" /> : <Play className="size-4 fill-current" />}</button>
+        <button aria-label="Sonraki şarkı" className="rounded-full border border-line p-2" onClick={next} type="button"><SkipForward className="size-4" /></button>
+        {item.playbackUrl ? <input aria-label="Şarkı konumu" className="hidden w-28 accent-[var(--accent)] md:block" max={duration || 0} min="0" onChange={(event) => seek(Number(event.target.value))} type="range" value={Math.min(position, duration || 0)} /> : null}
+        <button aria-label="Playerı kapat" className="rounded-full p-2 text-muted hover:text-foreground" onClick={close} type="button"><X className="size-4" /></button>
       </div>
     </div>
   );

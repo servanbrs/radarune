@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 
 import { DiscoverFeedCard } from "@/features/growth/components/discover-feed-card";
-import { GlobalPlayer } from "@/features/growth/components/global-player";
+import { useGlobalPlayer } from "@/features/growth/components/global-player-provider";
 import type { DiscoverFeedItem } from "@/features/growth/server/services/discover.service";
 import Link from "next/link";
 import {
@@ -19,8 +19,7 @@ type DiscoverFeedClientProps = {
 export function DiscoverFeedClient({
   feed, isAuthenticated = false,
 }: DiscoverFeedClientProps) {
-  const [currentItem, setCurrentItem] =
-    useState<PlayerItem | null>(null);
+  const { play } = useGlobalPlayer();
   const [activeIndex, setActiveIndex] = useState(0);
   const [sortMode, setSortMode] = useState<"recommended" | "votes">("recommended");
   const [drag, setDrag] = useState({ x: 0, y: 0 });
@@ -103,27 +102,26 @@ export function DiscoverFeedClient({
     else setDrag({ x: 0, y: 0 });
   }
 
-  function playItem(item: DiscoverFeedItem) {
+  function toPlayerItem(item: DiscoverFeedItem): PlayerItem | null {
     if (item.sourceType === "RADARUNE") {
-      if (!item.trackId) return;
-      setCurrentItem({
+      if (!item.trackId) return null;
+      return {
         id: item.trackId,
         title: item.title,
         artistName: item.artistName,
         source: "RADARUNE_AUDIO",
         sourceLabel: "Radarune",
-        playbackUrl: `/api/growth/tracks/${item.trackId}/stream`,
+        playbackUrl: `/api/public/v1/tracks/${item.trackId}/stream`,
         embedUrl: null,
         capabilities: playerCapabilities.RADARUNE_AUDIO,
-      });
-      return;
+      };
     }
 
     // Keep provider playback in the same persistent player surface. The
     // provider iframe is used when available; otherwise the player links to
     // the original source without pretending that an audio preview exists.
     if (item.provider === "YOUTUBE" || item.provider === "SPOTIFY") {
-      setCurrentItem({
+      return {
         id: item.externalMediaId,
         title: item.title,
         artistName: item.artistName,
@@ -132,8 +130,18 @@ export function DiscoverFeedClient({
         playbackUrl: null,
         embedUrl: item.embedUrl ?? item.externalUrl,
         capabilities: playerCapabilities[item.provider === "YOUTUBE" ? "YOUTUBE" : "SPOTIFY_EMBED"],
-      });
+      };
     }
+    return null;
+  }
+
+  function playItem(item: DiscoverFeedItem) {
+    const playerItem = toPlayerItem(item);
+    if (!playerItem) return;
+    const playerQueue = visibleFeed
+      .map(toPlayerItem)
+      .filter((value): value is PlayerItem => Boolean(value));
+    play(playerItem, playerQueue);
   }
 
   return (
@@ -203,11 +211,6 @@ export function DiscoverFeedClient({
         </div>
       </section>
 
-      {currentItem ? (
-  <GlobalPlayer item={currentItem} />
-) : (
-  <GlobalPlayer />
-      )}
       {!isAuthenticated ? <div className="mt-8 rounded-2xl border border-line bg-surface p-5 text-center text-sm text-muted">Beğenme, yorum ve kaydetme özellikleri için <Link className="font-semibold text-accent" href="/sign-in">giriş yapın</Link>.</div> : null}
     </>
   );

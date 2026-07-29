@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import { GlobalPlayerProvider } from "@/features/growth/components/global-player-provider";
 
 const headingFont = Space_Grotesk({
   variable: "--font-heading",
@@ -29,7 +30,7 @@ export default function RootLayout({
       lang="tr"
       className={`${headingFont.variable} ${monoFont.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col"><GlobalPlayerProvider>{children}</GlobalPlayerProvider></body>
     </html>
   );
 }

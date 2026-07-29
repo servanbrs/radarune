@@ -170,7 +170,7 @@ export function DiscoverFeedCard({
         {item.sourceType === "RADARUNE" && item.trackId ? (
           <div className="mt-5 rounded-2xl border border-line bg-background/80 p-3">
             <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted">MP3 önizleme</p>
-            <audio className="h-9 w-full" controls preload="none" src={`/api/growth/tracks/${item.trackId}/stream`} />
+            <audio className="h-9 w-full" controls preload="none" src={`/api/public/v1/tracks/${item.trackId}/stream`} />
           </div>
         ) : null}
 
