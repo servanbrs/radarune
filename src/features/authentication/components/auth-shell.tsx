@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { PublicAuthHeader } from "@/features/authentication/components/public-auth-header";
 
 type AuthShellProps = {
   title: string;
@@ -20,9 +21,13 @@ export function AuthShell({
   footerText,
   title,
 }: AuthShellProps) {
+  const mode = footerHref === "/sign-up" ? "sign-in" : "sign-up";
+
   return (
-    <main className="page-shell items-stretch !bg-[#080f13] !text-white">
-      <div className="grid w-full gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+    <div className="min-h-screen bg-[#080f13]">
+      <PublicAuthHeader mode={mode} />
+      <main className="page-shell items-stretch !bg-[#080f13] !text-white">
+        <div className="grid w-full gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <section className="panel relative overflow-hidden !border-white/10 !bg-[radial-gradient(circle_at_20%_10%,rgba(68,199,173,0.22),transparent_35%),#111d20] !text-white px-8 py-10 md:px-12 md:py-12">
           <div className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,#0f766e,#ff9357,#0f766e)]" />
           <div className="flex h-full flex-col justify-between gap-12">
@@ -83,7 +88,8 @@ export function AuthShell({
             </p>
           </div>
         </section>
-      </div>
-    </main>
+        </div>
+      </main>
+    </div>
   );
 }
