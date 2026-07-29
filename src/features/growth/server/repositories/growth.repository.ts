@@ -224,6 +224,12 @@ export class GrowthRepository {
         },
         smartLinks: { where: { active: true }, orderBy: { createdAt: "desc" }, take: 6 },
         artistProfileLinks: { where: { active: true }, orderBy: { sortOrder: "asc" } },
+        externalMediaSources: {
+          where: { status: "ACTIVE" },
+          orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+          take: 12,
+          select: { id: true, provider: true, title: true, artistName: true, externalUrl: true, embedUrl: true, thumbnailUrl: true, publishedAt: true, playable: true, embeddable: true },
+        },
         _count: { select: { follows: true } },
       },
     });

@@ -14,7 +14,6 @@ import {
   type ExternalMediaMetadata,
   type ExternalProviderKey,
 } from "@/features/integrations/domain/external-provider";
-import { externalProviderRegistry } from "@/features/integrations/server/provider-registry";
 import { spotifyProviderService } from "@/features/integrations/server/adapters/spotify-provider.service";
 import { youtubeProviderService } from "@/features/integrations/server/adapters/youtube-provider.service";
 import { importRepository } from "@/features/integrations/server/repositories/import.repository";
@@ -74,6 +73,16 @@ function spotifyTracks(value: unknown): unknown[] {
 
 function artistSlug(value: string) {
   return value.toLocaleLowerCase("tr-TR").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/ı/g, "i").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80) || "sanatci";
+}
+
+function importedArtistName(metadata: ExternalMediaMetadata) {
+  const explicit = metadata.artistName?.trim();
+  if (explicit) return explicit;
+  // Provider metadata can occasionally omit the artist. A stable title-derived
+  // name still gives the import an editable profile instead of leaving it
+  // orphaned in the discovery feed.
+  const fromTitle = metadata.title.split(/\s+[|–—-]\s+/)[0]?.trim();
+  return fromTitle || "Bilinmeyen sanatçı";
 }
 
 export class ImportSourceService {
@@ -153,7 +162,6 @@ export class ImportSourceService {
       const providerKey = source.provider;
       if (!providerKey) throw new Error("Import provider bilgisi eksik.");
       const credentials = await integrationCredentialService.runtime(organizationId, providerKey);
-      const provider = externalProviderRegistry.get(providerKey);
       const configuration = providerKey === "YOUTUBE"
         ? youtubeProviderService.validateConfiguration(credentials?.apiKey)
         : spotifyProviderService.validateConfiguration(credentials ?? undefined);
@@ -184,7 +192,7 @@ export class ImportSourceService {
       let importedCount = 0;
       let failedCount = 0;
       for (const item of metadata.data) {
-        const result = await this.processItem(organizationId, source.id, run.id, source.artistId, source.requiresReview || !source.autoPublish || !source.ownershipVerified || !item.playable || !item.embeddable, item);
+        const result = await this.processItem(organizationId, source.id, run.id, source.artistId, source.createdByUserId, source.requiresReview || !source.autoPublish || !source.ownershipVerified || !item.playable || !item.embeddable, item);
         if (result === "DUPLICATE") duplicateCount += 1;
         else if (result === "IMPORTED") importedCount += 1;
         else if (result === "FAILED") failedCount += 1;
@@ -303,32 +311,26 @@ export class ImportSourceService {
     return provider.detectNewReleases(tracks, new Set());
   }
 
-  private async processItem(organizationId: string, sourceId: string, runId: string, artistId: string | null, requiresReview: boolean, metadata: ExternalMediaMetadata) {
+  private async processItem(organizationId: string, sourceId: string, runId: string, artistId: string | null, ownerUserId: string | null, requiresReview: boolean, metadata: ExternalMediaMetadata) {
     try {
       const existing = await importRepository.findExternalMedia(organizationId, metadata.provider, metadata.externalId);
       if (existing) {
-        await prisma.importItem.create({ data: { organizationId, runId, sourceId, externalMediaSourceId: existing.id, provider: metadata.provider, externalId: metadata.externalId, title: metadata.title, artistName: metadata.artistName, durationMs: metadata.durationMs, status: "DUPLICATE", matchConfidence: "EXACT" } });
+        // Older imports may have been stored without an artist relation. Heal
+        // that record on the next run so every imported item has an editable
+        // artist profile.
+        await prisma.$transaction(async (client) => {
+          if (!existing.artistId) {
+            const resolvedArtistId = await this.ensureImportedArtist(client, organizationId, artistId, ownerUserId, metadata);
+            await client.externalMediaSource.update({ where: { id: existing.id }, data: { artistId: resolvedArtistId, artistName: metadata.artistName ?? existing.artistName, thumbnailUrl: metadata.thumbnailUrl ?? existing.thumbnailUrl } });
+          }
+          await client.importItem.create({ data: { organizationId, runId, sourceId, externalMediaSourceId: existing.id, provider: metadata.provider, externalId: metadata.externalId, title: metadata.title, artistName: metadata.artistName, durationMs: metadata.durationMs, status: "DUPLICATE", matchConfidence: "EXACT" } });
+        });
         return "DUPLICATE" as const;
       }
       const matchingTrack = await importRepository.findMatchingTrack(organizationId, metadata.title, metadata.durationMs, { isrc: metadata.isrc, upc: metadata.upc });
       const status = requiresReview || matchingTrack ? "PENDING_REVIEW" : "IMPORTED";
       await prisma.$transaction(async (client) => {
-        let resolvedArtistId = artistId;
-        if (!resolvedArtistId && metadata.artistName) {
-          const existingArtist = await client.artist.findFirst({ where: { organizationId, name: metadata.artistName }, select: { id: true } });
-          if (existingArtist) resolvedArtistId = existingArtist.id;
-          else {
-            const baseSlug = artistSlug(metadata.artistName);
-            let slug = baseSlug;
-            for (let attempt = 2; attempt < 100; attempt += 1) {
-              const taken = await client.artist.findFirst({ where: { organizationId, slug }, select: { id: true } });
-              if (!taken) break;
-              slug = `${baseSlug}-${attempt}`;
-            }
-            const createdArtist = await client.artist.create({ data: { organizationId, name: metadata.artistName, slug, sortName: metadata.artistName, type: "SOLO", profilePublishedAt: new Date(), ...(metadata.provider === "YOUTUBE" ? { youtubeProfileUrl: metadata.externalUrl } : { spotifyProfileUrl: metadata.externalUrl }) }, select: { id: true } });
-            resolvedArtistId = createdArtist.id;
-          }
-        }
+        const resolvedArtistId = await this.ensureImportedArtist(client, organizationId, artistId, ownerUserId, metadata);
         const external = await client.externalMediaSource.create({ data: { organizationId, provider: metadata.provider, externalId: metadata.externalId, externalUrl: metadata.externalUrl, normalizedUrl: normalizedUrlForStorage(metadata.externalUrl), embedUrl: metadata.embedUrl, title: metadata.title, artistName: metadata.artistName, durationMs: metadata.durationMs, thumbnailUrl: metadata.thumbnailUrl, publishedAt: metadata.publishedAt, playable: metadata.playable, embeddable: metadata.embeddable, regionRestrictions: metadata.regionRestrictions as Prisma.InputJsonValue, metadataHash: metadata.metadataHash, lastCheckedAt: new Date(), status: status === "IMPORTED" && metadata.playable ? "ACTIVE" : "UNAVAILABLE", artistId: resolvedArtistId } });
         const item = await client.importItem.create({ data: { organizationId, runId, sourceId, externalMediaSourceId: external.id, provider: metadata.provider, externalId: metadata.externalId, title: metadata.title, artistName: metadata.artistName, durationMs: metadata.durationMs, status, matchConfidence: matchingTrack ? "HIGH" : "NONE" } });
         if (matchingTrack) await client.importMatch.create({ data: { organizationId, importItemId: item.id, trackId: matchingTrack.id, releaseId: matchingTrack.releaseId, artistId: resolvedArtistId, confidence: metadata.isrc || metadata.upc ? "EXACT" : "HIGH", reason: metadata.isrc || metadata.upc ? "ISRC/UPC eşleşmesi bulundu. Hak sahipliği doğrulanmadan otomatik dağıtım yapılmaz." : "Başlık ve süre eşleşmesi bulundu; hak sahipliği doğrulanmadan otomatik birleştirme yapılmadı.", automatic: Boolean(metadata.isrc || metadata.upc) } });
@@ -338,6 +340,31 @@ export class ImportSourceService {
       await prisma.importItem.create({ data: { organizationId, runId, sourceId, provider: metadata.provider, externalId: metadata.externalId, title: metadata.title, artistName: metadata.artistName, durationMs: metadata.durationMs, status: "FAILED", errorMessage: "Import kaydı oluşturulamadı." } });
       return "FAILED" as const;
     }
+  }
+
+  private async ensureImportedArtist(client: Prisma.TransactionClient, organizationId: string, requestedArtistId: string | null, ownerUserId: string | null, metadata: ExternalMediaMetadata) {
+    if (requestedArtistId) {
+      const requested = await client.artist.findFirst({ where: { id: requestedArtistId, organizationId }, select: { id: true } });
+      if (requested) return requested.id;
+    }
+    const name = importedArtistName(metadata);
+    const existing = await client.artist.findFirst({ where: { organizationId, name }, select: { id: true, profileImageUrl: true, youtubeProfileUrl: true, spotifyProfileUrl: true } });
+    const profileData = metadata.provider === "YOUTUBE"
+      ? { youtubeProfileUrl: metadata.externalUrl }
+      : { spotifyProfileUrl: metadata.externalUrl };
+    if (existing) {
+      await client.artist.update({ where: { id: existing.id }, data: { ...(ownerUserId ? { ownerUserId } : {}), ...(existing.profileImageUrl ? {} : { profileImageUrl: metadata.thumbnailUrl }), ...(existing.youtubeProfileUrl || metadata.provider !== "YOUTUBE" ? {} : profileData), ...(existing.spotifyProfileUrl || metadata.provider !== "SPOTIFY" ? {} : profileData), profilePublishedAt: new Date() } });
+      return existing.id;
+    }
+    const baseSlug = artistSlug(name);
+    let slug = baseSlug;
+    for (let attempt = 2; attempt < 100; attempt += 1) {
+      const taken = await client.artist.findFirst({ where: { organizationId, slug }, select: { id: true } });
+      if (!taken) break;
+      slug = `${baseSlug}-${attempt}`;
+    }
+    const created = await client.artist.create({ data: { organizationId, createdByUserId: ownerUserId, ownerUserId, name, slug, sortName: name, type: "SOLO", profileImageUrl: metadata.thumbnailUrl, profilePublishedAt: new Date(), ...profileData }, select: { id: true } });
+    return created.id;
   }
 }
 
