@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 
 import { DiscoverFeedCard } from "@/features/growth/components/discover-feed-card";
 import { GlobalPlayer } from "@/features/growth/components/global-player";
@@ -22,21 +22,51 @@ export function DiscoverFeedClient({
   const [currentItem, setCurrentItem] =
     useState<PlayerItem | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [dragX, setDragX] = useState(0);
+  const [sortMode, setSortMode] = useState<"recommended" | "votes">("recommended");
+  const [drag, setDrag] = useState({ x: 0, y: 0 });
   const dragStart = useRef<number | null>(null);
+  const dragStartY = useRef<number | null>(null);
 
-  const activeItem = feed[activeIndex] ?? null;
+  const visibleFeed = useMemo(() => {
+    if (sortMode === "recommended") return feed;
+    return [...feed].sort((left, right) =>
+      (right.likeCount ?? 0) - (left.likeCount ?? 0) || right.score - left.score,
+    );
+  }, [feed, sortMode]);
+
+  const activeItem = visibleFeed[activeIndex] ?? null;
 
   function nextItem() {
-    setActiveIndex((index) => (feed.length ? (index + 1) % feed.length : 0));
-    setDragX(0);
+    setActiveIndex((index) => (visibleFeed.length ? (index + 1) % visibleFeed.length : 0));
+    setDrag({ x: 0, y: 0 });
   }
 
   function previousItem() {
     setActiveIndex((index) =>
-      feed.length ? (index - 1 + feed.length) % feed.length : 0,
+      visibleFeed.length ? (index - 1 + visibleFeed.length) % visibleFeed.length : 0,
     );
-    setDragX(0);
+    setDrag({ x: 0, y: 0 });
+  }
+
+  async function voteAndNext() {
+    if (!activeItem) return;
+    if (!isAuthenticated) {
+      window.location.assign("/sign-in?next=/discover");
+      return;
+    }
+
+    const payload = activeItem.trackId
+      ? { trackId: activeItem.trackId }
+      : activeItem.releaseId
+        ? { releaseId: activeItem.releaseId }
+        : { externalMediaId: activeItem.externalMediaId };
+
+    await fetch("/api/growth/like", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    nextItem();
   }
 
   useEffect(() => {
@@ -51,21 +81,26 @@ export function DiscoverFeedClient({
 
   function pointerDown(event: PointerEvent<HTMLDivElement>) {
     dragStart.current = event.clientX;
+    dragStartY.current = event.clientY;
     event.currentTarget.setPointerCapture(event.pointerId);
   }
 
   function pointerMove(event: PointerEvent<HTMLDivElement>) {
-    if (dragStart.current === null) return;
-    setDragX(event.clientX - dragStart.current);
+    if (dragStart.current === null || dragStartY.current === null) return;
+    setDrag({ x: event.clientX - dragStart.current, y: event.clientY - dragStartY.current });
   }
 
   function pointerUp() {
     if (dragStart.current === null) return;
-    const distance = dragX;
+    const distanceX = drag.x;
+    const distanceY = drag.y;
     dragStart.current = null;
-    if (distance > 90) previousItem();
-    else if (distance < -90) nextItem();
-    else setDragX(0);
+    dragStartY.current = null;
+    if (Math.abs(distanceX) > Math.abs(distanceY) && distanceX > 90) void voteAndNext();
+    else if (Math.abs(distanceX) > Math.abs(distanceY) && distanceX < -90) nextItem();
+    else if (distanceY < -90) nextItem();
+    else if (distanceY > 90) previousItem();
+    else setDrag({ x: 0, y: 0 });
   }
 
   function playRadaruneItem(item: DiscoverFeedItem) {
@@ -93,20 +128,24 @@ export function DiscoverFeedClient({
     <>
       <section className="mt-6">
         <div className="mx-auto max-w-2xl">
-          <div className="mb-4 flex items-center justify-between text-sm text-muted">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-sm text-muted">
             <span className="font-semibold uppercase tracking-[0.16em] text-accent">Sana özel akış</span>
-            <span>{feed.length ? `${activeIndex + 1} / ${feed.length}` : "0 içerik"}</span>
+            <div className="inline-flex rounded-full border border-line bg-surface p-1 text-xs font-semibold">
+              <button className={`rounded-full px-3 py-1.5 ${sortMode === "recommended" ? "bg-foreground text-white" : "text-muted"}`} onClick={() => { setSortMode("recommended"); setActiveIndex(0); }} type="button">Sana özel</button>
+              <button className={`rounded-full px-3 py-1.5 ${sortMode === "votes" ? "bg-accent text-white" : "text-muted"}`} onClick={() => { setSortMode("votes"); setActiveIndex(0); }} type="button">En çok oylanan</button>
+            </div>
+            <span>{visibleFeed.length ? `${activeIndex + 1} / ${visibleFeed.length}` : "0 içerik"}</span>
           </div>
 
           {activeItem ? (
             <div
-              className="touch-pan-y select-none transition-transform duration-200 ease-out"
+              className="touch-none select-none transition-transform duration-200 ease-out"
               onPointerDown={pointerDown}
               onPointerMove={pointerMove}
               onPointerUp={pointerUp}
               onPointerCancel={pointerUp}
               style={{
-                transform: `translateX(${dragX}px) rotate(${dragX * 0.035}deg)`,
+                transform: `translate(${drag.x}px, ${drag.y}px) rotate(${drag.x * 0.035}deg)`,
               }}
             >
               <DiscoverFeedCard
@@ -126,26 +165,26 @@ export function DiscoverFeedClient({
             <div className="mt-5 flex items-center justify-center gap-3">
               <button
                 className="inline-flex size-12 items-center justify-center rounded-full border border-line bg-surface text-xl text-muted shadow-sm transition hover:-translate-y-0.5 hover:border-red-300 hover:text-red-500"
-                onClick={previousItem}
+                onClick={nextItem}
                 type="button"
-                aria-label="Önceki içerik"
+                aria-label="Beğenme ve geç"
               >
-                ↶
+                ✕
               </button>
               <button
                 className="rounded-full bg-foreground px-7 py-3 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5"
                 onClick={nextItem}
                 type="button"
               >
-                Sıradaki içerik
+                Geç
               </button>
               <button
                 className="inline-flex size-12 items-center justify-center rounded-full border border-line bg-surface text-xl text-muted shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:text-emerald-500"
-                onClick={nextItem}
+                onClick={() => void voteAndNext()}
                 type="button"
                 aria-label="Sonraki içerik"
               >
-                ↷
+                ♥
               </button>
             </div>
           ) : null}
