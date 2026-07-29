@@ -15,6 +15,7 @@ export function IntegrationStatusCard({
 }) {
   const [message, setMessage] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [isConfigured, setIsConfigured] = useState(configured);
   const [secretA, setSecretA] = useState("");
   const [secretB, setSecretB] = useState("");
 
@@ -43,6 +44,7 @@ export function IntegrationStatusCard({
         body: JSON.stringify({ provider: provider.toUpperCase(), credentials }),
       });
       const error = await readResponse(response);
+      if (response.ok) setIsConfigured(true);
       setMessage(response.ok ? "Credential şifreli olarak kaydedildi." : error ?? "Credential kaydedilemedi.");
     } catch {
       setMessage("Credential kaydı sırasında sunucuya ulaşılamadı.");
@@ -58,6 +60,7 @@ export function IntegrationStatusCard({
       const response = await fetch(`/api/admin/integrations/${provider.toLowerCase()}`);
       const data = await response.json().catch(() => null);
       const error = data?.error ?? data?.message;
+      if (response.ok && data?.success) setIsConfigured(true);
       setMessage(response.ok && data?.success
         ? `Bağlantı başarılı (${new Date(data.data.checkedAt).toLocaleString("tr-TR")})`
         : error ?? "Bağlantı testi başarısız.");
@@ -73,8 +76,8 @@ export function IntegrationStatusCard({
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-sm font-semibold">Yapılandırma durumu</p>
-          <p className={`mt-2 text-sm ${configured ? "text-accent" : "text-danger"}`}>
-            {configured ? "Yapılandırıldı" : "Yapılandırılmadı"}
+          <p className={`mt-2 text-sm ${isConfigured ? "text-accent" : "text-danger"}`}>
+            {isConfigured ? "Yapılandırıldı" : "Yapılandırılmadı"}
           </p>
         </div>
         <button className="rounded-full border border-line px-4 py-2 text-sm font-semibold disabled:opacity-50" disabled={pending} onClick={() => void test()} type="button">
@@ -93,7 +96,7 @@ export function IntegrationStatusCard({
           Credential’ları kaydet
         </button>
       </div>
-      {!configured ? <p className="mt-4 text-xs text-muted">Eksik env alanları: {missing.join(", ") || "yok"}. Panel credential’ı şifreli olarak saklar.</p> : null}
+      {!isConfigured ? <p className="mt-4 text-xs text-muted">Eksik env alanları: {missing.join(", ") || "yok"}. Panel credential’ı şifreli olarak saklar.</p> : null}
       {message ? <p className="mt-4 rounded-xl border border-line p-3 text-sm" role="status">{message}</p> : null}
     </section>
   );
