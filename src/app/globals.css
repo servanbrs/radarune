@@ -90,6 +90,20 @@ html[data-theme="dark"] .bg-white\/60,
 html[data-theme="dark"] .bg-white\/70,
 html[data-theme="dark"] .bg-white\/80 { color: #eef7f5 !important; }
 html[data-theme="dark"] .hover\:bg-white:hover { background-color: #1d3437 !important; }
+/* Keep legacy utility classes readable when the user switches the global theme. */
+html[data-theme="dark"] .text-black,
+html[data-theme="dark"] .text-gray-900,
+html[data-theme="dark"] .text-gray-800,
+html[data-theme="dark"] .text-gray-700 { color: var(--foreground) !important; }
+html[data-theme="dark"] .text-gray-600,
+html[data-theme="dark"] .text-gray-500,
+html[data-theme="dark"] .text-gray-400 { color: var(--muted) !important; }
+html[data-theme="dark"] .border-gray-200,
+html[data-theme="dark"] .border-gray-300 { border-color: var(--line) !important; }
+html[data-theme="dark"] .bg-gray-50,
+html[data-theme="dark"] .bg-gray-100 { background-color: var(--surface-strong) !important; }
+html[data-theme="dark"] .shadow-sm,
+html[data-theme="dark"] .shadow-md { box-shadow: 0 12px 40px rgba(0,0,0,.25) !important; }
 
 body:has(main[data-admin-theme="dark"]) > div > header,
 body:has(main[data-admin-theme="dark"]) header {

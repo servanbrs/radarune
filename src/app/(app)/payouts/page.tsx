@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
+import { getStatusLabel } from "@/features/admin/components/status-badges";
 import { artistService } from "@/features/artist/server/services/artist.service";
 import { rbacService } from "@/features/authorization/server/rbac";
 import { formatMinorMoney } from "@/features/finance/lib/formatters";
@@ -147,7 +148,7 @@ export default async function PayoutsPage() {
                           "Bilinmiyor"}
                       </span>
                       <span className="text-xs uppercase tracking-[0.18em] text-muted">
-                        {payout.status}
+                        {getStatusLabel(payout.status, organization.organization.defaultLocale)}
                       </span>
                     </div>
                     <p className="mt-2 text-sm text-muted">

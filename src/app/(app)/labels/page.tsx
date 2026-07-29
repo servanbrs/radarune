@@ -2,6 +2,7 @@ import { authSessionService } from "@/features/authentication/server/services/au
 import { rbacService } from "@/features/authorization/server/rbac";
 import { CreateLabelForm } from "@/features/label/components/create-label-form";
 import { labelService } from "@/features/label/server/services/label.service";
+import { getStatusLabel } from "@/features/admin/components/status-badges";
 
 export default async function LabelsPage() {
   const { organization } = await authSessionService.getDashboardContext();
@@ -54,7 +55,7 @@ export default async function LabelsPage() {
                       <p className="mt-1 text-xs uppercase tracking-wider text-accent">{label.parentLabel ? `Sublabel · ${label.parentLabel.name}` : "Ana label"}</p>
                     </div>
                     <span className="rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-muted">
-                      {label.status}
+                      {getStatusLabel(label.status, organization.organization.defaultLocale)}
                     </span>
                   </div>
                   <p className="mt-3 text-sm text-muted">

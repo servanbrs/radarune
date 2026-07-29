@@ -5,6 +5,7 @@ import Link from "next/link";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { toAdminActor } from "@/features/admin/server/admin-context";
 import { adminDashboardService } from "@/features/admin/server/services/admin-dashboard.service";
+import { getStatusLabel } from "@/features/admin/components/status-badges";
 
 export default async function AdminPage() {
   const { organization, user } = await authSessionService.getDashboardContext();
@@ -58,7 +59,7 @@ export default async function AdminPage() {
           <div className="mt-4 space-y-3">
             {dashboard.releaseStatusDistribution.map((item) => (
               <div className="flex items-center justify-between rounded-2xl border border-line bg-surface-strong px-4 py-3" key={item.status}>
-                <span className="text-sm font-medium">{item.status}</span>
+                <span className="text-sm font-medium">{getStatusLabel(item.status, organization.organization.defaultLocale)}</span>
                 <span className="text-sm text-muted">{item._count._all}</span>
               </div>
             ))}
@@ -69,7 +70,7 @@ export default async function AdminPage() {
           <div className="mt-4 space-y-3">
             {dashboard.jobStatusDistribution.map((item) => (
               <div className="flex items-center justify-between rounded-2xl border border-line bg-surface-strong px-4 py-3" key={item.status}>
-                <span className="text-sm font-medium">{item.status}</span>
+                <span className="text-sm font-medium">{getStatusLabel(item.status, organization.organization.defaultLocale)}</span>
                 <span className="text-sm text-muted">{item._count._all}</span>
               </div>
             ))}

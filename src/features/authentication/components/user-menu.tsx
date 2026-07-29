@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { ChevronDown, KeyRound, Settings, UserRound } from "lucide-react";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { SignOutButton } from "@/features/authentication/components/sign-out-button";
 
-export function UserMenu({ name, email, adminAccess, artistAccess }: { name: string; email: string; adminAccess?: boolean; artistAccess?: boolean }) {
+export function UserMenu({ name, email, adminAccess, artistAccess, locale = "tr-TR" }: { name: string; email: string; adminAccess?: boolean; artistAccess?: boolean; locale?: string }) {
   return (
     <details className="group relative">
       <summary className="flex cursor-pointer list-none items-center gap-2 rounded-full border border-line bg-surface px-3 py-2 [&::-webkit-details-marker]:hidden">
@@ -33,6 +35,13 @@ export function UserMenu({ name, email, adminAccess, artistAccess }: { name: str
             <Settings className="h-4 w-4" /> Analizler
           </Link>
         </nav>
+        <div className="flex items-center justify-between border-t border-line pt-2">
+          <LanguageSwitcher locale={locale} />
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted">Tema</span>
+            <ThemeToggle />
+          </div>
+        </div>
         <div className="border-t border-line pt-2 [&_button]:w-full [&_button]:border-danger/40 [&_button]:bg-danger/10 [&_button]:text-danger [&_button]:hover:bg-danger/20">
           <SignOutButton />
         </div>

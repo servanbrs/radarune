@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 import { canAccessAdmin, toAdminActor } from "@/features/admin/server/admin-context";
 import { SignOutButton } from "@/features/authentication/components/sign-out-button";
 import { UserMenu } from "@/features/authentication/components/user-menu";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { creatorAccessService } from "@/features/authorization/server/creator-access.service";
 import { GlobalSearch } from "@/components/global-search";
@@ -45,8 +44,6 @@ export default async function AppLayout({
       label: english ? "Home" : "Ana Sayfa",
     },
     { href: "/discover", label: english ? "Discover" : "Keşfet" },
-    { href: "/about", label: english ? "About" : "Hakkımızda" },
-    { href: "/contact", label: english ? "Contact" : "İletişim" },
   ];
 
   if (creatorAccess.showBecomeArtist) {
@@ -146,10 +143,8 @@ export default async function AppLayout({
           </nav>
 
           <div className="hidden shrink-0 items-center gap-3 lg:flex">
-            <LanguageSwitcher locale={organization.organization.defaultLocale} />
-            <ThemeToggle />
             <NotificationBell />
-            <UserMenu adminAccess={adminAccess} artistAccess={creatorAccess.isArtist} email={user.email} name={user.name} />
+            <UserMenu adminAccess={adminAccess} artistAccess={creatorAccess.isArtist} email={user.email} locale={organization.organization.defaultLocale} name={user.name} />
           </div>
 
           <details className="group relative lg:hidden">
@@ -202,6 +197,21 @@ export default async function AppLayout({
       <div className="flex min-w-0 flex-1 flex-col">
         {children}
       </div>
+
+      <footer className="border-t border-line/70 bg-surface px-4 py-8 text-sm text-muted sm:px-6 lg:px-8">
+        <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-semibold text-foreground">Radarune</p>
+            <p className="mt-1">Müziğin radarı · Yayın ve keşif platformu</p>
+          </div>
+          <nav className="flex flex-wrap items-center gap-x-5 gap-y-3">
+            <Link className="hover:text-foreground" href="/about">{english ? "About" : "Hakkımızda"}</Link>
+            <Link className="hover:text-foreground" href="/contact">{english ? "Contact" : "İletişim"}</Link>
+            <Link className="hover:text-foreground" href="/terms">{english ? "Terms" : "Kullanım koşulları"}</Link>
+            <LanguageSwitcher locale={organization.organization.defaultLocale} />
+          </nav>
+        </div>
+      </footer>
     </div>
   );
 }
