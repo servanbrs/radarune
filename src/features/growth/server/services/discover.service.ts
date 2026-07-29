@@ -113,6 +113,7 @@ export class DiscoverService {
       id: true,
       title: true,
       primaryGenre: true,
+      status: true,
       liveAt: true,
       createdAt: true,
       artists: {
@@ -151,6 +152,10 @@ export class DiscoverService {
       candidates.map((candidate) => ({
         ...candidate,
         score:
+          // Keep approved Radarune distribution above all other statuses;
+          // votes then determine the order inside that tier.
+          (candidate.status === "DISTRIBUTED" ? 1_000_000 : 500_000) +
+          Math.min(candidate._count.releaseLikes, 1000) * 8 +
           recommendationService.scoreCandidate(candidate) +
           freshnessScore(
             candidate.liveAt ?? candidate.createdAt,
@@ -235,6 +240,7 @@ export class DiscoverService {
           id: true,
           title: true,
           primaryGenre: true,
+          status: true,
           liveAt: true,
           createdAt: true,
           tracks: {
@@ -315,7 +321,7 @@ export class DiscoverService {
         orderBy: [{ liveAt: "desc" }, { createdAt: "desc" }],
         take: 60,
         select: {
-          id: true, title: true, primaryGenre: true, liveAt: true, createdAt: true,
+          id: true, title: true, primaryGenre: true, status: true, liveAt: true, createdAt: true,
           tracks: { orderBy: { trackNumber: "asc" }, take: 1, select: { id: true, title: true, trackNumber: true } },
           artists: { orderBy: { sortOrder: "asc" }, take: 3, select: { artist: { select: { id: true, name: true, slug: true } } } },
           _count: { select: { releaseLikes: true } },
@@ -333,7 +339,7 @@ export class DiscoverService {
         orderBy: [{ liveAt: "desc" }, { createdAt: "desc" }],
         take: 60,
         select: {
-          id: true, title: true, primaryGenre: true, liveAt: true, createdAt: true,
+          id: true, title: true, primaryGenre: true, status: true, liveAt: true, createdAt: true,
           tracks: { orderBy: { trackNumber: "asc" }, take: 1, select: { id: true, title: true, trackNumber: true } },
           artists: { orderBy: { sortOrder: "asc" }, take: 3, select: { artist: { select: { id: true, name: true, slug: true } } } },
           _count: { select: { releaseLikes: true } },
@@ -349,6 +355,10 @@ export class DiscoverService {
 
         const publishedAt = release.liveAt ?? release.createdAt;
         const primaryArtist = release.artists[0]?.artist ?? null;
+        // A distributed release always stays ahead of non-distributed
+        // releases. Votes are the ranking signal within each tier.
+        const distributionPriority = release.status === "DISTRIBUTED" ? 1_000_000 : 500_000;
+        const voteScore = Math.min(release._count.releaseLikes, 1000) * 8;
 
         return {
           sourceType: "RADARUNE",
@@ -368,8 +378,10 @@ export class DiscoverService {
           provider: "RADARUNE",
           playable: Boolean(release.tracks[0]),
           artist: primaryArtist,
+          likeCount: release._count.releaseLikes,
           score:
-            100 +
+            distributionPriority +
+            voteScore +
             freshnessScore(publishedAt, 80) +
             recommendationScore,
         };
