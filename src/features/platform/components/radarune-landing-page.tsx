@@ -4,6 +4,7 @@ import type { PublicDiscoverCandidate } from "@/features/growth/server/services/
 import { StructuredData } from "@/features/seo/components/structured-data";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { QuickSignUpForm } from "@/features/authentication/components/quick-sign-up-form";
 
 const capabilities = [
   {
@@ -192,6 +193,13 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
         ) : (
           <div className="mt-10 rounded-[1.75rem] border border-dashed border-white/15 bg-white/[0.03] px-6 py-12 text-center md:px-10"><Compass className="mx-auto h-8 w-8 text-[#efb848]" aria-hidden="true" /><h3 className="mt-5 text-2xl font-semibold">İlk yayınlarınızı bekliyor.</h3><p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-white/50">Canlı katalog oluştuğunda yayınlar burada görünecek. Radarune sahte içerik üretmez.</p></div>
         )}
+      </section>
+
+      <section className="relative z-10 mx-5 mb-24 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.055] px-6 py-8 md:mx-auto md:max-w-7xl md:px-10 md:py-10" id="quick-sign-up">
+        <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+          <div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#efb848]">Radarune&apos;a katıl</p><h2 className="mt-4 text-3xl font-semibold leading-tight tracking-[-0.03em] md:text-4xl">Müziğin radarına bugün gir.</h2><p className="mt-3 max-w-md text-sm leading-6 text-white/55">E-posta, ad ve güçlü bir şifreyle ücretsiz hesabını saniyeler içinde oluştur.</p></div>
+          <QuickSignUpForm />
+        </div>
       </section>
 
       <section className="relative z-10 mx-5 mb-8 overflow-hidden rounded-[2rem] bg-[#efb848] px-6 py-14 text-[#090b0f] md:mx-auto md:max-w-7xl md:px-12 md:py-20">
