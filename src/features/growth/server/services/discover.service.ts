@@ -280,6 +280,7 @@ export class DiscoverService {
           provider: {
             in: ["YOUTUBE", "SPOTIFY"],
           },
+          importItems: { some: { status: { in: ["APPROVED", "IMPORTED"] } } },
         },
         orderBy: [
           {
