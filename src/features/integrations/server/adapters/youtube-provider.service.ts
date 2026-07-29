@@ -14,6 +14,7 @@ type YouTubeItem = {
     title?: string;
     channelTitle?: string;
     publishedAt?: string;
+    categoryId?: string;
     thumbnails?: { high?: { url?: string }; medium?: { url?: string } };
   };
   contentDetails?: { duration?: string };
@@ -75,6 +76,7 @@ export class YouTubeProviderService implements ExternalProviderAdapter {
       part: "snippet",
       channelId,
       type: "video",
+      videoCategoryId: "10",
       order: "date",
       maxResults: "50",
       ...(pageToken ? { pageToken } : {}),
@@ -128,6 +130,11 @@ export class YouTubeProviderService implements ExternalProviderAdapter {
   normalizeMetadata(input: unknown): ProviderResult<ExternalMediaMetadata> {
     if (!isObject(input)) return this.normalizeError(new Error("YouTube metadata yanıtı geçersiz."));
     const item = input as YouTubeItem;
+    // YouTube category 10 is Music. Do not import general entertainment,
+    // vlog or gaming videos into Radarune's music discovery catalog.
+    if (item.snippet?.categoryId && item.snippet.categoryId !== "10") {
+      return this.normalizeError(new Error("Bu YouTube içeriği müzik kategorisinde değil."));
+    }
     const id = videoId(item);
     const title = item.snippet?.title?.trim();
     if (!id || !title) return this.normalizeError(new Error("YouTube videosu için kimlik veya başlık eksik."));
