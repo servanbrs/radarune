@@ -81,6 +81,11 @@ export class SocialService {
     });
   }
 
+  async listComments(input: { releaseId?: string; trackId?: string }) {
+    if (!input.releaseId && !input.trackId) throw new Error("Yorum hedefi bulunamadı.");
+    return socialRepository.listVisibleComments(input);
+  }
+
   async createPlaylist(actor: FinanceActorContext, input: CreatePlaylistInput) {
     const parsed = createPlaylistSchema.parse(input);
     return socialRepository.createPlaylist({
