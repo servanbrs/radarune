@@ -43,10 +43,9 @@ function getAccess(input: CreatorAccessInput): CreatorAccess {
     isAdmin ||
     isOrganizer;
 
-  const canViewAnalytics =
-    isAdmin ||
-    isArtist ||
-    isOrganizer;
+  // Performans verileri yalnızca doğrulanmış sanatçıların ve yöneticilerin
+  // kendi kataloglarını görmesi için açılır.
+  const canViewAnalytics = isAdmin || isArtist;
 
   const canUseGrowthTools =
     isAdmin ||

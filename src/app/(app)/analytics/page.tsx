@@ -5,6 +5,8 @@ import { analyticsService } from "@/features/finance/server/services/analytics.s
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import Link from "next/link";
+import { creatorAccessService } from "@/features/authorization/server/creator-access.service";
+import { redirect } from "next/navigation";
 
 type AnalyticsPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -21,6 +23,10 @@ function readSearchParam(
 export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps) {
   const params = await searchParams;
   const { organization, user } = await authSessionService.getDashboardContext();
+
+  if (!creatorAccessService.getAccess({ systemRole: user.systemRole }).canViewAnalytics) {
+    redirect("/dashboard");
+  }
 
   rbacService.redirectIfMissingEffectivePermission({
     membershipRole: organization.role,
