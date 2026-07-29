@@ -50,7 +50,7 @@ export class SpotifyProviderService implements ExternalProviderAdapter {
   async getAccessToken(credentialsOverride?: { clientId?: string; clientSecret?: string }): Promise<ProviderResult<{ accessToken: string; expiresAt: Date }>> {
     const config = this.validateConfiguration(credentialsOverride);
     if (!config.success) return config;
-    if (this.accessToken && Date.now() < this.tokenExpiresAt - 30_000) {
+    if (!credentialsOverride && this.accessToken && Date.now() < this.tokenExpiresAt - 30_000) {
       return { success: true, data: { accessToken: this.accessToken, expiresAt: new Date(this.tokenExpiresAt) } };
     }
     try {
@@ -168,7 +168,9 @@ export class SpotifyProviderService implements ExternalProviderAdapter {
       }
       if (response.status === 404) return { success: false as const, code: "NOT_FOUND" as const, message: "Spotify kaynağı bulunamadı." };
       if (!response.ok) {
-        const detail = isObject(payload) && typeof payload.error_description === "string"
+        const detail = isObject(payload) && isObject(payload.error) && typeof payload.error.message === "string"
+          ? payload.error.message
+          : isObject(payload) && typeof payload.error_description === "string"
           ? payload.error_description
           : rawBody.trim().slice(0, 240);
         return this.normalizeError(new Error(spotifyErrorMessage(detail || `Spotify API isteği başarısız oldu (HTTP ${response.status}).`)));
