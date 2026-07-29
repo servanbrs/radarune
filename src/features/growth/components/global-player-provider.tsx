@@ -62,6 +62,10 @@ export function GlobalPlayerProvider({ children }: { children: ReactNode }) {
     audio.addEventListener("timeupdate", onTime);
     audio.addEventListener("loadedmetadata", onMeta);
     audio.addEventListener("ended", onEnded);
+    // Start playback immediately when an item is selected from a cover or
+    // from the queue. Previously the player created an Audio instance but
+    // never called play(), leaving the dock apparently stuck.
+    void audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
     return () => {
       audio.pause();
       audio.removeEventListener("timeupdate", onTime);
@@ -77,7 +81,7 @@ export function GlobalPlayerProvider({ children }: { children: ReactNode }) {
       setQueue(nextQueue);
       setIndex(nextIndex >= 0 ? nextIndex : 0);
       setItem(next);
-      setPlaying(false);
+      setPlaying(next.playbackUrl ? false : Boolean(next.embedUrl));
     };
     const move = (step: number) => {
       if (!queue.length) return;
@@ -85,13 +89,19 @@ export function GlobalPlayerProvider({ children }: { children: ReactNode }) {
       setIndex(nextIndex);
       const nextItem = queue[nextIndex];
       if (nextItem) setItem(nextItem);
-      setPlaying(false);
+      setPlaying(nextItem?.playbackUrl ? false : Boolean(nextItem?.embedUrl));
     };
     return {
       item, queue, index, playing, position, duration, play,
       toggle: async () => {
         const audio = audioRef.current;
-        if (!audio) return;
+        if (!audio) {
+          // Provider items are rendered in the persistent iframe. We cannot
+          // seek them from an HTMLAudioElement, but toggling the state lets
+          // the iframe reload with the correct autoplay intent.
+          if (item?.embedUrl) setPlaying((current) => !current);
+          return;
+        }
         if (playing) { audio.pause(); setPlaying(false); return; }
         try { await audio.play(); setPlaying(true); } catch { setPlaying(false); }
       },

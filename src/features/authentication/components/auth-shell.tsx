@@ -24,11 +24,11 @@ export function AuthShell({
   const mode = footerHref === "/sign-up" ? "sign-in" : "sign-up";
 
   return (
-    <div className="min-h-screen bg-[#080f13]">
+    <div className="auth-shell min-h-screen">
       <PublicAuthHeader mode={mode} />
-      <main className="page-shell items-stretch !bg-[#080f13] !text-white">
+      <main className="auth-main page-shell items-stretch">
         <div className="grid w-full gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="panel relative overflow-hidden !border-white/10 !bg-[radial-gradient(circle_at_20%_10%,rgba(68,199,173,0.22),transparent_35%),#111d20] !text-white px-8 py-10 md:px-12 md:py-12">
+        <section className="auth-hero panel relative overflow-hidden px-8 py-10 md:px-12 md:py-12">
           <div className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,#0f766e,#ff9357,#0f766e)]" />
           <div className="flex h-full flex-col justify-between gap-12">
             <div className="max-w-2xl space-y-6">
@@ -68,7 +68,7 @@ export function AuthShell({
           </div>
         </section>
 
-        <section className="panel flex items-center !border-white/10 !bg-[#111d20] !text-white px-6 py-8 md:px-10">
+        <section className="auth-form-panel panel flex items-center px-6 py-8 md:px-10">
           <div className="mx-auto flex w-full max-w-md flex-col gap-8">
             <div className="space-y-3">
               <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted">

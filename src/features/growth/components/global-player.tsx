@@ -3,6 +3,16 @@
 import { Pause, Play, SkipBack, SkipForward, X } from "lucide-react";
 import { useGlobalPlayer } from "@/features/growth/components/global-player-provider";
 
+function playerEmbedUrl(url: string, playing: boolean) {
+  try {
+    const parsed = new URL(url);
+    parsed.searchParams.set("autoplay", playing ? "1" : "0");
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
 /** Persistent playback dock rendered by the root layout. */
 export function GlobalPlayer() {
   const { item, queue, index, playing, position, duration, toggle, next, previous, seek, close } = useGlobalPlayer();
@@ -19,7 +29,8 @@ export function GlobalPlayer() {
           <iframe
             allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
             className="hidden h-14 w-28 rounded-lg border border-line sm:block sm:w-44"
-            src={item.embedUrl}
+            key={`${item.id}-${playing ? "playing" : "paused"}`}
+            src={playerEmbedUrl(item.embedUrl, playing)}
             title={`${item.title} oynatıcı`}
           />
         ) : null}

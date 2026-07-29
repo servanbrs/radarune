@@ -16,6 +16,27 @@ type DiscoverFeedClientProps = {
   isAuthenticated?: boolean;
 };
 
+function providerEmbedUrl(provider: string, externalUrl: string | null, embedUrl: string | null) {
+  if (embedUrl) return embedUrl;
+  if (!externalUrl) return null;
+  try {
+    const parsed = new URL(externalUrl);
+    if (provider === "YOUTUBE") {
+      const videoId = parsed.hostname.includes("youtu.be")
+        ? parsed.pathname.slice(1)
+        : parsed.searchParams.get("v");
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+    }
+    if (provider === "SPOTIFY") {
+      const parts = parsed.pathname.split("/").filter(Boolean);
+      return parts.length >= 2 ? `https://open.spotify.com/embed/${parts[0]}/${parts[1]}` : null;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
 export function DiscoverFeedClient({
   feed, isAuthenticated = false,
 }: DiscoverFeedClientProps) {
@@ -128,7 +149,7 @@ export function DiscoverFeedClient({
         source: item.provider === "YOUTUBE" ? "YOUTUBE" : "SPOTIFY_EMBED",
         sourceLabel: item.provider === "YOUTUBE" ? "YouTube" : "Spotify",
         playbackUrl: null,
-        embedUrl: item.embedUrl ?? item.externalUrl,
+        embedUrl: providerEmbedUrl(item.provider, item.externalUrl, item.embedUrl),
         capabilities: playerCapabilities[item.provider === "YOUTUBE" ? "YOUTUBE" : "SPOTIFY_EMBED"],
       };
     }
