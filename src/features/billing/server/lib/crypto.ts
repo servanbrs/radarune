@@ -5,11 +5,12 @@ import { env } from "@/lib/env";
 const IV_LENGTH = 12;
 
 function getEncryptionKey() {
-  if (!env.BILLING_ENCRYPTION_KEY) {
-    throw new Error("Billing encryption key yapılandırılmamış.");
+  const source = env.BILLING_ENCRYPTION_KEY ?? env.DISTRIBUTION_ENCRYPTION_KEY ?? env.ENCRYPTION_KEY;
+  if (!source) {
+    throw new Error("Credential şifreleme anahtarı yapılandırılmamış. BILLING_ENCRYPTION_KEY, DISTRIBUTION_ENCRYPTION_KEY veya ENCRYPTION_KEY tanımlayın.");
   }
 
-  return createHash("sha256").update(env.BILLING_ENCRYPTION_KEY).digest();
+  return createHash("sha256").update(source).digest();
 }
 
 export function encryptBillingSecret(value: string) {

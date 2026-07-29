@@ -174,11 +174,16 @@ export class YouTubeProviderService implements ExternalProviderAdapter {
     try {
       const response = await fetch(url, { headers: { Accept: "application/json" }, cache: "no-store" });
       const payload: unknown = await response.json();
+      const apiError = isObject(payload) && isObject(payload.error) ? payload.error : null;
+      const apiMessage = apiError && typeof apiError.message === "string" ? apiError.message : null;
       if (response.status === 403) {
-        const reason = isObject(payload) && isObject(payload.error) && Array.isArray(payload.error.errors)
-          ? String((payload.error.errors[0] as Record<string, unknown> | undefined)?.reason ?? "")
+        const reason = apiError && Array.isArray(apiError.errors)
+          ? String((apiError.errors[0] as Record<string, unknown> | undefined)?.reason ?? "")
           : "";
-        return { success: false as const, code: "RATE_LIMITED" as const, message: reason === "API_KEY_HTTP_REFERRER_BLOCKED" ? "YouTube anahtarı web sitesi kısıtlamasıyla engellendi. Sunucu kullanımı için Google Cloud'da IP kısıtlaması kullanın." : "YouTube API kotası veya erişim sınırı aşıldı." };
+        return { success: false as const, code: "RATE_LIMITED" as const, message: reason === "API_KEY_HTTP_REFERRER_BLOCKED" ? "YouTube anahtarı web sitesi kısıtlamasıyla engellendi. Sunucu kullanımı için Google Cloud'da IP kısıtlaması kullanın." : apiMessage ?? "YouTube API kotası veya erişim sınırı aşıldı." };
+      }
+      if (response.status === 400 || response.status === 401) {
+        return { success: false as const, code: "PROVIDER_ERROR" as const, message: apiMessage ?? "YouTube API anahtarı geçersiz veya etkin değil. YouTube Data API v3'ü etkinleştirin." };
       }
       if (response.status === 404) return { success: false as const, code: "NOT_FOUND" as const, message: "YouTube kaynağı bulunamadı." };
       if (!response.ok) return this.normalizeError(new Error("YouTube API isteği başarısız oldu."));
