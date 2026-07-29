@@ -9,7 +9,7 @@ export const adminNavigationGroups = [
   { title: "Finans", items: [{ href: "/admin/finance", label: "Finans Yönetimi" }] },
   { title: "İçerik ve büyüme", items: [{ href: "/admin/social/playlists", label: "Global Playlistler" }, { href: "/admin/intelligence", label: "Yapay Zekâ Yönetimi" }, { href: "/admin/site-builder", label: "Site Builder" }] },
   { title: "Entegrasyonlar", items: [{ href: "/admin/integrations/youtube", label: "YouTube" }, { href: "/admin/integrations/spotify", label: "Spotify" }, { href: "/admin/storage", label: "Dosya Depolama" }, { href: "/admin/api-keys", label: "Public API" }, { href: "/admin/webhooks", label: "Webhooks" }] },
-  { title: "Sistem", items: [{ href: "/admin/settings", label: "Site Ayarları" }, { href: "/admin/settings#smtp", label: "SMTP ve e-posta" }, { href: "/admin/audit-logs", label: "İşlem Kayıtları" }, { href: "/admin/system-logs", label: "Sistem Logları" }, { href: "/admin/system/health", label: "Sistem Doktoru" }] },
+  { title: "Sistem", items: [{ href: "/admin/settings", label: "Site Ayarları" }, { href: "/admin/seo", label: "SEO Yönetimi" }, { href: "/admin/sitemap", label: "Sitemap" }, { href: "/admin/settings#smtp", label: "SMTP ve e-posta" }, { href: "/admin/audit-logs", label: "İşlem Kayıtları" }, { href: "/admin/system-logs", label: "Sistem Logları" }, { href: "/admin/system/health", label: "Sistem Doktoru" }] },
 ] as const;
 
 export function AdminNavigation() {

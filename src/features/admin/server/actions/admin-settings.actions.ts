@@ -153,3 +153,20 @@ export async function updateAdminSettingsAction(
   revalidatePath("/admin/settings");
   revalidatePath("/");
 }
+
+export async function updateSeoSettingsAction(formData: FormData) {
+  const { organization, user } = await authSessionService.getDashboardContext();
+  const actor = toAdminActor({
+    organizationId: organization.organization.id,
+    membershipRole: organization.role,
+    systemRole: user.systemRole,
+    userId: user.id,
+  });
+  const reason = getText(formData, "reason");
+  if (reason.length < 10) throw new Error("Değişiklik sebebi en az 10 karakter olmalıdır.");
+
+  await adminSystemService.updateSetting(actor, { key: "SEO_TITLE", value: getText(formData, "seoTitle"), reason });
+  await adminSystemService.updateSetting(actor, { key: "SEO_DESCRIPTION", value: getText(formData, "seoDescription"), reason });
+  revalidatePath("/admin/seo");
+  revalidatePath("/");
+}
