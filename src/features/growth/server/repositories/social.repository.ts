@@ -43,6 +43,10 @@ export class SocialRepository {
     });
   }
 
+  async likeExternalMedia(organizationId: string, userId: string, externalMediaId: string) {
+    return prisma.externalMediaLike.upsert({ where: { userId_externalMediaId: { userId, externalMediaId } }, update: {}, create: { organizationId, userId, externalMediaId }, select: { id: true } });
+  }
+
   async createComment(input: {
     organizationId?: string;
     authorUserId: string;

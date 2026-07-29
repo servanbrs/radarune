@@ -126,7 +126,8 @@ export const followArtistSchema = z.object({
 export const likeSchema = z.object({
   releaseId: z.string().min(1).optional(),
   trackId: z.string().min(1).optional(),
-}).refine((value) => Boolean(value.releaseId) !== Boolean(value.trackId), {
+  externalMediaId: z.string().min(1).optional(),
+}).refine((value) => [value.releaseId, value.trackId, value.externalMediaId].filter(Boolean).length === 1, {
   message: "Tek bir içerik seçilmelidir.",
 });
 

@@ -36,6 +36,8 @@ export type RadaruneDiscoverItem = {
   score: number;
   releaseId: string;
   trackId: string | null;
+  externalMediaId?: null;
+  likeCount?: number;
   artist: {
     id: string;
     name: string;
@@ -58,6 +60,8 @@ export type ExternalDiscoverItem = {
   score: number;
   releaseId: null;
   trackId: null;
+  externalMediaId: string;
+  likeCount: number;
   artist: null;
 };
 
@@ -297,6 +301,7 @@ export class DiscoverService {
           publishedAt: true,
           playable: true,
           createdAt: true,
+          _count: { select: { likes: true } },
         },
       }),
     ]);
@@ -386,6 +391,8 @@ export class DiscoverService {
           id: `external:${source.id}`,
           releaseId: null,
           trackId: null,
+          externalMediaId: source.id,
+          likeCount: source._count.likes,
           title: source.title,
           artistName:
             source.artistName ??
@@ -402,6 +409,7 @@ export class DiscoverService {
           artist: null,
           score:
             25 +
+            Math.min(source._count.likes, 100) * 0.8 +
             importOrderScore +
             freshnessScore(publishedAt, 35),
         };

@@ -1130,6 +1130,7 @@ model User {
   preSaveConversions             PreSaveConversion[]
   preSaveSubscribers             PreSaveSubscriber[]
   releaseLikes                   ReleaseLike[]
+  externalMediaLikes             ExternalMediaLike[]
   storyViews                     StoryView[]
   trackLikes                     TrackLike[]
   userMusicPreferences           UserMusicPreference[]
@@ -1277,6 +1278,7 @@ model Organization {
   contentReports                 ContentReport[]
   discoverEvents                 DiscoverEvent[]
   follows                        Follow[]
+  externalMediaLikes             ExternalMediaLike[]
   moderationActions              ModerationAction[]
   aiAnalysisAttempts             AiAnalysisAttempt[]
   aiAnalysisJobs                 AiAnalysisJob[]
@@ -2833,6 +2835,7 @@ model ExternalMediaSource {
   release            Release?              @relation(fields: [releaseId], references: [id], onDelete: SetNull)
   track              Track?                @relation(fields: [trackId], references: [id], onDelete: SetNull)
   importItems        ImportItem[]
+  likes              ExternalMediaLike[]
 
   @@unique([organizationId, provider, externalId])
   @@unique([organizationId, normalizedUrl])
@@ -2841,6 +2844,20 @@ model ExternalMediaSource {
   @@index([artistId])
   @@index([releaseId])
   @@index([trackId])
+}
+
+model ExternalMediaLike {
+  id                 String             @id @default(cuid())
+  organizationId     String
+  userId             String
+  externalMediaId    String
+  createdAt          DateTime           @default(now())
+  organization       Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  externalMedia      ExternalMediaSource @relation(fields: [externalMediaId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, externalMediaId])
+  @@index([organizationId, externalMediaId, createdAt])
 }
 
 model ImportSource {

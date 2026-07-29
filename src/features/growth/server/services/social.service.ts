@@ -34,7 +34,7 @@ export class SocialService {
     return socialRepository.unfollowArtist(actor.userId, artistId);
   }
 
-  async like(actor: FinanceActorContext, input: { releaseId?: string; trackId?: string }) {
+  async like(actor: FinanceActorContext, input: { releaseId?: string; trackId?: string; externalMediaId?: string }) {
     const parsed = likeSchema.parse(input);
     try {
       if (parsed.releaseId) {
@@ -42,6 +42,11 @@ export class SocialService {
       }
       if (parsed.trackId) {
         return await socialRepository.likeTrack(actor.organizationId, actor.userId, parsed.trackId);
+      }
+      if (parsed.externalMediaId) {
+        const media = await prisma.externalMediaSource.findFirst({ where: { id: parsed.externalMediaId, organizationId: actor.organizationId, status: "ACTIVE" }, select: { id: true } });
+        if (!media) throw new Error("İçerik bulunamadı.");
+        return await socialRepository.likeExternalMedia(actor.organizationId, actor.userId, parsed.externalMediaId);
       }
       throw new Error("Beğenilecek içerik bulunamadı.");
     } catch (error) {
