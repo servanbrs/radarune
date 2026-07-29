@@ -209,6 +209,21 @@ html[data-theme="light"] .landing-shell [class*="border-white"] { border-color: 
 html[data-theme="light"] .landing-shell [class*="bg-white"] { background-color: rgba(19, 25, 29, 0.05) !important; }
 html[data-theme="light"] .landing-shell .landing-title { color: #13191d !important; }
 
+/* Dark feature cards keep their own contrast in the light theme. The broad
+   landing light-theme utility above intentionally recolors white text on the
+   light page, but must not wash out text on these dark, elevated surfaces. */
+html[data-theme="light"] .landing-shell .landing-dark-card {
+  background-color: #171d24 !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  color: #f8fafc !important;
+}
+html[data-theme="light"] .landing-shell .landing-dark-card .landing-card-primary {
+  color: #f8fafc !important;
+}
+html[data-theme="light"] .landing-shell .landing-dark-card .landing-card-muted {
+  color: rgba(248, 250, 252, 0.58) !important;
+}
+
 /* Legacy admin/review cards occasionally carry the dark-theme text utility
    on a light surface. Keep image overlays untouched, but restore readable
    foreground colors inside white/surface panels. */
