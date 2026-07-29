@@ -200,7 +200,11 @@ html[data-theme="light"] .landing-shell {
   --landing-bg: #f4efe7;
   --landing-fg: #13191d;
   --landing-muted: #5d686c;
-  background: var(--landing-bg) !important;
+  background:
+    radial-gradient(circle at 8% 18%, rgba(239, 184, 72, 0.2), transparent 34%),
+    radial-gradient(circle at 88% 22%, rgba(68, 199, 173, 0.16), transparent 36%),
+    radial-gradient(circle at 72% 82%, rgba(147, 96, 255, 0.09), transparent 32%),
+    #eee9df !important;
   color: var(--landing-fg);
 }
 
@@ -216,6 +220,10 @@ html[data-theme="light"] .landing-shell .landing-dark-card {
   background-color: #171d24 !important;
   border-color: rgba(255, 255, 255, 0.14) !important;
   color: #f8fafc !important;
+}
+html[data-theme="light"] .landing-shell .landing-dark-card .landing-card-primary {
+  color: #f8fafc !important;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 html[data-theme="light"] .landing-shell .landing-dark-card .landing-card-primary {
   color: #f8fafc !important;

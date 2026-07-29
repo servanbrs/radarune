@@ -90,7 +90,7 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
 
         <div className="relative mx-auto w-full max-w-xl lg:ml-auto">
           <div className="absolute -inset-8 rounded-[3rem] bg-[#efb848]/10 blur-3xl" />
-          <div className="landing-dark-card relative rounded-[2rem] border border-white/15 bg-[#11151b]/95 p-4 text-white shadow-2xl shadow-black/40 md:p-6">
+          <div className="landing-dark-card relative rounded-[2rem] border border-white/15 bg-[#11151b]/95 p-4 shadow-2xl shadow-black/40 md:p-6">
             <div className="flex items-center justify-between border-b border-white/10 pb-5">
               <div>
                 <p className="landing-card-muted font-mono text-[10px] uppercase tracking-[0.22em] text-white/35">RADARUNE / WORKSPACE</p>
@@ -107,9 +107,9 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
                 <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-4" key={label}>
                   <div className="flex items-center gap-3">
                     <span className="grid h-8 w-8 place-items-center rounded-xl bg-[#efb848]/15 text-[#efb848]"><Check className="h-4 w-4" aria-hidden="true" /></span>
-                    <span className="landing-card-primary text-sm text-white/80">{label}</span>
+                    <span className="landing-card-primary text-sm">{label}</span>
                   </div>
-                  <span className="landing-card-muted text-xs text-white/45">{state}</span>
+                  <span className="landing-card-muted text-xs">{state}</span>
                 </div>
               ))}
             </div>
