@@ -138,7 +138,7 @@ export function DiscoverFeedCard({
           </span>
         </div>
 
-        {item.sourceType === "EXTERNAL" &&
+      {item.sourceType === "EXTERNAL" &&
         item.embedUrl ? (
           <div className="mt-5 overflow-hidden rounded-2xl border border-line bg-background">
             <iframe
@@ -152,6 +152,13 @@ export function DiscoverFeedCard({
               src={item.embedUrl}
               title={`${item.title} oynatıcı`}
             />
+          </div>
+        ) : null}
+
+        {item.sourceType === "RADARUNE" && item.trackId ? (
+          <div className="mt-5 rounded-2xl border border-line bg-background/80 p-3">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted">MP3 önizleme</p>
+            <audio className="h-9 w-full" controls preload="none" src={`/api/growth/tracks/${item.trackId}/stream`} />
           </div>
         ) : null}
 
@@ -205,7 +212,7 @@ export function DiscoverFeedCard({
             </Link>
           ) : null}
         </div>
-        {isAuthenticated && item.sourceType === "RADARUNE" && (item.trackId || item.releaseId) ? <DiscoverCommentForm releaseId={item.releaseId} trackId={item.trackId} /> : null}
+        {item.sourceType === "RADARUNE" && (item.trackId || item.releaseId) ? <DiscoverCommentForm isAuthenticated={isAuthenticated} releaseId={item.releaseId} trackId={item.trackId} /> : null}
       </div>
     </article>
   );

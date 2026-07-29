@@ -1,6 +1,7 @@
 import { AdminShell } from "@/features/admin/components/admin-shell";
 import { AdminStatCard } from "@/features/admin/components/admin-stat-card";
 import { SimpleTable } from "@/features/admin/components/simple-table";
+import Link from "next/link";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { toAdminActor } from "@/features/admin/server/admin-context";
 import { adminDashboardService } from "@/features/admin/server/services/admin-dashboard.service";
@@ -39,7 +40,21 @@ export default async function AdminPage() {
         <AdminStatCard label="Onaylanan yayın" value={dashboard.cards.approvedReleases} tone="good" />
         <AdminStatCard label="Canlı yayın" value={dashboard.cards.liveReleases} tone="good" href="/admin/releases" />
       </section>
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><AdminStatCard label="Toplam dağıtım" value={dashboard.totalDistributionJobs} href="/admin/distribution" /><article className="rounded-3xl border border-line bg-surface p-5"><p className="text-xs uppercase tracking-[0.22em] text-muted">Son üyeler</p><div className="mt-3 space-y-2">{dashboard.recentUsers.slice(0,3).map(user=><p className="truncate text-sm" key={user.id}>{user.name} · {user.email}</p>)}</div><a className="mt-4 inline-block text-sm font-semibold text-accent" href="/admin/users">Tüm kullanıcılar →</a></article><article className="rounded-3xl border border-line bg-surface p-5"><p className="text-xs uppercase tracking-[0.22em] text-muted">En çok oy alan yayın</p><p className="mt-3 truncate text-lg font-semibold">{dashboard.popularReleases[0]?.title ?? "Henüz veri yok"}</p><p className="mt-1 text-sm text-muted">{dashboard.popularReleases[0]?._count.releaseLikes ?? 0} beğeni</p><a className="mt-4 inline-block text-sm font-semibold text-accent" href="/discover">Keşfeti aç →</a></article><article className="rounded-3xl border border-line bg-surface p-5"><p className="text-xs uppercase tracking-[0.22em] text-muted">Hızlı analiz</p><div className="mt-3 grid gap-2"><a className="rounded-xl bg-surface-strong px-3 py-2 text-sm font-medium" href="/analytics">Dinlenme ve ülkeler</a><a className="rounded-xl bg-surface-strong px-3 py-2 text-sm font-medium" href="/admin/site-builder">Site Builder</a></div></article></section>
+      <section className="grid gap-4 md:grid-cols-3">
+        <AdminStatCard label="İnceleme bekleyen import" value={dashboard.pendingImports} tone="warn" href="/admin/import-review" />
+        <AdminStatCard label="İçe aktarılan içerik" value={dashboard.importedItems} tone="good" href="/admin/import-review" />
+        <AdminStatCard label="Aktif import kaynağı" value={dashboard.activeImportedSources} href="/admin/import-sources" />
+      </section>
+      <section className="panel bg-surface p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Import akışı</p><h2 className="mt-2 text-xl font-semibold">Son içe aktarılan şarkılar</h2></div>
+          <a className="text-sm font-semibold text-accent" href="/admin/import-review">Tüm importları gör →</a>
+        </div>
+        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {dashboard.recentImports.length ? dashboard.recentImports.map((item) => <div className="rounded-2xl border border-line bg-surface-strong p-4" key={item.id}><p className="truncate font-semibold">{item.externalMediaSource?.title ?? "İsimsiz içerik"}</p><p className="mt-1 truncate text-sm text-muted">{item.externalMediaSource?.artistName ?? "Bilinmeyen sanatçı"} · {item.externalMediaSource?.provider ?? ""}</p><span className="mt-3 inline-flex rounded-full bg-accent/10 px-2.5 py-1 text-xs font-semibold text-accent">{item.status === "IMPORTED" ? "İçe aktarıldı" : "Onaylandı"}</span></div>) : <p className="text-sm text-muted">Henüz onaylanmış import bulunmuyor.</p>}
+        </div>
+      </section>
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><AdminStatCard label="Toplam dağıtım" value={dashboard.totalDistributionJobs} href="/admin/distribution" /><article className="rounded-3xl border border-line bg-surface p-5"><p className="text-xs uppercase tracking-[0.22em] text-muted">Son üyeler</p><div className="mt-3 space-y-2">{dashboard.recentUsers.slice(0,3).map(user=><p className="truncate text-sm" key={user.id}>{user.name} · {user.email}</p>)}</div><Link className="mt-4 inline-block text-sm font-semibold text-accent" href="/admin/users">Tüm kullanıcılar →</Link></article><article className="rounded-3xl border border-line bg-surface p-5"><p className="text-xs uppercase tracking-[0.22em] text-muted">En çok oy alan yayın</p><p className="mt-3 truncate text-lg font-semibold">{dashboard.popularReleases[0]?.title ?? "Henüz veri yok"}</p><p className="mt-1 text-sm text-muted">{dashboard.popularReleases[0]?._count.releaseLikes ?? 0} beğeni</p><a className="mt-4 inline-block text-sm font-semibold text-accent" href="/discover">Keşfeti aç →</a></article><article className="rounded-3xl border border-line bg-surface p-5"><p className="text-xs uppercase tracking-[0.22em] text-muted">Hızlı analiz</p><div className="mt-3 grid gap-2"><a className="rounded-xl bg-surface-strong px-3 py-2 text-sm font-medium" href="/analytics">Dinlenme ve ülkeler</a><a className="rounded-xl bg-surface-strong px-3 py-2 text-sm font-medium" href="/admin/site-builder">Site Builder</a></div></article></section>
 
       <section className="grid gap-6 xl:grid-cols-2">
         <article className="panel bg-surface p-6">

@@ -72,6 +72,24 @@ export class SocialRepository {
     });
   }
 
+  async listVisibleComments(input: { releaseId?: string; trackId?: string }) {
+    return prisma.comment.findMany({
+      where: {
+        status: "VISIBLE",
+        parentCommentId: null,
+        ...(input.trackId ? { trackId: input.trackId } : input.releaseId ? { releaseId: input.releaseId } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+      take: 30,
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+        authorUser: { select: { name: true, username: true } },
+      },
+    });
+  }
+
   async createPlaylist(input: {
     organizationId?: string;
     ownerUserId: string;

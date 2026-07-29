@@ -31,6 +31,10 @@ export class AdminDashboardRepository {
       totalDistributionJobs,
       recentUsers,
       popularReleases,
+      pendingImports,
+      importedItems,
+      activeImportedSources,
+      recentImports,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.user.count({ where: { accountStatus: "ACTIVE" } }),
@@ -76,6 +80,20 @@ export class AdminDashboardRepository {
       prisma.distributionJob.count({ where: { organizationId } }),
       prisma.user.findMany({ orderBy: { createdAt: "desc" }, take: 5, select: { id: true, name: true, email: true, createdAt: true } }),
       prisma.release.findMany({ where: { organizationId }, orderBy: { releaseLikes: { _count: "desc" } }, take: 5, select: { id: true, title: true, _count: { select: { releaseLikes: true } } } }),
+      prisma.importItem.count({ where: { organizationId, status: "PENDING_REVIEW" } }),
+      prisma.importItem.count({ where: { organizationId, status: { in: ["APPROVED", "IMPORTED"] } } }),
+      prisma.importSource.count({ where: { organizationId, active: true } }),
+      prisma.importItem.findMany({
+        where: { organizationId, status: { in: ["APPROVED", "IMPORTED"] } },
+        orderBy: { createdAt: "desc" },
+        take: 6,
+        select: {
+          id: true,
+          status: true,
+          createdAt: true,
+          externalMediaSource: { select: { title: true, artistName: true, provider: true } },
+        },
+      }),
     ]);
 
     const [dailyUsers, dailyReleases, releaseStatusDistribution, jobStatusDistribution] =
@@ -127,6 +145,10 @@ export class AdminDashboardRepository {
       totalDistributionJobs,
       recentUsers,
       popularReleases,
+      pendingImports,
+      importedItems,
+      activeImportedSources,
+      recentImports,
     };
   }
 

@@ -95,7 +95,7 @@ export class DiscoverService {
   async getPublicCandidates(): Promise<PublicDiscoverCandidate[]> {
   const candidates = await prisma.release.findMany({
     where: {
-      status: { in: ["LIVE", "DISTRIBUTED"] },
+      status: { in: ["APPROVED", "LIVE", "DISTRIBUTED"] },
       tracks: {
         some: {},
       },
@@ -214,7 +214,7 @@ export class DiscoverService {
       prisma.release.findMany({
         where: {
           ...organizationFilter,
-          status: { in: ["LIVE", "DISTRIBUTED"] },
+          status: { in: ["APPROVED", "LIVE", "DISTRIBUTED"] },
           tracks: {
             some: {
               ...(seenTrackIds.length > 0
@@ -317,7 +317,7 @@ export class DiscoverService {
     // every track in the first page. Refill from the catalog in that case.
     if (releases.length === 0 && seenTrackIds.length > 0) {
       const refill = await prisma.release.findMany({
-        where: { ...organizationFilter, status: { in: ["LIVE", "DISTRIBUTED"] }, tracks: { some: {} } },
+        where: { ...organizationFilter, status: { in: ["APPROVED", "LIVE", "DISTRIBUTED"] }, tracks: { some: {} } },
         orderBy: [{ liveAt: "desc" }, { createdAt: "desc" }],
         take: 60,
         select: {
@@ -335,7 +335,7 @@ export class DiscoverService {
     // instead of rendering an empty pool.
     if (releases.length === 0 && actor) {
       const publicRefill = await prisma.release.findMany({
-        where: { status: { in: ["LIVE", "DISTRIBUTED"] }, tracks: { some: {} } },
+        where: { status: { in: ["APPROVED", "LIVE", "DISTRIBUTED"] }, tracks: { some: {} } },
         orderBy: [{ liveAt: "desc" }, { createdAt: "desc" }],
         take: 60,
         select: {
@@ -458,7 +458,7 @@ export class DiscoverService {
       },
     });
 
-    if (!track || !["LIVE", "DISTRIBUTED"].includes(track.release.status)) {
+    if (!track || !["APPROVED", "LIVE", "DISTRIBUTED"].includes(track.release.status)) {
       throw new Error(
         "Discover event için uygun track bulunamadı.",
       );
