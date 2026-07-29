@@ -170,6 +170,10 @@ body {
   animation-delay: -5s;
 }
 
+.about-hero {
+  background: radial-gradient(circle at 10% 0%, rgba(68, 199, 173, 0.2), transparent 45%), #111d20;
+}
+
 @keyframes landing-drift {
   from { transform: translate3d(-2%, -1%, 0) scale(1); }
   to { transform: translate3d(3%, 2%, 0) scale(1.08); }
@@ -191,6 +195,20 @@ html[data-theme="light"] .landing-shell [class*="border-white"] { border-color: 
 html[data-theme="light"] .landing-shell [class*="bg-white"] { background-color: rgba(19, 25, 29, 0.05) !important; }
 html[data-theme="light"] .landing-shell .landing-title { color: #13191d !important; }
 
+/* Legacy admin/review cards occasionally carry the dark-theme text utility
+   on a light surface. Keep image overlays untouched, but restore readable
+   foreground colors inside white/surface panels. */
+html[data-theme="light"] main:not(.landing-shell) > .bg-white .text-white,
+html[data-theme="light"] main:not(.landing-shell) > .bg-white\/90 .text-white,
+html[data-theme="light"] main:not(.landing-shell) > .bg-surface .text-white,
+html[data-theme="light"] main:not(.landing-shell) .panel > .text-white {
+  color: var(--foreground) !important;
+}
+html[data-theme="light"] main:not(.landing-shell) .bg-white .text-white\/60,
+html[data-theme="light"] main:not(.landing-shell) .bg-surface .text-white\/60 {
+  color: var(--muted) !important;
+}
+
 a,
 button,
 input {
@@ -200,6 +218,10 @@ input {
     border-color 160ms ease,
     box-shadow 160ms ease,
     transform 160ms ease;
+}
+
+summary.details-marker-hidden::-webkit-details-marker {
+  display: none;
 }
 
 ::selection {

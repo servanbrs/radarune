@@ -281,12 +281,16 @@ export class DiscoverService {
         where: {
           ...organizationFilter,
           status: "ACTIVE",
-          playable: true,
-          embeddable: true,
           provider: {
             in: ["YOUTUBE", "SPOTIFY"],
           },
-          importItems: { some: { status: { in: ["APPROVED", "IMPORTED"] } } },
+          // An ACTIVE source is the moderation gate.  Do not additionally
+          // require playable/embeddable: YouTube and Spotify often expose a
+          // valid external URL before an embed/preview is available.
+          OR: [
+            { playable: true },
+            { externalUrl: { not: "" } },
+          ],
         },
         orderBy: [
           {

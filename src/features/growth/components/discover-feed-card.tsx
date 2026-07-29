@@ -67,9 +67,10 @@ export function DiscoverFeedCard({
             fill
             sizes="(max-width: 768px) 100vw, 420px"
             src={thumbnailUrl}
-            unoptimized={
-              item.sourceType === "RADARUNE"
-            }
+            // Provider thumbnails are user/content supplied URLs (YouTube,
+            // Spotify, CDN mirrors). Avoid a brittle host allow-list and let
+            // the browser load the image directly.
+            unoptimized
           />
         ) : (
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(15,118,110,0.8),transparent_35%),radial-gradient(circle_at_80%_75%,rgba(255,147,87,0.45),transparent_38%),linear-gradient(145deg,#111827,#102523)]" />
@@ -99,6 +100,17 @@ export function DiscoverFeedCard({
           <button
             aria-label={`${item.title} parçasını çal`}
             className="absolute left-1/2 top-1/2 z-10 flex size-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white text-black shadow-2xl transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => onPlay?.(item)}
+            type="button"
+          >
+            <Play className="ml-1 size-6 fill-current" />
+          </button>
+        ) : null}
+
+        {item.sourceType === "EXTERNAL" && (item.embedUrl || item.playable) ? (
+          <button
+            aria-label={`${item.title} içeriğini oynat`}
+            className="absolute left-1/2 top-1/2 z-10 flex size-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white text-black shadow-2xl transition hover:scale-105"
             onClick={() => onPlay?.(item)}
             type="button"
           >
@@ -180,6 +192,16 @@ export function DiscoverFeedCard({
               Radarune&apos;da dinle
             </button>
           ) : (
+            item.embedUrl ? (
+            <button
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-white"
+              onClick={() => onPlay?.(item)}
+              type="button"
+            >
+              <Play className="size-4 fill-current" />
+              Global player&apos;da dinle
+            </button>
+            ) : (
             <a
               className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-white"
               href={item.externalUrl ?? "#"}
@@ -189,6 +211,7 @@ export function DiscoverFeedCard({
               <Play className="size-4 fill-current" />
               Kaynakta dinle
             </a>
+            )
           )}
 
           {item.sourceType === "RADARUNE" &&

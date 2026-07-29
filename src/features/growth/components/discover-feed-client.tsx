@@ -103,25 +103,37 @@ export function DiscoverFeedClient({
     else setDrag({ x: 0, y: 0 });
   }
 
-  function playRadaruneItem(item: DiscoverFeedItem) {
-    if (
-      item.sourceType !== "RADARUNE" ||
-      !item.trackId
-    ) {
+  function playItem(item: DiscoverFeedItem) {
+    if (item.sourceType === "RADARUNE") {
+      if (!item.trackId) return;
+      setCurrentItem({
+        id: item.trackId,
+        title: item.title,
+        artistName: item.artistName,
+        source: "RADARUNE_AUDIO",
+        sourceLabel: "Radarune",
+        playbackUrl: `/api/growth/tracks/${item.trackId}/stream`,
+        embedUrl: null,
+        capabilities: playerCapabilities.RADARUNE_AUDIO,
+      });
       return;
     }
 
-    setCurrentItem({
-      id: item.trackId,
-      title: item.title,
-      artistName: item.artistName,
-      source: "RADARUNE_AUDIO",
-      sourceLabel: "Radarune",
-      playbackUrl: `/api/growth/tracks/${item.trackId}/stream`,
-      embedUrl: null,
-      capabilities:
-        playerCapabilities.RADARUNE_AUDIO,
-    });
+    // Keep provider playback in the same persistent player surface. The
+    // provider iframe is used when available; otherwise the player links to
+    // the original source without pretending that an audio preview exists.
+    if (item.provider === "YOUTUBE" || item.provider === "SPOTIFY") {
+      setCurrentItem({
+        id: item.externalMediaId,
+        title: item.title,
+        artistName: item.artistName,
+        source: item.provider === "YOUTUBE" ? "YOUTUBE" : "SPOTIFY_EMBED",
+        sourceLabel: item.provider === "YOUTUBE" ? "YouTube" : "Spotify",
+        playbackUrl: null,
+        embedUrl: item.embedUrl ?? item.externalUrl,
+        capabilities: playerCapabilities[item.provider === "YOUTUBE" ? "YOUTUBE" : "SPOTIFY_EMBED"],
+      });
+    }
   }
 
   return (
@@ -150,7 +162,7 @@ export function DiscoverFeedClient({
             >
               <DiscoverFeedCard
                 item={activeItem}
-                onPlay={playRadaruneItem}
+                onPlay={playItem}
                 rank={activeIndex + 1}
                 isAuthenticated={isAuthenticated}
               />
