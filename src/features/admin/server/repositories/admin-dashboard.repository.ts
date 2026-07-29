@@ -80,7 +80,27 @@ export class AdminDashboardRepository {
       }),
       prisma.distributionJob.count({ where: { organizationId } }),
       prisma.user.findMany({ orderBy: { createdAt: "desc" }, take: 5, select: { id: true, name: true, email: true, createdAt: true } }),
-      prisma.release.findMany({ where: { organizationId }, orderBy: { releaseLikes: { _count: "desc" } }, take: 5, select: { id: true, title: true, _count: { select: { releaseLikes: true } } } }),
+      // The dashboard card represents audience votes for published catalog
+      // items only. Drafts and moderation records otherwise occupy the top
+      // slot with a misleading zero count.
+      prisma.release.findMany({
+        where: {
+          organizationId,
+          status: { in: ["LIVE", "DISTRIBUTED", "APPROVED"] },
+          releaseLikes: { some: {} },
+        },
+        orderBy: [
+          { releaseLikes: { _count: "desc" } },
+          { liveAt: "desc" },
+        ],
+        take: 5,
+        select: {
+          id: true,
+          title: true,
+          liveAt: true,
+          _count: { select: { releaseLikes: true } },
+        },
+      }),
       prisma.importItem.count({ where: { organizationId, status: "PENDING_REVIEW" } }),
       prisma.importItem.count({ where: { organizationId, status: { in: ["APPROVED", "IMPORTED"] } } }),
       prisma.importSource.count({ where: { organizationId, active: true } }),
