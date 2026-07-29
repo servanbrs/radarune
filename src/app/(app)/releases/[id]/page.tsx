@@ -8,6 +8,9 @@ import { releaseTypeLabels, storeLabels, type ReleaseStoreValue } from "@/featur
 import { releaseService } from "@/features/releases/server/services/release.service";
 import { releaseDeliveryRepository } from "@/features/distribution-hub/server/repositories/release-delivery.repository";
 import { releaseIntelligenceService } from "@/features/intelligence/server/services/release-intelligence.service";
+import { DiscoverCommentForm } from "@/features/growth/components/discover-comment-form";
+import { DiscoverLikeButton } from "@/features/growth/components/discover-like-button";
+import { prisma } from "@/server/prisma/prisma";
 
 type ReleaseDetailPageProps = {
   params: Promise<{
@@ -37,6 +40,12 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
   const intelligence = release
     ? await releaseIntelligenceService.getSummary(actor, release.id)
     : null;
+  const engagement = release
+    ? await Promise.all([
+        prisma.releaseLike.count({ where: { releaseId: release.id } }),
+        prisma.comment.count({ where: { releaseId: release.id, status: "VISIBLE", parentCommentId: null } }),
+      ])
+    : [0, 0];
 
   if (!release) {
     notFound();
@@ -89,17 +98,24 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
       </div>
 
       <section className="rounded-3xl border border-line bg-surface p-6">
-        <h2 className="text-xl font-semibold">Parçalar</h2>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-semibold">Parçalar</h2>
+            <p className="mt-1 text-sm text-muted">Yayın detayından dinleyin, oy verin ve yorumları takip edin.</p>
+          </div>
+          <div className="flex items-center gap-3 text-sm text-muted"><span>{engagement[0]} oy</span><span>{engagement[1]} yorum</span><DiscoverLikeButton releaseId={release.id} /></div>
+        </div>
         <div className="mt-5 divide-y divide-line rounded-2xl border border-line bg-white">
           {release.tracks.map((track) => (
             <article className="grid gap-3 px-5 py-4 text-sm md:grid-cols-[0.2fr_1fr_0.8fr_0.8fr]" key={track.id}>
               <span>{track.trackNumber}</span>
-              <span className="font-semibold">{track.title}</span>
+              <div><span className="font-semibold">{track.title}</span>{track.audioUploadId ? <audio className="mt-2 h-9 w-full max-w-md" controls preload="metadata" src={`/api/storage/private/${track.audioUploadId}`} /> : <p className="mt-1 text-xs text-muted">Ses dosyası henüz yüklenmedi.</p>}</div>
               <span>{track.artists.map((artist) => artist.artist.name).join(", ")}</span>
               <span>{track.isrc ?? "ISRC sağlayıcıdan"}</span>
             </article>
           ))}
         </div>
+        <DiscoverCommentForm releaseId={release.id} isAuthenticated />
       </section>
 
       <section className="rounded-3xl border border-line bg-surface p-6">
