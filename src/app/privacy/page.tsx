@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, Database, Eye, FileText, LockKeyhole, Mail, ShieldCheck, UserRound } from "lucide-react";
 import { PublicHeader } from "@/components/public-header";
+import { PublicFooter } from "@/components/public-footer";
 
 const contents = [
   ["veriler", "Topladığımız veriler"],
@@ -78,7 +79,7 @@ export default function PrivacyPage() {
           </article>
         </div>
       </div>
-      <footer className="border-t border-line/70 py-8 text-center text-sm text-muted">Radarune · Verilerinize saygılı müzik operasyonu</footer>
+      <PublicFooter />
     </main>
   );
 }

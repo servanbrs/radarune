@@ -257,6 +257,13 @@ html[data-theme="light"] .landing-shell .landing-eyebrow {
   border-color: rgba(138, 90, 0, 0.28) !important;
   background-color: rgba(239, 184, 72, 0.18) !important;
 }
+html[data-theme="light"] .landing-shell .landing-cta-button {
+  background-color: #090b0f !important;
+  color: #ffffff !important;
+}
+html[data-theme="light"] .landing-shell .landing-cta-button svg {
+  color: #ffffff !important;
+}
 
 /* Dark feature cards keep their own contrast in the light theme. The broad
    landing light-theme utility above intentionally recolors white text on the

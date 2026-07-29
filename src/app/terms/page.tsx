@@ -1,11 +1,12 @@
 import Link from "next/link";
+import { PublicHeader } from "@/components/public-header";
+import { PublicFooter } from "@/components/public-footer";
 import {
   ArrowUpRight,
   FileCheck2,
   FileText,
   Gavel,
   LockKeyhole,
-  Music2,
   ShieldCheck,
 } from "lucide-react";
 
@@ -46,24 +47,7 @@ function Section({
 export default function TermsPage() {
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-50 border-b border-line/70 bg-surface/90 backdrop-blur-xl">
-        <div className="mx-auto flex min-h-16 w-full max-w-[1600px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="shrink-0">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-accent">Radarune</p>
-            <p className="hidden text-sm font-semibold sm:block">Music Platform</p>
-          </Link>
-          <nav className="hidden items-center gap-1 md:flex" aria-label="Ana menü">
-            <Link className="rounded-xl px-3 py-2 text-sm text-muted transition hover:bg-background hover:text-foreground" href="/">Ana Sayfa</Link>
-            <Link className="rounded-xl px-3 py-2 text-sm text-muted transition hover:bg-background hover:text-foreground" href="/discover">Keşfet</Link>
-            <Link className="rounded-xl px-3 py-2 text-sm text-muted transition hover:bg-background hover:text-foreground" href="/about">Hakkımızda</Link>
-            <Link className="rounded-xl px-3 py-2 text-sm text-muted transition hover:bg-background hover:text-foreground" href="/contact">İletişim</Link>
-          </nav>
-          <div className="flex items-center gap-2">
-            <Link className="hidden rounded-full border border-line px-4 py-2 text-sm font-semibold transition hover:bg-background sm:inline-flex" href="/sign-in">Giriş yap</Link>
-            <Link className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition hover:brightness-95" href="/sign-up">Başlayın <ArrowUpRight className="ml-1 inline h-4 w-4" /></Link>
-          </div>
-        </div>
-      </header>
+      <PublicHeader />
 
       <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
         <section className="relative overflow-hidden rounded-[2rem] border border-line bg-surface p-7 shadow-[0_18px_80px_rgba(19,19,19,0.08)] sm:p-10 lg:p-14">
@@ -151,7 +135,7 @@ export default function TermsPage() {
           </article>
         </div>
       </div>
-      <footer className="border-t border-line/70 py-8 text-center text-sm text-muted"><Music2 className="mr-1 inline h-4 w-4 text-accent" /> Radarune · Müzik keşfi ve yayın operasyonu</footer>
+      <PublicFooter />
     </main>
   );
 }

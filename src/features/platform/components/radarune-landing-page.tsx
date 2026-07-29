@@ -207,7 +207,7 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
         <div className="relative max-w-2xl">
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-black/55">Müziğin için yeni bir başlangıç</p>
           <h2 className="mt-5 text-4xl font-semibold leading-tight tracking-[-0.04em] md:text-6xl">Şarkını bugün duyur, yeni dinleyicilere ulaş.</h2>
-          <Link className="mt-8 inline-flex items-center gap-2 rounded-full !bg-[#090b0f] px-6 py-3.5 font-semibold !text-white shadow-lg shadow-black/20 hover:!bg-[#20252d]" href="/sign-up">
+          <Link className="landing-cta-button mt-8 inline-flex items-center gap-2 rounded-full !bg-[#090b0f] px-6 py-3.5 font-semibold !text-white shadow-lg shadow-black/20 hover:!bg-[#20252d]" href="/sign-up">
             Ücretsiz hesap oluştur <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>
