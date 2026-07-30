@@ -39,13 +39,25 @@ function sourceReference(type: ImportSourceCreateInput["type"], rawUrl: string):
   const url = new URL(rawUrl);
   if (type.startsWith("YOUTUBE")) {
     const playlistId = url.searchParams.get("list");
-    const channelMatch = /^\/channel\/([^/]+)$/.exec(url.pathname);
+    // Channel links are often copied with a trailing slash or a tab suffix
+    // such as `/videos`. Normalize those variants before extracting the
+    // provider identity so the import source is not rejected unnecessarily.
+    const pathname = url.pathname.replace(/\/+$/, "");
+    const channelMatch = /^\/channel\/([^/]+)(?:\/.*)?$/.exec(pathname);
     if (type === "YOUTUBE_PLAYLIST" && playlistId) return { provider: "YOUTUBE", externalId: playlistId };
     if (type === "YOUTUBE_CHANNEL" && channelMatch?.[1]) return { provider: "YOUTUBE", externalId: channelMatch[1] };
+    if (type === "YOUTUBE_CHANNEL") {
+      const handleMatch = /^\/@([^/]+)(?:\/.*)?$/.exec(pathname);
+      const usernameMatch = /^\/user\/([^/]+)(?:\/.*)?$/.exec(pathname);
+      const customMatch = /^\/c\/([^/]+)(?:\/.*)?$/.exec(pathname);
+      if (handleMatch?.[1]) return { provider: "YOUTUBE", externalId: `handle:@${handleMatch[1]}` };
+      if (usernameMatch?.[1]) return { provider: "YOUTUBE", externalId: `username:${usernameMatch[1]}` };
+      if (customMatch?.[1]) return { provider: "YOUTUBE", externalId: `search:${customMatch[1]}` };
+    }
   }
   if (type.startsWith("SPOTIFY")) {
     const expectedSegment = type === "SPOTIFY_ARTIST" ? "artist" : type === "SPOTIFY_PLAYLIST" ? "playlist" : "album";
-    const match = new RegExp(`^/${expectedSegment}/([^/]+)$`).exec(url.pathname);
+    const match = new RegExp(`^/${expectedSegment}/([^/]+)$`).exec(url.pathname.replace(/\/+$/, ""));
     if (match?.[1]) return { provider: "SPOTIFY", externalId: match[1] };
   }
   return null;
@@ -94,7 +106,7 @@ export class ImportSourceService {
     const sourceUrl = parsed.url || (searchType ? `search://${parsed.type.toLowerCase()}?q=${encodeURIComponent(parsed.query ?? parsed.name)}` : "");
     const reference = sourceUrl ? sourceReference(parsed.type, searchType ? (parsed.query ?? parsed.name) : sourceUrl) : null;
     if (!provider || !reference) {
-      throw new Error("Import kaynağı için desteklenen provider URL’si ve kimliği gereklidir.");
+      throw new Error("Desteklenmeyen import bağlantısı. YouTube kanal için /channel/UC…, /@handle, /user/… veya /c/…; playlist için ?list=… kullanın. Spotify kaynaklarında /artist/, /playlist/ veya /album/ bağlantısı gerekir.");
     }
 
     const credentials = await integrationCredentialService.runtime(actor.organizationId, provider);
@@ -188,10 +200,22 @@ export class ImportSourceService {
         return metadata;
       }
 
+      // Imports are intentionally limited to ten records per run. This keeps
+      // review batches manageable and prevents a broad search from flooding
+      // the moderation queue.
+      const youtubeMetadata = source.provider === "YOUTUBE" ? metadata.data.slice(0, 10) : metadata.data;
+      const eligibleArtistIds = source.provider === "YOUTUBE"
+        ? await this.youtubeEligibleArtistIds(organizationId, source.artistId)
+        : null;
       let duplicateCount = 0;
       let importedCount = 0;
       let failedCount = 0;
-      for (const item of metadata.data) {
+      let skippedCount = 0;
+      for (const item of youtubeMetadata) {
+        if (source.provider === "YOUTUBE" && !this.isEligibleYouTubeItem(item, eligibleArtistIds, source.artistId)) {
+          skippedCount += 1;
+          continue;
+        }
         const result = await this.processItem(organizationId, source.id, run.id, source.artistId, source.createdByUserId, source.requiresReview || !source.autoPublish || !source.ownershipVerified || !item.playable || !item.embeddable, item);
         if (result === "DUPLICATE") duplicateCount += 1;
         else if (result === "IMPORTED") importedCount += 1;
@@ -199,11 +223,11 @@ export class ImportSourceService {
       }
 
       await prisma.$transaction(async (client) => {
-        await importRepository.finishRun(run.id, { status: failedCount > 0 ? "PARTIAL" : "SUCCEEDED", completedAt: new Date(), detectedCount: metadata.data.length, duplicateCount, importedCount, failedCount }, client);
+        await importRepository.finishRun(run.id, { status: failedCount > 0 ? "PARTIAL" : "SUCCEEDED", completedAt: new Date(), detectedCount: youtubeMetadata.length, duplicateCount, importedCount, failedCount }, client);
         await client.importSource.update({ where: { id: source.id }, data: { status: "ACTIVE", lastCheckedAt: new Date(), lastSuccessAt: new Date(), lastError: null } });
-        await auditLogService.create({ organizationId, actorUserId, action: "IMPORT_RUN_COMPLETED", entityType: "ImportSource", entityId: source.id, metadata: { detectedCount: metadata.data.length, duplicateCount, importedCount, failedCount } }, client);
+        await auditLogService.create({ organizationId, actorUserId, action: "IMPORT_RUN_COMPLETED", entityType: "ImportSource", entityId: source.id, metadata: { detectedCount: youtubeMetadata.length, duplicateCount, importedCount, failedCount, skippedCount } }, client);
       });
-      return { success: true as const, detectedCount: metadata.data.length, duplicateCount, importedCount, failedCount };
+      return { success: true as const, detectedCount: youtubeMetadata.length, duplicateCount, importedCount, failedCount, skippedCount };
     } finally {
       await importRepository.releaseSource(organizationId, sourceId, lockToken);
     }
@@ -250,7 +274,7 @@ export class ImportSourceService {
         if (!query) return { success: false as const, code: "PROVIDER_ERROR" as const, message: "YouTube arama terimi eksik." };
         const items: unknown[] = [];
         let pageToken: string | undefined;
-        const maxItems = Math.min(source.maxItems ?? 100, 200);
+        const maxItems = Math.min(source.maxItems ?? 10, 10);
         for (let page = 0; page < 4 && items.length < maxItems; page += 1) {
           const response = await youtubeProviderService.searchMusic(query, pageToken, credentials?.apiKey);
           if (!response.success) return response;
@@ -265,22 +289,25 @@ export class ImportSourceService {
           if (!details.success) return details;
           detailItems.push(...(details.data.items ?? []));
         }
-        return youtubeProviderService.detectNewVideos(detailItems, source.lastCheckedAt ?? undefined);
+        const detected = youtubeProviderService.detectNewVideos(detailItems, source.lastCheckedAt ?? undefined);
+        return detected.success ? { ...detected, data: detected.data.slice(0, 10) } : detected;
       }
       if (source.type === "YOUTUBE_CHANNEL") {
-        const response = await youtubeProviderService.listChannelVideos(source.providerExternalId, undefined, credentials?.apiKey);
+        const response = await youtubeProviderService.listChannelVideosByReference(source.providerExternalId, undefined, credentials?.apiKey);
         if (!response.success) return response;
-        const ids = (response.data.items ?? []).map(externalIdFromYouTubeItem).filter((id): id is string => Boolean(id));
+        const ids = (response.data.items ?? []).map(externalIdFromYouTubeItem).filter((id): id is string => Boolean(id)).slice(0, 10);
         const details = await youtubeProviderService.getVideos(ids, credentials?.apiKey);
         if (!details.success) return details;
-        return youtubeProviderService.detectNewVideos(details.data.items ?? [], source.lastCheckedAt ?? undefined);
+        const detected = youtubeProviderService.detectNewVideos(details.data.items ?? [], source.lastCheckedAt ?? undefined);
+        return detected.success ? { ...detected, data: detected.data.slice(0, 10) } : detected;
       }
       const response = await youtubeProviderService.listPlaylistVideos(source.providerExternalId, undefined, credentials?.apiKey);
       if (!response.success) return response;
-      const ids = (response.data.items ?? []).map(externalIdFromYouTubeItem).filter((id): id is string => Boolean(id));
+      const ids = (response.data.items ?? []).map(externalIdFromYouTubeItem).filter((id): id is string => Boolean(id)).slice(0, 10);
       const details = await youtubeProviderService.getVideos(ids, credentials?.apiKey);
       if (!details.success) return details;
-      return youtubeProviderService.detectNewVideos(details.data.items ?? [], source.lastCheckedAt ?? undefined);
+      const detected = youtubeProviderService.detectNewVideos(details.data.items ?? [], source.lastCheckedAt ?? undefined);
+      return detected.success ? { ...detected, data: detected.data.slice(0, 10) } : detected;
     }
 
     const provider = spotifyProviderService;
@@ -309,6 +336,32 @@ export class ImportSourceService {
       if (album.success) tracks.push(...spotifyTracks(album.data));
     }
     return provider.detectNewReleases(tracks, new Set());
+  }
+
+  private async youtubeEligibleArtistIds(organizationId: string, assignedArtistId: string | null) {
+    const artists = await prisma.artist.findMany({
+      where: {
+        organizationId,
+        ...(assignedArtistId ? { id: assignedArtistId } : {}),
+      OR: [{ youtubeProfileUrl: { not: null } }, { applications: { some: { status: "APPROVED" } } }],
+      },
+      select: {
+        id: true,
+        name: true,
+        youtubeProfileUrl: true,
+        applications: { where: { status: "APPROVED" }, select: { id: true }, take: 1 },
+      },
+    });
+    return artists
+      .filter((artist) => artist.applications.length > 0 || Boolean(artist.youtubeProfileUrl && /youtube\.com\/(?:channel\/|@|c\/|user\/)/i.test(artist.youtubeProfileUrl)))
+      .map((artist) => ({ id: artist.id, name: artist.name.trim().toLocaleLowerCase("tr-TR") }));
+  }
+
+  private isEligibleYouTubeItem(metadata: ExternalMediaMetadata, artists: Array<{ id: string; name: string }> | null, assignedArtistId: string | null) {
+    if (!artists || artists.length === 0) return false;
+    if (assignedArtistId) return true;
+    const artistName = metadata.artistName?.trim().toLocaleLowerCase("tr-TR");
+    return Boolean(artistName && artists.some((artist) => artist.name === artistName));
   }
 
   private async processItem(organizationId: string, sourceId: string, runId: string, artistId: string | null, ownerUserId: string | null, requiresReview: boolean, metadata: ExternalMediaMetadata) {

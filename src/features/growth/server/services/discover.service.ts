@@ -58,11 +58,15 @@ export type ExternalDiscoverItem = {
   provider: "YOUTUBE" | "SPOTIFY";
   playable: boolean;
   score: number;
-  releaseId: null;
-  trackId: null;
+  releaseId: string | null;
+  trackId: string | null;
   externalMediaId: string;
   likeCount: number;
-  artist: null;
+  artist: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
 };
 
 export type DiscoverFeedItem =
@@ -311,6 +315,9 @@ export class DiscoverService {
           publishedAt: true,
           playable: true,
           createdAt: true,
+          releaseId: true,
+          trackId: true,
+          artist: { select: { id: true, name: true, slug: true } },
           _count: { select: { likes: true } },
         },
       }),
@@ -405,8 +412,8 @@ export class DiscoverService {
         return {
           sourceType: "EXTERNAL",
           id: `external:${source.id}`,
-          releaseId: null,
-          trackId: null,
+          releaseId: source.releaseId,
+          trackId: source.trackId,
           externalMediaId: source.id,
           likeCount: source._count.likes,
           title: source.title,
@@ -422,7 +429,7 @@ export class DiscoverService {
           embedUrl: source.embedUrl,
           provider: source.provider,
           playable: source.playable,
-          artist: null,
+          artist: source.artist,
           score:
             25 +
             Math.min(source._count.likes, 100) * 0.8 +

@@ -8,9 +8,11 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const releaseId = url.searchParams.get("releaseId");
     const trackId = url.searchParams.get("trackId");
+    const externalMediaId = url.searchParams.get("externalMediaId");
     const comments = await socialService.listComments({
       ...(releaseId ? { releaseId } : {}),
       ...(trackId ? { trackId } : {}),
+      ...(externalMediaId ? { externalMediaId } : {}),
     });
     return NextResponse.json(comments);
   } catch (error) {

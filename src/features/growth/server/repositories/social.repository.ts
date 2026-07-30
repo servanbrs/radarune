@@ -52,6 +52,7 @@ export class SocialRepository {
     authorUserId: string;
     releaseId?: string;
     trackId?: string;
+    externalMediaId?: string;
     playlistId?: string;
     storyId?: string;
     parentCommentId?: string;
@@ -63,6 +64,7 @@ export class SocialRepository {
         authorUserId: input.authorUserId,
         releaseId: input.releaseId ?? null,
         trackId: input.trackId ?? null,
+        externalMediaId: input.externalMediaId ?? null,
         playlistId: input.playlistId ?? null,
         storyId: input.storyId ?? null,
         parentCommentId: input.parentCommentId ?? null,
@@ -72,12 +74,12 @@ export class SocialRepository {
     });
   }
 
-  async listVisibleComments(input: { releaseId?: string; trackId?: string }) {
+  async listVisibleComments(input: { releaseId?: string; trackId?: string; externalMediaId?: string }) {
     return prisma.comment.findMany({
       where: {
         status: "VISIBLE",
         parentCommentId: null,
-        ...(input.trackId ? { trackId: input.trackId } : input.releaseId ? { releaseId: input.releaseId } : {}),
+          ...(input.trackId ? { trackId: input.trackId } : input.releaseId ? { releaseId: input.releaseId } : input.externalMediaId ? { externalMediaId: input.externalMediaId } : {}),
       },
       orderBy: { createdAt: "desc" },
       take: 30,
@@ -86,6 +88,17 @@ export class SocialRepository {
         content: true,
         createdAt: true,
         authorUser: { select: { name: true, username: true } },
+        replies: {
+          where: { status: "VISIBLE" },
+          orderBy: { createdAt: "asc" },
+          take: 20,
+          select: {
+            id: true,
+            content: true,
+            createdAt: true,
+            authorUser: { select: { name: true, username: true } },
+          },
+        },
       },
     });
   }

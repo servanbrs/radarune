@@ -62,6 +62,8 @@ type DashboardData = {
 
 type DashboardOverviewProps = {
   artistsCount: number;
+  canManageArtists: boolean;
+  manageableArtistsCount: number;
   data: DashboardData;
   labelsCount: number;
   organizationName: string;
@@ -70,6 +72,7 @@ type DashboardOverviewProps = {
 
 type MetricCardProps = {
   description: string;
+  href: string;
   icon: LucideIcon;
   label: string;
   value: string;
@@ -205,12 +208,16 @@ function getStatusClasses(status: string) {
 
 function MetricCard({
   description,
+  href,
   icon: Icon,
   label,
   value,
 }: MetricCardProps) {
   return (
-    <article className="panel group p-5 transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_70px_rgba(19,19,19,0.12)]">
+    <Link
+      className="panel group block p-5 transition duration-300 hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-[0_18px_70px_rgba(19,19,19,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      href={href}
+    >
       <div className="flex items-start justify-between gap-4">
         <div className="flex size-11 items-center justify-center rounded-2xl bg-accent/10 text-accent">
           <Icon className="size-5" />
@@ -226,7 +233,7 @@ function MetricCard({
       </p>
 
       <p className="mt-2 text-xs leading-5 text-muted">{description}</p>
-    </article>
+    </Link>
   );
 }
 
@@ -268,7 +275,9 @@ function EmptyState({
 
 export function DashboardOverview({
   artistsCount,
+  canManageArtists,
   data,
+  manageableArtistsCount,
   labelsCount,
   organizationName,
   userName,
@@ -283,6 +292,7 @@ export function DashboardOverview({
       icon: Disc3,
       label: "Toplam yayın",
       value: compactNumberFormatter.format(data.stats.totalReleases),
+      href: "/releases",
     },
     {
       description: `${data.stats.downloads.toLocaleString(
@@ -291,6 +301,7 @@ export function DashboardOverview({
       icon: Headphones,
       label: "Toplam dinlenme",
       value: compactNumberFormatter.format(data.stats.streams),
+      href: "/analytics",
     },
     {
       description: `${labelsCount.toLocaleString(
@@ -299,12 +310,14 @@ export function DashboardOverview({
       icon: Users,
       label: "Sanatçılar",
       value: artistsCount.toLocaleString("tr-TR"),
+      href: canManageArtists ? "/artists" : "/artist-profile",
     },
     {
       description: "Raporlanan toplam net kazanç",
       icon: WalletCards,
       label: "Tahmini gelir",
       value: formatCurrencyFromMinor(data.stats.netRevenueMinor),
+      href: "/finance",
     },
   ];
 
@@ -366,7 +379,10 @@ export function DashboardOverview({
   const quickActions: QuickAction[] = [
     {
       description: "Yeni bir single, EP veya albüm hazırla.",
-      href: "/releases/new",
+      href:
+        manageableArtistsCount > 0
+          ? "/releases/new"
+          : "/become?reason=release-required",
       icon: Plus,
       title: "Yeni yayın",
     },
@@ -426,7 +442,11 @@ export function DashboardOverview({
 
               <Link
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#efb848] px-5 text-sm font-semibold text-[#17130b] transition hover:bg-[#f5c85f]"
-                href="/releases/new"
+                href={
+                  manageableArtistsCount > 0
+                    ? "/releases/new"
+                    : "/become?reason=release-required"
+                }
               >
                 <Plus className="size-4" />
                 Yeni yayın
@@ -468,6 +488,51 @@ export function DashboardOverview({
             <MetricCard key={metric.label} {...metric} />
           ))}
         </section>
+
+        {manageableArtistsCount === 0 ? (
+          <section className="panel flex flex-col gap-5 border-accent/20 bg-accent/5 p-6 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+                Yayın oluşturma erişimi
+              </p>
+              <h2 className="mt-2 text-xl font-semibold text-foreground">
+                Önce sanatçı profilini doğrula
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
+                Yeni yayın göndermek için sanatçı başvurusu yapın. Başvurunuz
+                onaylandığında yayın sihirbazı yalnızca size bağlı sanatçı
+                profilleriyle açılır.
+              </p>
+            </div>
+            <Link
+              className="inline-flex shrink-0 items-center justify-center rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-white transition hover:bg-accent/90"
+              href="/become?reason=release-required"
+            >
+              Sanatçı başvurusu yap
+            </Link>
+          </section>
+        ) : canManageArtists ? (
+          <section className="panel flex flex-col gap-5 border-accent/20 bg-accent/5 p-6 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+                Label çalışma alanı
+              </p>
+              <h2 className="mt-2 text-xl font-semibold text-foreground">
+                Tüm sanatçı profillerini tek yerden yönetin
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                Sanatçı profillerine, bağlantılarına ve ekip erişimlerine
+                doğrudan ulaşın.
+              </p>
+            </div>
+            <Link
+              className="inline-flex shrink-0 items-center justify-center rounded-xl border border-accent/30 bg-surface px-5 py-3 text-sm font-semibold text-accent transition hover:bg-accent/10"
+              href="/artists"
+            >
+              Sanatçıları yönet
+            </Link>
+          </section>
+        ) : null}
 
         <section className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.75fr)]">
           <article className="panel min-w-0 overflow-hidden">

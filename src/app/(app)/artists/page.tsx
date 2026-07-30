@@ -1,4 +1,5 @@
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
+import Link from "next/link";
 import { CreateArtistForm } from "@/features/artist/components/create-artist-form";
 import { artistService } from "@/features/artist/server/services/artist.service";
 import { rbacService } from "@/features/authorization/server/rbac";
@@ -46,7 +47,7 @@ export default async function ArtistsPage() {
               </p>
             ) : (
               artists.map((artist) => (
-                <article className="rounded-[1.5rem] border bg-white/70 p-5" key={artist.id}>
+                <Link className="group block rounded-[1.5rem] border bg-white/70 p-5 transition hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" href={`/dashboard/artists/${artist.id}/profile`} key={artist.id}>
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <h3 className="text-lg font-semibold">{artist.name}</h3>
@@ -62,7 +63,8 @@ export default async function ArtistsPage() {
                   <p className="mt-2 text-sm text-muted">
                     Label bağlantısı: {artist._count.labelLinks}
                   </p>
-                </article>
+                  <span className="mt-4 inline-flex items-center text-sm font-semibold text-accent">Profili görüntüle →</span>
+                </Link>
               ))
             )}
           </div>

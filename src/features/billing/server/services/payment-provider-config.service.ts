@@ -15,10 +15,21 @@ function parseStoredCredentials(value: string | null | undefined) {
     return {};
   }
 
-  const decrypted = decryptBillingSecret(value);
-  const parsed = JSON.parse(decrypted) as Record<string, string>;
+  try {
+    const decrypted = decryptBillingSecret(value);
+    return JSON.parse(decrypted) as Record<string, string>;
+  } catch {
+    return {};
+  }
+}
 
-  return parsed;
+function decryptOptional(value: string | null | undefined) {
+  if (!value) return null;
+  try {
+    return decryptBillingSecret(value);
+  } catch {
+    return null;
+  }
 }
 
 function maskCredentialMap(credentials: Record<string, string>) {
@@ -132,9 +143,7 @@ export class PaymentProviderConfigService {
         config.publicMetadata && typeof config.publicMetadata === "object"
           ? (config.publicMetadata as Record<string, string>)
           : {},
-      webhookSecret: config.webhookSecretEncrypted
-        ? decryptBillingSecret(config.webhookSecretEncrypted)
-        : null,
+      webhookSecret: decryptOptional(config.webhookSecretEncrypted),
     };
   }
 }

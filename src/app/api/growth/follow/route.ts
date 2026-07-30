@@ -12,3 +12,14 @@ export async function POST(request: Request) {
     return growthJsonError(error);
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const actor = await getGrowthActor();
+    const body = (await request.json()) as { artistId?: string };
+    const result = await socialService.unfollowArtist(actor, body.artistId ?? "");
+    return NextResponse.json(result);
+  } catch (error) {
+    return growthJsonError(error);
+  }
+}

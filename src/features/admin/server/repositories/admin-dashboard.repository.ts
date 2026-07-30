@@ -36,6 +36,9 @@ export class AdminDashboardRepository {
       activeImportedSources,
       recentImports,
       allUserDates,
+      onlineUsers,
+      onlineUserList,
+      incomingDistributionReleases,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.user.count({ where: { accountStatus: "ACTIVE" } }),
@@ -116,6 +119,60 @@ export class AdminDashboardRepository {
         },
       }),
       prisma.user.findMany({ select: { createdAt: true } }),
+      prisma.session.count({
+        where: {
+          expiresAt: { gt: new Date() },
+          user: { memberships: { some: { organizationId, status: "ACTIVE" } } },
+        },
+      }),
+      prisma.user.findMany({
+        where: {
+          memberships: { some: { organizationId, status: "ACTIVE" } },
+          sessions: { some: { expiresAt: { gt: new Date() } } },
+        },
+        orderBy: { name: "asc" },
+        take: 12,
+        select: { id: true, name: true, email: true },
+      }),
+      prisma.release.findMany({
+        where: {
+          organizationId,
+          status: { in: ["PENDING_REVIEW", "APPROVED", "QUEUED"] },
+        },
+        orderBy: { updatedAt: "desc" },
+        take: 8,
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          updatedAt: true,
+          artworkUploadId: true,
+          artists: {
+            orderBy: { sortOrder: "asc" },
+            take: 1,
+            select: { artist: { select: { name: true } } },
+          },
+          uploads: {
+            where: { kind: "ARTWORK", status: "READY" },
+            take: 1,
+            select: { id: true, fileName: true, mimeType: true, kind: true },
+          },
+          tracks: {
+            orderBy: [{ discNumber: "asc" }, { trackNumber: "asc" }],
+            take: 1,
+            select: {
+              id: true,
+              title: true,
+              audioUploadId: true,
+              uploads: {
+                where: { kind: "AUDIO", status: "READY" },
+                take: 1,
+                select: { id: true, fileName: true, mimeType: true, kind: true },
+              },
+            },
+          },
+        },
+      }),
     ]);
 
     const [dailyUsers, dailyReleases, releaseStatusDistribution, jobStatusDistribution] =
@@ -173,6 +230,9 @@ export class AdminDashboardRepository {
       importedItems,
       activeImportedSources,
       recentImports,
+      onlineUsers,
+      onlineUserList,
+      incomingDistributionReleases,
     };
   }
 

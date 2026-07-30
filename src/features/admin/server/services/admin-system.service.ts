@@ -23,6 +23,20 @@ const defaults: Array<{ key: UpdateAdminSettingInput["key"]; value: string | boo
   { key: "EMAIL_VERIFICATION_REQUIRED", value: true },
   { key: "MAINTENANCE_MODE_ENABLED", value: false },
   { key: "MAINTENANCE_MESSAGE", value: "" },
+  { key: "SEO_GOOGLE_SITE_VERIFICATION", value: "" },
+  { key: "SEO_INDEXING_ENABLED", value: true },
+  { key: "SMTP_MAIL_PROVIDER", value: "SMTP" },
+  { key: "SMTP_HOST", value: "" },
+  { key: "SMTP_PORT", value: 587 },
+  { key: "SMTP_USERNAME", value: "" },
+  { key: "SMTP_PASSWORD", value: "" },
+  { key: "SMTP_FROM_EMAIL", value: "" },
+  { key: "EMAIL_TEMPLATE_VERIFICATION_SUBJECT", value: "E-postanızı doğrulayın · {{platform}}" },
+  { key: "EMAIL_TEMPLATE_VERIFICATION_BODY", value: "Merhaba {{name}}, hesabınızı doğrulamak için bu bağlantıyı açın: {{url}}" },
+  { key: "EMAIL_TEMPLATE_WELCOME_SUBJECT", value: "Radarune'e hoş geldiniz" },
+  { key: "EMAIL_TEMPLATE_WELCOME_BODY", value: "Merhaba {{name}}, Radarune hesabınız hazır." },
+  { key: "EMAIL_TEMPLATE_PASSWORD_RESET_SUBJECT", value: "Şifrenizi yenileyin · {{platform}}" },
+  { key: "EMAIL_TEMPLATE_PASSWORD_RESET_BODY", value: "Şifrenizi yenilemek için bu bağlantıyı açın: {{url}}" },
 ];
 
 export class AdminSystemService {
@@ -43,7 +57,9 @@ export class AdminSystemService {
 
     return defaults.map((setting) => ({
       key: setting.key,
-      value: existing.get(setting.key)?.value ?? setting.value,
+      value: setting.key === "SMTP_PASSWORD"
+        ? (existing.has(setting.key) ? "••••••••" : "")
+        : existing.get(setting.key)?.value ?? setting.value,
       updatedAt: existing.get(setting.key)?.updatedAt ?? null,
     }));
   }

@@ -47,7 +47,7 @@ export default async function AdminReleaseDetailPage({ params }: { params: Promi
           </div>
         </article>
       </section>
-      <ReleasePreview artworkUploadId={release.artworkUploadId} artworkUpload={release.uploads.find((upload) => upload.id === release.artworkUploadId) ?? null} audioUploadId={release.tracks[0]?.audioUploadId ?? null} audioUpload={release.tracks[0]?.uploads.find((upload) => upload.id === release.tracks[0]?.audioUploadId) ?? null} />
+      <ReleasePreview artworkUploadId={release.artworkUploadId} artworkUpload={release.uploads.find((upload) => upload.id === release.artworkUploadId) ?? null} audioUploadId={release.tracks[0]?.audioUploadId ?? null} audioUpload={release.tracks[0]?.uploads.find((upload) => upload.id === release.tracks[0]?.audioUploadId) ?? null} uploads={[...release.uploads, ...release.tracks.flatMap((track) => track.uploads)].map((upload) => ({ id: upload.id, fileName: upload.fileName, mimeType: upload.mimeType, kind: upload.kind }))} />
       <ReleaseReviewActions releaseId={release.id} status={release.status} />
       <section className="panel p-6">
         <h2 className="text-lg font-semibold">Parçalar</h2>

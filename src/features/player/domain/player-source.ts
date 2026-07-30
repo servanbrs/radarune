@@ -15,6 +15,8 @@ export type PlayerItem = {
   sourceLabel: string;
   playbackUrl: string | null;
   embedUrl: string | null;
+  /** Original provider URL, kept as a fallback when an embed URL is unavailable. */
+  externalUrl?: string | null;
   capabilities: PlayerCapabilities;
 };
 

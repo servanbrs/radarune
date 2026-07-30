@@ -24,7 +24,7 @@ export default async function NewReleasePage() {
     );
   } catch {
     redirect(
-      "/artist-application?reason=release-required",
+      "/become?reason=release-required",
     );
   }
 
@@ -35,7 +35,7 @@ export default async function NewReleasePage() {
 
   if (manageableArtistIds.length === 0) {
     redirect(
-      "/artist-application?reason=release-required",
+      "/become?reason=release-required",
     );
   }
 

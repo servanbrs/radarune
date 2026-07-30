@@ -580,6 +580,20 @@ enum AdminSettingKey {
   EMAIL_VERIFICATION_REQUIRED
   MAINTENANCE_MODE_ENABLED
   MAINTENANCE_MESSAGE
+  SEO_GOOGLE_SITE_VERIFICATION
+  SEO_INDEXING_ENABLED
+  SMTP_MAIL_PROVIDER
+  SMTP_HOST
+  SMTP_PORT
+  SMTP_USERNAME
+  SMTP_PASSWORD
+  SMTP_FROM_EMAIL
+  EMAIL_TEMPLATE_VERIFICATION_SUBJECT
+  EMAIL_TEMPLATE_VERIFICATION_BODY
+  EMAIL_TEMPLATE_WELCOME_SUBJECT
+  EMAIL_TEMPLATE_WELCOME_BODY
+  EMAIL_TEMPLATE_PASSWORD_RESET_SUBJECT
+  EMAIL_TEMPLATE_PASSWORD_RESET_BODY
 }
 
 enum SmartLinkBackgroundType {
@@ -2840,6 +2854,7 @@ model ExternalMediaSource {
   track              Track?                @relation(fields: [trackId], references: [id], onDelete: SetNull)
   importItems        ImportItem[]
   likes              ExternalMediaLike[]
+  comments           Comment[]
 
   @@unique([organizationId, provider, externalId])
   @@unique([organizationId, normalizedUrl])
@@ -3415,6 +3430,7 @@ model Comment {
   authorUserId     String
   releaseId        String?
   trackId          String?
+  externalMediaId  String?
   playlistId       String?
   storyId          String?
   parentCommentId  String?
@@ -3429,6 +3445,7 @@ model Comment {
   authorUser       User          @relation(fields: [authorUserId], references: [id], onDelete: Cascade)
   release          Release?      @relation(fields: [releaseId], references: [id], onDelete: Cascade)
   track            Track?        @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  externalMedia    ExternalMediaSource? @relation(fields: [externalMediaId], references: [id], onDelete: Cascade)
   playlist         Playlist?     @relation(fields: [playlistId], references: [id], onDelete: Cascade)
   story            Story?        @relation(fields: [storyId], references: [id], onDelete: Cascade)
   parentComment    Comment?      @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: SetNull)
@@ -3438,6 +3455,7 @@ model Comment {
   @@index([organizationId, status, createdAt])
   @@index([releaseId, status, createdAt])
   @@index([trackId, status, createdAt])
+  @@index([externalMediaId, status, createdAt])
   @@index([playlistId, status, createdAt])
   @@index([storyId, status, createdAt])
   @@index([authorUserId, createdAt])

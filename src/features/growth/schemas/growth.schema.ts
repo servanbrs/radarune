@@ -134,6 +134,7 @@ export const likeSchema = z.object({
 export const createCommentSchema = z.object({
   releaseId: z.string().min(1).optional(),
   trackId: z.string().min(1).optional(),
+  externalMediaId: z.string().min(1).optional(),
   playlistId: z.string().min(1).optional(),
   storyId: z.string().min(1).optional(),
   parentCommentId: z.string().min(1).optional(),

@@ -76,6 +76,7 @@ export class SocialService {
     const targetCount = [
       parsed.releaseId,
       parsed.trackId,
+      parsed.externalMediaId,
       parsed.playlistId,
       parsed.storyId,
     ].filter(Boolean).length;
@@ -88,6 +89,7 @@ export class SocialService {
       content: parsed.content,
       ...(parsed.releaseId ? { releaseId: parsed.releaseId } : {}),
       ...(parsed.trackId ? { trackId: parsed.trackId } : {}),
+      ...(parsed.externalMediaId ? { externalMediaId: parsed.externalMediaId } : {}),
       ...(parsed.playlistId ? { playlistId: parsed.playlistId } : {}),
       ...(parsed.storyId ? { storyId: parsed.storyId } : {}),
       ...(parsed.parentCommentId ? { parentCommentId: parsed.parentCommentId } : {}),
@@ -96,14 +98,23 @@ export class SocialService {
       ? await prisma.release.findFirst({ where: { id: parsed.releaseId, organizationId: actor.organizationId }, select: { id: true, title: true, createdByUserId: true } })
       : parsed.trackId
         ? await prisma.track.findFirst({ where: { id: parsed.trackId, organizationId: actor.organizationId }, select: { id: true, title: true, release: { select: { createdByUserId: true } } } })
+        : parsed.externalMediaId
+          ? await prisma.externalMediaSource.findFirst({ where: { id: parsed.externalMediaId, organizationId: actor.organizationId, status: "ACTIVE" }, select: { id: true, title: true } })
+          : null;
+    if (!target && (parsed.releaseId || parsed.trackId || parsed.externalMediaId)) throw new Error("İçerik bulunamadı.");
+    const ownerId = parsed.releaseId
+      ? (target as { createdByUserId?: string | null } | null)?.createdByUserId
+      : parsed.trackId && target && "release" in target
+        ? (target as { release?: { createdByUserId?: string | null } }).release?.createdByUserId
         : null;
-    const ownerId = target && "release" in target ? target.release.createdByUserId : target?.createdByUserId;
-    await this.notifyOwner(actor, ownerId, "COMMENT_CREATED", "Yeni yorum", "İçeriğinizde yeni bir yorum var.", parsed.releaseId ? "Release" : "Track", parsed.releaseId ?? parsed.trackId ?? result.id);
+    if (target && !parsed.externalMediaId) {
+      await this.notifyOwner(actor, ownerId, "COMMENT_CREATED", "Yeni yorum", "İçeriğinizde yeni bir yorum var.", parsed.releaseId ? "Release" : "Track", parsed.releaseId ?? parsed.trackId ?? result.id);
+    }
     return result;
   }
 
-  async listComments(input: { releaseId?: string; trackId?: string }) {
-    if (!input.releaseId && !input.trackId) throw new Error("Yorum hedefi bulunamadı.");
+  async listComments(input: { releaseId?: string; trackId?: string; externalMediaId?: string }) {
+    if (!input.releaseId && !input.trackId && !input.externalMediaId) throw new Error("Yorum hedefi bulunamadı.");
     return socialRepository.listVisibleComments(input);
   }
 

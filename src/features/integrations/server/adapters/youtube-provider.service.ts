@@ -9,7 +9,7 @@ import {
 } from "@/features/integrations/domain/external-provider";
 
 type YouTubeItem = {
-  id?: string | { videoId?: string };
+  id?: string | { videoId?: string; channelId?: string };
   snippet?: {
     title?: string;
     channelTitle?: string;
@@ -50,6 +50,13 @@ function videoId(item: YouTubeItem): string | null {
   return item.id?.videoId ?? null;
 }
 
+function isShortVideo(item: YouTubeItem) {
+  // The Data API does not expose a dedicated `isShorts` field. Shorts are
+  // reliably marked in titles/descriptions by YouTube, so reject those
+  // markers while keeping ordinary short music tracks (single releases).
+  return /(^|[\s#])shorts?(?=\b|[\s#]|$)/i.test(item.snippet?.title ?? "");
+}
+
 export class YouTubeProviderService implements ExternalProviderAdapter {
   readonly key = "YOUTUBE" as const;
 
@@ -67,8 +74,8 @@ export class YouTubeProviderService implements ExternalProviderAdapter {
     return { success: true, data: { checkedAt: new Date() } };
   }
 
-  async getChannel(channelId: string) {
-    return this.request("channels", { part: "snippet,contentDetails,status", id: channelId });
+  async getChannel(channelId: string, apiKeyOverride?: string) {
+    return this.request("channels", { part: "snippet,contentDetails,status", id: channelId }, apiKeyOverride);
   }
 
   async listChannelVideos(channelId: string, pageToken?: string, apiKeyOverride?: string) {
@@ -81,6 +88,30 @@ export class YouTubeProviderService implements ExternalProviderAdapter {
       maxResults: "50",
       ...(pageToken ? { pageToken } : {}),
     }, apiKeyOverride);
+  }
+
+  /** Accept channel IDs as well as modern @handles and legacy vanity URLs. */
+  async listChannelVideosByReference(reference: string, pageToken?: string, apiKeyOverride?: string) {
+    let channelId = reference;
+    if (reference.startsWith("handle:")) {
+      const handle = reference.slice("handle:".length);
+      const resolved = await this.request("channels", { part: "id", forHandle: handle }, apiKeyOverride);
+      if (!resolved.success) return resolved;
+      channelId = resolved.data.items?.[0]?.id as string | undefined ?? "";
+    } else if (reference.startsWith("username:")) {
+      const username = reference.slice("username:".length);
+      const resolved = await this.request("channels", { part: "id", forUsername: username }, apiKeyOverride);
+      if (!resolved.success) return resolved;
+      channelId = resolved.data.items?.[0]?.id as string | undefined ?? "";
+    } else if (reference.startsWith("search:")) {
+      const query = reference.slice("search:".length);
+      const resolved = await this.request("search", { part: "snippet", type: "channel", q: query, maxResults: "1" }, apiKeyOverride);
+      if (!resolved.success) return resolved;
+      const first = resolved.data.items?.[0];
+      channelId = typeof first?.id === "object" ? first.id.channelId ?? "" : "";
+    }
+    if (!channelId) return { success: false as const, code: "NOT_FOUND" as const, message: "YouTube kanalı bulunamadı." };
+    return this.listChannelVideos(channelId, pageToken, apiKeyOverride);
   }
 
   async searchMusic(query: string, pageToken?: string, apiKeyOverride?: string) {
@@ -142,6 +173,9 @@ export class YouTubeProviderService implements ExternalProviderAdapter {
   normalizeMetadata(input: unknown): ProviderResult<ExternalMediaMetadata> {
     if (!isObject(input)) return this.normalizeError(new Error("YouTube metadata yanıtı geçersiz."));
     const item = input as YouTubeItem;
+    if (isShortVideo(item)) {
+      return this.normalizeError(new Error("YouTube Shorts içerikleri içe aktarılmaz."));
+    }
     // YouTube category 10 is Music. Do not import general entertainment,
     // vlog or gaming videos into Radarune's music discovery catalog.
     if (item.snippet?.categoryId && item.snippet.categoryId !== "10") {

@@ -14,7 +14,22 @@ function parseStoredCredentials(value: string | null | undefined) {
     return {};
   }
 
-  return JSON.parse(decryptDistributionSecret(value)) as Record<string, string>;
+  try {
+    return JSON.parse(decryptDistributionSecret(value)) as Record<string, string>;
+  } catch {
+    // A rotated/missing encryption key must not take down the admin page or
+    // distribution worker. The credential can be re-saved from the panel.
+    return {};
+  }
+}
+
+function decryptOptional(value: string | null | undefined) {
+  if (!value) return undefined;
+  try {
+    return decryptDistributionSecret(value);
+  } catch {
+    return undefined;
+  }
 }
 
 function maskCredentialMap(credentials: Record<string, string>) {
@@ -185,9 +200,7 @@ export class DistributionProviderConfigurationService {
       supportsTakedown: configuration.supportsTakedown,
       isDefault: configuration.isDefault,
       credentials: parseStoredCredentials(configuration.credentialsEncrypted),
-      webhookSecret: configuration.webhookSecretEncrypted
-        ? decryptDistributionSecret(configuration.webhookSecretEncrypted)
-        : undefined,
+      webhookSecret: decryptOptional(configuration.webhookSecretEncrypted),
       publicMetadata:
         configuration.publicMetadata && typeof configuration.publicMetadata === "object"
           ? (configuration.publicMetadata as Record<string, string>)
