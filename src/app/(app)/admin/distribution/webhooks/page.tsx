@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { rbacService } from "@/features/authorization/server/rbac";
 import { adminDistributionService } from "@/features/distribution-hub/server/services/admin-distribution.service";

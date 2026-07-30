@@ -46,7 +46,7 @@ export class AdminDistributionService {
     if (!rbacService.hasEffectivePermission({ membershipRole: actor.membershipRole, systemRole: actor.systemRole, permission: "distribution:manage" })) throw new Error("Dağıtım job yönetme yetkiniz yok.");
     const job = await distributionJobRepository.findById(jobId);
     if (!job || job.organizationId !== actor.organizationId) throw new Error("Distribution job bulunamadı.");
-    let providerConfigurationId = input.providerConfigurationId;
+    const providerConfigurationId = input.providerConfigurationId;
     if (providerConfigurationId) {
       const configs = await distributionProviderConfigurationRepository.listByOrganizationId(actor.organizationId);
       const config = configs.find((item) => item.id === providerConfigurationId);
