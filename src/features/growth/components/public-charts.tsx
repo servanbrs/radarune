@@ -1,0 +1,196 @@
+"use client";
+
+import {
+  ArrowUpRight,
+  ChevronLeft,
+  ChevronRight,
+  Music2,
+  Play,
+} from "lucide-react";
+import { useRef } from "react";
+
+import type {
+  PublicChartSection,
+  PublicChartTrack,
+} from "@/features/growth/server/services/public-charts.service";
+
+type PublicChartsProps = {
+  sections: PublicChartSection[];
+};
+
+function ChartTrackCard({
+  item,
+  rank,
+}: {
+  item: PublicChartTrack;
+  rank: number;
+}) {
+  return (
+    <article className="group relative w-[260px] shrink-0 snap-start overflow-hidden rounded-[1.6rem] border border-black/[0.07] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_55px_rgba(15,23,42,0.15)] sm:w-[290px]">
+      <a
+        aria-label={`${item.title} kaynağını aç`}
+        className="block"
+        href={item.externalUrl}
+        rel="noreferrer"
+        target="_blank"
+      >
+        <div className="relative aspect-video overflow-hidden bg-[#dfe8e7]">
+          {item.thumbnailUrl ? (
+            <img
+              alt=""
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              loading="lazy"
+              src={item.thumbnailUrl}
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center bg-gradient-to-br from-[#0b8274]/20 to-[#111827]/15">
+              <Music2 className="size-10 text-[#087d70]" />
+            </div>
+          )}
+
+          <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
+
+          <span className="absolute left-3 top-3 inline-flex min-w-10 items-center justify-center rounded-full border border-white/20 bg-black/55 px-3 py-1.5 text-sm font-black text-white backdrop-blur">
+            {String(rank).padStart(2, "0")}
+          </span>
+
+          <span className="absolute bottom-3 right-3 inline-flex size-11 items-center justify-center rounded-full bg-white text-black shadow-lg transition group-hover:scale-105">
+            <Play className="ml-0.5 size-4 fill-current" />
+          </span>
+        </div>
+
+        <div className="p-4">
+          <h3 className="line-clamp-2 min-h-12 text-base font-bold leading-6 text-black">
+            {item.title}
+          </h3>
+
+          <p className="mt-1 truncate text-sm text-black/50">
+            {item.artistName}
+          </p>
+
+          <div className="mt-4 flex items-center justify-between gap-3 border-t border-black/5 pt-3">
+            <p className="text-xs text-black/40">
+              <span className="font-bold text-[#087d70]">
+                {item.metricValue}
+              </span>{" "}
+              {item.metricLabel}
+            </p>
+
+            <ArrowUpRight className="size-4 text-black/35 transition group-hover:text-[#087d70]" />
+          </div>
+        </div>
+      </a>
+    </article>
+  );
+}
+
+function ChartRow({
+  section,
+}: {
+  section: PublicChartSection;
+}) {
+  const rowRef = useRef<HTMLDivElement | null>(null);
+
+  function scroll(direction: "left" | "right") {
+    rowRef.current?.scrollBy({
+      left: direction === "right" ? 650 : -650,
+      behavior: "smooth",
+    });
+  }
+
+  return (
+    <section
+      className="overflow-hidden rounded-[2rem] border border-black/[0.06] bg-white/65 p-4 shadow-[0_15px_50px_rgba(15,23,42,0.05)] backdrop-blur-xl sm:p-6"
+      id={section.id}
+    >
+      <header className="flex items-end justify-between gap-4">
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#087d70]">
+            {section.eyebrow}
+          </p>
+
+          <h2 className="mt-2 text-2xl font-black tracking-[-0.03em] text-black sm:text-3xl">
+            {section.title}
+          </h2>
+
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-black/50">
+            {section.description}
+          </p>
+        </div>
+
+        <div className="hidden shrink-0 items-center gap-2 sm:flex">
+          <button
+            aria-label="Önceki şarkılar"
+            className="inline-flex size-10 items-center justify-center rounded-full border border-black/10 bg-white text-black/55 transition hover:bg-black hover:text-white"
+            onClick={() => scroll("left")}
+            type="button"
+          >
+            <ChevronLeft className="size-4" />
+          </button>
+
+          <button
+            aria-label="Sonraki şarkılar"
+            className="inline-flex size-10 items-center justify-center rounded-full border border-black/10 bg-white text-black/55 transition hover:bg-black hover:text-white"
+            onClick={() => scroll("right")}
+            type="button"
+          >
+            <ChevronRight className="size-4" />
+          </button>
+        </div>
+      </header>
+
+      {section.tracks.length ? (
+        <div
+          className="mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          ref={rowRef}
+        >
+          {section.tracks.map((item, index) => (
+            <ChartTrackCard
+              item={item}
+              key={item.id}
+              rank={index + 1}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="mt-6 flex min-h-40 items-center justify-center rounded-3xl border border-dashed border-black/10 bg-white/60 px-6 text-center">
+          <div>
+            <Music2 className="mx-auto size-7 text-[#087d70]" />
+
+            <p className="mt-3 text-sm font-bold text-black">
+              Bu liste henüz hazırlanamadı
+            </p>
+
+            <p className="mt-1 max-w-md text-xs leading-5 text-black/45">
+              YouTube API anahtarını admin entegrasyon
+              ayarlarından veya YOUTUBE_API_KEY ortam
+              değişkeninden kontrol edin.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <footer className="mt-1 flex items-center justify-between border-t border-black/5 pt-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-black/35">
+          Kaynak: {section.sourceLabel}
+        </p>
+
+        <p className="text-xs text-black/35">
+          {section.tracks.length} içerik
+        </p>
+      </footer>
+    </section>
+  );
+}
+
+export function PublicCharts({
+  sections,
+}: PublicChartsProps) {
+  return (
+    <div className="grid gap-6">
+      {sections.map((section) => (
+        <ChartRow key={section.id} section={section} />
+      ))}
+    </div>
+  );
+}

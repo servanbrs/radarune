@@ -2,7 +2,7 @@ import "server-only";
 import { Prisma } from "@/generated/prisma/client";
 import { entitlementService } from "@/features/billing/server/services/entitlement.service";
 import { auditLogService } from "@/features/finance/server/services/audit-log.service";
-import { createSecureToken, hashPrivacyValue } from "@/features/growth/lib/security";
+import { createSecureToken, hashPrivacyValue } from "@/features/growth/server/security.server";
 import {
   createPreSaveCampaignSchema,
   preSaveEmailSubscribeSchema,

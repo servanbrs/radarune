@@ -1,6 +1,6 @@
 import "server-only";
 import { growthRepository } from "@/features/growth/server/repositories/growth.repository";
-import { hashPrivacyValue } from "@/features/growth/lib/security";
+import { hashPrivacyValue } from "@/features/growth/server/security.server";
 
 export class SmartLinkAnalyticsService {
   async recordView(input: {

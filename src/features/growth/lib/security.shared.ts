@@ -1,5 +1,3 @@
-import { createHash, randomBytes } from "node:crypto";
-
 const forbiddenSlugs = new Set([
   "admin",
   "api",
@@ -38,18 +36,12 @@ export function assertAllowedSlug(slug: string) {
 
 export function assertHttpsUrl(value: string) {
   const url = new URL(value);
+
   if (url.protocol !== "https:") {
-    throw new Error("Bağlantı URL'i HTTPS olmalıdır.");
+    throw new Error("Bağlantı HTTPS olmalıdır.");
   }
+
   return url.toString();
-}
-
-export function hashPrivacyValue(value: string, salt = "radarune-growth") {
-  return createHash("sha256").update(`${salt}:${value}`).digest("hex");
-}
-
-export function createSecureToken(bytes = 32) {
-  return randomBytes(bytes).toString("base64url");
 }
 
 export function stripHtml(value: string) {

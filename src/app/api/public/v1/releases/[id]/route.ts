@@ -8,7 +8,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     access = await authenticatePublicRequest(request, "releases.read");
     const { id } = await context.params;
     const release = await prisma.release.findFirst({
-      where: { id, organizationId: access.tenant.id, status: "LIVE" },
+      where: { id, organizationId: access.tenant.id, status: { in: ["DISTRIBUTED", "LIVE"] } },
       select: {
         id: true,
         title: true,

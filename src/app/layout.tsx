@@ -1,21 +1,8 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { GlobalPlayerProvider } from "@/features/growth/components/global-player-provider";
 import { tenantContextService } from "@/features/platform/server/services/tenant-context.service";
 import { prisma } from "@/server/prisma/prisma";
-
-const headingFont = Space_Grotesk({
-  variable: "--font-heading",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
-
-const monoFont = IBM_Plex_Mono({
-  variable: "--font-mono",
-  subsets: ["latin"],
-  weight: ["400", "500"],
-});
 
 export async function generateMetadata(): Promise<Metadata> {
   const tenant = await tenantContextService.resolveFromRequest();
@@ -57,7 +44,7 @@ export default function RootLayout({
   return (
     <html
       lang="tr"
-      className={`${headingFont.variable} ${monoFont.variable} h-full antialiased`}
+      className={`${""} ${""} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col"><GlobalPlayerProvider>{children}</GlobalPlayerProvider></body>
     </html>

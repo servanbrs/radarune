@@ -217,7 +217,7 @@ export class GrowthRepository {
       where: { slug },
       include: {
         releaseArtistLinks: {
-          where: { release: { status: "LIVE" } },
+          where: { release: { status: { in: ["DISTRIBUTED", "LIVE"] } } },
           include: { release: { include: { _count: { select: { releaseLikes: true } } } } },
           orderBy: { createdAt: "desc" },
           take: 12,

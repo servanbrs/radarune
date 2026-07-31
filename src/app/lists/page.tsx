@@ -1,26 +1,235 @@
 import Link from "next/link";
-import { PublicHeader } from "@/components/public-header";
-import { PublicFooter } from "@/components/public-footer";
-import { socialRepository } from "@/features/growth/server/repositories/social.repository";
+import {
+  ArrowDown,
+  Globe2,
+  Radio,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
+
+import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
+import { PublicCharts } from "@/features/growth/components/public-charts";
+import { PublicGrowthShell } from "@/features/growth/components/public-shell";
+import { publicChartsService } from "@/features/growth/server/services/public-charts.service";
+import { prisma } from "@/server/prisma/prisma";
 
 export const dynamic = "force-dynamic";
 
-const curated = [
-  { slug: "en-cok-oylananlar", title: "En çok oylananlar", description: "Topluluğun oylarıyla öne çıkan yayınlar." },
-  { slug: "en-fazla-dinlenenler", title: "En fazla dinlenenler", description: "En çok dinlenen ve tekrar keşfedilen şarkılar." },
-  { slug: "global-dinlenenler", title: "Global dinlenenler", description: "Dünyadan Radarune dinleyicilerinin favorileri." },
+export const metadata = {
+  title: "Müzik Listeleri | Radarune",
+  description:
+    "YouTube Türkiye trendleri, global müzik gündemi ve Radarune topluluğunun yükselen şarkıları.",
+};
+
+const quickLinks = [
+  {
+    href: "#youtube-turkey",
+    label: "Türkiye",
+    icon: Radio,
+  },
+  {
+    href: "#radarune-most-liked",
+    label: "Topluluk",
+    icon: TrendingUp,
+  },
+  {
+    href: "#youtube-global",
+    label: "Global",
+    icon: Globe2,
+  },
+  {
+    href: "#radarune-new",
+    label: "Yeni çıkanlar",
+    icon: Sparkles,
+  },
 ];
 
 export default async function ListsPage() {
-  const playlists = await socialRepository.listPublicPlaylists();
-  const curatedWithData = curated.map((item, index) => ({ ...item, index, playlist: playlists.find((entry) => entry.slug === item.slug) }));
-  const communityPlaylists = playlists.filter((playlist) => !curated.some((item) => item.slug === playlist.slug));
-  return <div className="min-h-screen bg-background text-foreground"><PublicHeader /><main className="page-shell space-y-6 pb-16">
-    <section className="relative overflow-hidden rounded-[2rem] border border-line bg-[#0b1114] px-7 py-10 text-white shadow-2xl md:px-12 md:py-14">
-      <div className="pointer-events-none absolute -right-28 -top-32 h-80 w-80 rounded-full bg-accent/35 blur-3xl" /><div className="pointer-events-none absolute -bottom-40 left-1/3 h-72 w-72 rounded-full bg-cyan-400/10 blur-3xl" />
-      <div className="relative grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-end"><div><p className="text-xs font-semibold uppercase tracking-[0.28em] text-accent">RADARUNE / PLAYLIST LAB</p><h1 className="mt-5 max-w-3xl text-5xl font-semibold tracking-[-0.04em] md:text-7xl">Müziğin <span className="text-accent">küratörlüğü</span> sende.</h1><p className="mt-5 max-w-2xl text-base leading-7 text-white/65 md:text-lg">Topluluğun oylarıyla yükselenleri, en çok dinlenenleri ve dünyanın her yerinden seçilen şarkıları tek bir akışta keşfet.</p><div className="mt-8 flex flex-wrap gap-3"><Link className="rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground" href="/discover">Keşfe başla ↗</Link><Link className="rounded-full border border-white/20 px-5 py-3 text-sm font-semibold text-white hover:bg-white/10" href="/playlists">Kendi listeni oluştur</Link></div></div><div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2"><div className="rounded-2xl border border-white/10 bg-white/5 p-4"><p className="text-3xl font-semibold text-accent">{playlists.length}</p><p className="mt-1 text-xs text-white/55">public liste</p></div><div className="rounded-2xl border border-white/10 bg-white/5 p-4"><p className="text-3xl font-semibold">{playlists.reduce((sum, item) => sum + item.tracks.length, 0)}</p><p className="mt-1 text-xs text-white/55">öne çıkan parça</p></div><div className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:col-span-2 lg:col-span-2"><p className="text-sm font-semibold">Gerçek topluluk verisi</p><p className="mt-1 text-xs leading-5 text-white/55">Listeler admin panelinden güncellenir; sahte sıralama veya uydurma içerik kullanılmaz.</p></div></div></div>
-    </section>
-    <section><div className="mb-4 flex items-end justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">Editoryal akış</p><h2 className="mt-2 text-2xl font-semibold md:text-3xl">Radarune seçkileri</h2></div><span className="text-xs text-muted">Admin tarafından yönetilir</span></div><div className="grid gap-4 lg:grid-cols-3">{curatedWithData.map((item) => <article className={`group relative min-h-80 overflow-hidden rounded-[1.75rem] border border-line p-6 ${item.index === 0 ? "bg-accent text-accent-foreground" : "bg-surface"}`} key={item.slug}><div className="flex items-start justify-between"><span className="text-xs font-semibold uppercase tracking-[0.2em] opacity-70">0{item.index + 1} / LİSTE</span><span className="text-2xl opacity-70">↗</span></div><h3 className="mt-12 max-w-[11rem] text-3xl font-semibold leading-tight">{item.title}</h3><p className="mt-3 max-w-xs text-sm leading-6 opacity-70">{item.description}</p><div className="absolute inset-x-6 bottom-6">{item.playlist ? <Link className={`inline-flex rounded-full px-4 py-2 text-sm font-semibold ${item.index === 0 ? "bg-black/15" : "bg-accent text-accent-foreground"}`} href={`/playlist/${item.playlist.slug ?? item.playlist.id}`}>Listeyi aç · {item.playlist.tracks.length} parça</Link> : <p className="rounded-xl border border-current/20 px-3 py-2 text-xs opacity-60">Bu seçki için henüz yayın eklenmedi.</p>}</div><div className="pointer-events-none absolute -bottom-16 -right-10 h-40 w-40 rounded-full border-[22px] border-current/10 transition-transform duration-500 group-hover:scale-125" /></article>)}</div></section>
-    <section className="rounded-[1.75rem] border border-line bg-surface p-6 md:p-8"><div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Topluluk koleksiyonu</p><h2 className="mt-2 text-2xl font-semibold">Diğer public listeler</h2></div><p className="text-sm text-muted">Kullanıcı ve ekip listeleri</p></div><div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">{communityPlaylists.map((playlist) => <Link className="group rounded-2xl border border-line bg-surface-strong p-4 transition hover:-translate-y-0.5 hover:border-accent" href={`/playlist/${playlist.slug ?? playlist.id}`} key={playlist.id}><div className="flex items-center justify-between"><span className="grid size-11 place-items-center rounded-xl bg-accent/15 text-lg text-accent">♫</span><span className="text-lg text-muted transition group-hover:text-accent">↗</span></div><p className="mt-4 font-semibold">{playlist.name}</p><p className="mt-1 text-sm text-muted">{playlist.tracks.length} parça · {playlist.ownerUser.name}</p></Link>)}{communityPlaylists.length === 0 ? <div className="md:col-span-2 xl:col-span-3 rounded-2xl border border-dashed border-line p-8 text-center"><p className="font-semibold">Topluluk listeleri yakında burada.</p><p className="mt-1 text-sm text-muted">Admin panelinden public playlist yayınlandığında otomatik görünür.</p></div> : null}</div></section>
-  </main><PublicFooter /></div>;
+  const session =
+    await authSessionService.getOptionalSession();
+
+  let organizationId: string | null = null;
+
+  if (session) {
+    const membership =
+      await prisma.organizationMembership.findFirst({
+        where: {
+          userId: session.user.id,
+          status: "ACTIVE",
+          organization: {
+            tenantStatus: "ACTIVE",
+          },
+        },
+        orderBy: [
+          {
+            role: "asc",
+          },
+          {
+            createdAt: "asc",
+          },
+        ],
+        select: {
+          organizationId: true,
+        },
+      });
+
+    organizationId = membership?.organizationId ?? null;
+  }
+
+  if (!organizationId) {
+    const publicOrganization =
+      await prisma.organization.findFirst({
+        where: {
+          tenantStatus: "ACTIVE",
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+        select: {
+          id: true,
+        },
+      });
+
+    organizationId = publicOrganization?.id ?? null;
+  }
+
+  const sections = organizationId
+    ? await publicChartsService.getPublicCharts(
+        organizationId,
+      )
+    : [];
+
+  const currentUser = session
+    ? {
+        name: session.user.name,
+        username:
+          "username" in session.user &&
+          typeof session.user.username === "string"
+            ? session.user.username
+            : null,
+      }
+    : null;
+
+  const totalTracks = sections.reduce(
+    (total, section) => total + section.tracks.length,
+    0,
+  );
+
+  return (
+    <PublicGrowthShell currentUser={currentUser}>
+      <div className="space-y-6">
+        <section className="relative overflow-hidden rounded-[2.4rem] bg-[#071612] px-6 py-10 text-white shadow-[0_30px_100px_rgba(4,24,20,0.25)] sm:px-10 sm:py-14 lg:px-14 lg:py-16">
+          <div className="pointer-events-none absolute -right-28 -top-36 size-[420px] rounded-full bg-[#18d7aa]/20 blur-[90px]" />
+          <div className="pointer-events-none absolute -bottom-48 left-[25%] size-[390px] rounded-full bg-blue-400/10 blur-[100px]" />
+
+          <div className="relative grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(300px,0.65fr)] lg:items-end">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.3em] text-[#54e7c2]">
+                RADARUNE / CHARTS
+              </p>
+
+              <h1 className="mt-5 max-w-4xl text-5xl font-black tracking-[-0.055em] sm:text-6xl lg:text-8xl">
+                Müziğin nabzı
+                <span className="block text-[#54e7c2]">
+                  burada atıyor.
+                </span>
+              </h1>
+
+              <p className="mt-6 max-w-2xl text-base leading-7 text-white/60 sm:text-lg">
+                Türkiye trendlerini, dünyadan yükselen
+                şarkıları ve Radarune topluluğunun gerçek
+                etkileşimleriyle öne çıkan yayınları keşfet.
+              </p>
+
+              <div className="mt-8 flex flex-wrap gap-2">
+                {quickLinks.map((item) => {
+                  const Icon = item.icon;
+
+                  return (
+                    <Link
+                      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.07] px-4 py-2.5 text-sm font-semibold text-white transition hover:border-[#54e7c2]/40 hover:bg-[#54e7c2]/10"
+                      href={item.href}
+                      key={item.href}
+                    >
+                      <Icon className="size-4 text-[#54e7c2]" />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur">
+                <p className="text-4xl font-black text-[#54e7c2]">
+                  {sections.length}
+                </p>
+                <p className="mt-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/40">
+                  Güncel liste
+                </p>
+              </div>
+
+              <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur">
+                <p className="text-4xl font-black">
+                  {totalTracks}
+                </p>
+                <p className="mt-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/40">
+                  Öne çıkan içerik
+                </p>
+              </div>
+
+              <div className="col-span-2 rounded-3xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur">
+                <p className="text-sm font-bold">
+                  Gerçek ve güncel veri
+                </p>
+
+                <p className="mt-2 text-xs leading-5 text-white/45">
+                  YouTube listeleri 30 dakika, Radarune
+                  topluluk verileri 5 dakika önbellekte
+                  tutulur.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <a
+            aria-label="Listelere git"
+            className="absolute bottom-5 right-6 hidden size-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.07] text-white/70 transition hover:bg-white hover:text-black sm:flex"
+            href="#youtube-turkey"
+          >
+            <ArrowDown className="size-5" />
+          </a>
+        </section>
+
+        <PublicCharts sections={sections} />
+
+        <section className="rounded-[2rem] border border-black/[0.06] bg-[#e9faf4] p-7 sm:p-10">
+          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-[#087d70]">
+                RADARUNE DISCOVER
+              </p>
+
+              <h2 className="mt-3 text-3xl font-black tracking-[-0.035em] text-black">
+                Sadece listelere bakma, sıralamayı değiştir.
+              </h2>
+
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-black/55">
+                Keşfet bölümünde yeni şarkıları dinle,
+                beğen ve topluluk listelerinde yükselmelerine
+                yardımcı ol.
+              </p>
+            </div>
+
+            <Link
+              className="inline-flex w-fit items-center justify-center rounded-full bg-[#071612] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#087d70]"
+              href="/discover"
+            >
+              Keşfe başla
+            </Link>
+          </div>
+        </section>
+      </div>
+    </PublicGrowthShell>
+  );
 }

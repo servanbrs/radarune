@@ -96,7 +96,7 @@ export function DeadLetterJobList({ jobs }: { jobs: DeadLetterJob[] }) {
                   size="sm"
                   type="button"
                 >
-                  {isPending && pendingId === job.id ? "Kuyruğa alınıyor…" : "Requeue"}
+                  {isPending && pendingId === job.id ? "Kuyruğa alınıyor…" : "Tekrar sıraya al"}
                 </Button>
               </td>
             </tr>

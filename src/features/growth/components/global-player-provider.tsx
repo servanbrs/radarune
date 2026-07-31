@@ -97,9 +97,6 @@ export function GlobalPlayerProvider({ children }: { children: ReactNode }) {
       });
     }
     return () => {
-      audio.pause();
-      audio.removeAttribute("src");
-      audio.load();
       audio.removeEventListener("timeupdate", onTime);
       audio.removeEventListener("loadedmetadata", onMeta);
       audio.removeEventListener("canplay", onCanPlay);
@@ -162,7 +159,23 @@ export function GlobalPlayerProvider({ children }: { children: ReactNode }) {
       },
       next: () => move(1), previous: () => move(-1),
       seek: (value) => { if (audioRef.current) { audioRef.current.currentTime = value; setPosition(value); } },
-      close: () => { audioRef.current?.pause(); setItem(null); setQueue([]); setPlaying(false); setError(null); },
+      close: () => {
+        const audio = audioRef.current;
+
+        if (audio) {
+          audio.pause();
+          audio.removeAttribute("src");
+          audio.load();
+        }
+
+        setItem(null);
+        setQueue([]);
+        setIndex(0);
+        setPlaying(false);
+        setPosition(0);
+        setDuration(0);
+        setError(null);
+      },
     };
   }, [duration, error, index, item, playing, position, queue]);
 

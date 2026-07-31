@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { assertAllowedSlug, assertHttpsUrl, normalizeSlug, stripHtml } from "@/features/growth/lib/security";
+import { assertAllowedSlug, assertHttpsUrl, normalizeSlug, stripHtml } from "@/features/growth/lib/security.shared";
 
 const slugSchema = z
   .string()

@@ -7,7 +7,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
   try {
     access = await authenticatePublicRequest(request, "artists.read");
     const { id } = await context.params;
-    const artist = await prisma.artist.findFirst({ where: { id, organizationId: access.tenant.id }, select: { id: true, name: true, slug: true, type: true, spotifyProfileUrl: true, appleMusicProfileUrl: true, createdAt: true, releaseArtistLinks: { where: { release: { status: "LIVE" } }, select: { role: true, release: { select: { id: true, title: true, type: true, status: true } } } } } });
+    const artist = await prisma.artist.findFirst({ where: { id, organizationId: access.tenant.id }, select: { id: true, name: true, slug: true, type: true, spotifyProfileUrl: true, appleMusicProfileUrl: true, createdAt: true, releaseArtistLinks: { where: { release: { status: { in: ["DISTRIBUTED", "LIVE"] } } }, select: { role: true, release: { select: { id: true, title: true, type: true, status: true } } } } } });
     if (!artist) return NextResponse.json({ error: { code: "NOT_FOUND", message: "Sanatçı bulunamadı.", requestId: access.requestId } }, { status: 404 });
     return NextResponse.json({ data: artist, meta: { requestId: access.requestId } });
   } catch (error) {

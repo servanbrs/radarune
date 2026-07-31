@@ -1277,7 +1277,7 @@ model Organization {
   invoices                       Invoice[]
   manualPaymentRequests          ManualPaymentRequest[]
   paymentProviderConfigs         PaymentProviderConfig[]
-  integrationCredentials          IntegrationCredential[]
+  integrationCredentials         IntegrationCredential[]
   paymentTransactions            PaymentTransaction[]
   revenueImports                 RevenueImport[]
   revenueReports                 RevenueReport[]
@@ -1395,19 +1395,24 @@ model Organization {
 enum IntegrationCredentialProvider {
   YOUTUBE
   SPOTIFY
+  OPENAI
+  GOOGLE_GEMINI
+  ANTHROPIC
+  GOOGLE_SEARCH_CONSOLE
+  OPENROUTER
 }
 
 model IntegrationCredential {
-  id                 String                        @id @default(cuid())
-  organizationId     String
-  provider           IntegrationCredentialProvider
-  credentialsEncrypted String                     @db.Text
-  active             Boolean                       @default(true)
-  lastTestedAt       DateTime?
-  lastTestError      String?                       @db.Text
-  createdAt          DateTime                      @default(now())
-  updatedAt          DateTime                      @updatedAt
-  organization       Organization                  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id                   String                        @id @default(cuid())
+  organizationId       String
+  provider             IntegrationCredentialProvider
+  credentialsEncrypted String                        @db.Text
+  active               Boolean                       @default(true)
+  lastTestedAt         DateTime?
+  lastTestError        String?                       @db.Text
+  createdAt            DateTime                      @default(now())
+  updatedAt            DateTime                      @updatedAt
+  organization         Organization                  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, provider])
   @@index([organizationId, active])
@@ -1527,7 +1532,7 @@ model Label {
   updatedAt            DateTime              @updatedAt
   organization         Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   parentLabel          Label?                @relation("LabelHierarchy", fields: [parentLabelId], references: [id], onDelete: SetNull)
-  childLabels          Label[]                @relation("LabelHierarchy")
+  childLabels          Label[]               @relation("LabelHierarchy")
   createdByUser        User?                 @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
   artistLinks          LabelArtist[]
   financialAdjustments FinancialAdjustment[]
@@ -1695,70 +1700,70 @@ model Upload {
 }
 
 model Release {
-  id                    String                   @id @default(cuid())
-  organizationId        String
-  createdByUserId       String
-  submittedByUserId     String?
-  labelId               String?
-  title                 String
-  versionTitle          String?
-  primaryLanguage       String
-  primaryGenre          String
-  secondaryGenre        String?
-  type                  ReleaseType
-  status                ReleaseStatus            @default(DRAFT)
-  explicit              Boolean                  @default(false)
-  copyrightP            String
-  copyrightC            String
-  plannedReleaseDate    DateTime?
-  originalReleaseDate   DateTime?
-  previouslyReleased    Boolean                  @default(false)
-  upc                   String?
-  artworkUploadId       String?
-  distributionProvider  DistributionProvider?
-  worldwideDistribution Boolean                  @default(true)
-  presaveEnabled        Boolean                  @default(false)
-  dolbyAtmosEnabled     Boolean                  @default(false)
-  contentIdEnabled      Boolean                  @default(false)
-  videoUploadId         String?
-  videoDistributionEnabled Boolean               @default(false)
-  videoStores           Json?
-  submittedAt           DateTime?
-  approvedAt            DateTime?
-  rejectedAt            DateTime?
-  liveAt                DateTime?
-  createdAt             DateTime                 @default(now())
-  updatedAt             DateTime                 @updatedAt
-  organization          Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  createdByUser         User                     @relation("ReleaseCreatedBy", fields: [createdByUserId], references: [id], onDelete: Cascade)
-  submittedByUser       User?                    @relation("ReleaseSubmittedBy", fields: [submittedByUserId], references: [id], onDelete: SetNull)
-  label                 Label?                   @relation(fields: [labelId], references: [id], onDelete: SetNull)
-  tracks                Track[]
-  artists               ReleaseArtist[]
-  contributors          Contributor[]
-  distributionSelection DistributionSelection?
-  stores                ReleaseStore[]
-  territories           ReleaseTerritory[]
-  uploads               Upload[]
-  validationIssues      ReleaseValidationIssue[]
-  statusHistory         ReleaseStatusHistory[]
-  aiAnalysisJobs        AiAnalysisJob[]
-  artworkAnalyses       ArtworkAnalysis[]
-  audioAnalyses         AudioAnalysis[]
-  duplicateMatches      DuplicateAudioMatch[]
-  lyricsAnalyses        LyricsAnalysis[]
-  metadataAnalyses      MetadataAnalysis[]
-  readinessScores       ReleaseReadinessScore[]
-  validationRuns        ValidationRun[]
-  comments              Comment[]
-  discoverEvents        DiscoverEvent[]
-  playlistTracks        PlaylistTrack[]
-  preSaveCampaigns      PreSaveCampaign[]
-  releaseLikes          ReleaseLike[]
-  smartLinks            SmartLink[]
-  stories               Story[]
-  externalMediaSources  ExternalMediaSource[]
-  importMatches         ImportMatch[]
+  id                       String                   @id @default(cuid())
+  organizationId           String
+  createdByUserId          String
+  submittedByUserId        String?
+  labelId                  String?
+  title                    String
+  versionTitle             String?
+  primaryLanguage          String
+  primaryGenre             String
+  secondaryGenre           String?
+  type                     ReleaseType
+  status                   ReleaseStatus            @default(DRAFT)
+  explicit                 Boolean                  @default(false)
+  copyrightP               String
+  copyrightC               String
+  plannedReleaseDate       DateTime?
+  originalReleaseDate      DateTime?
+  previouslyReleased       Boolean                  @default(false)
+  upc                      String?
+  artworkUploadId          String?
+  distributionProvider     DistributionProvider?
+  worldwideDistribution    Boolean                  @default(true)
+  presaveEnabled           Boolean                  @default(false)
+  dolbyAtmosEnabled        Boolean                  @default(false)
+  contentIdEnabled         Boolean                  @default(false)
+  videoUploadId            String?
+  videoDistributionEnabled Boolean                  @default(false)
+  videoStores              Json?
+  submittedAt              DateTime?
+  approvedAt               DateTime?
+  rejectedAt               DateTime?
+  liveAt                   DateTime?
+  createdAt                DateTime                 @default(now())
+  updatedAt                DateTime                 @updatedAt
+  organization             Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdByUser            User                     @relation("ReleaseCreatedBy", fields: [createdByUserId], references: [id], onDelete: Cascade)
+  submittedByUser          User?                    @relation("ReleaseSubmittedBy", fields: [submittedByUserId], references: [id], onDelete: SetNull)
+  label                    Label?                   @relation(fields: [labelId], references: [id], onDelete: SetNull)
+  tracks                   Track[]
+  artists                  ReleaseArtist[]
+  contributors             Contributor[]
+  distributionSelection    DistributionSelection?
+  stores                   ReleaseStore[]
+  territories              ReleaseTerritory[]
+  uploads                  Upload[]
+  validationIssues         ReleaseValidationIssue[]
+  statusHistory            ReleaseStatusHistory[]
+  aiAnalysisJobs           AiAnalysisJob[]
+  artworkAnalyses          ArtworkAnalysis[]
+  audioAnalyses            AudioAnalysis[]
+  duplicateMatches         DuplicateAudioMatch[]
+  lyricsAnalyses           LyricsAnalysis[]
+  metadataAnalyses         MetadataAnalysis[]
+  readinessScores          ReleaseReadinessScore[]
+  validationRuns           ValidationRun[]
+  comments                 Comment[]
+  discoverEvents           DiscoverEvent[]
+  playlistTracks           PlaylistTrack[]
+  preSaveCampaigns         PreSaveCampaign[]
+  releaseLikes             ReleaseLike[]
+  smartLinks               SmartLink[]
+  stories                  Story[]
+  externalMediaSources     ExternalMediaSource[]
+  importMatches            ImportMatch[]
 
   @@index([organizationId, status, updatedAt])
   @@index([createdByUserId, status])
@@ -2866,14 +2871,14 @@ model ExternalMediaSource {
 }
 
 model ExternalMediaLike {
-  id                 String             @id @default(cuid())
-  organizationId     String
-  userId             String
-  externalMediaId    String
-  createdAt          DateTime           @default(now())
-  organization       Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  externalMedia      ExternalMediaSource @relation(fields: [externalMediaId], references: [id], onDelete: Cascade)
+  id              String              @id @default(cuid())
+  organizationId  String
+  userId          String
+  externalMediaId String
+  createdAt       DateTime            @default(now())
+  organization    Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  externalMedia   ExternalMediaSource @relation(fields: [externalMediaId], references: [id], onDelete: Cascade)
 
   @@unique([userId, externalMediaId])
   @@index([organizationId, externalMediaId, createdAt])
@@ -2896,7 +2901,7 @@ model ImportSource {
   minDurationMs      Int?
   maxDurationMs      Int?
   maxAgeDays         Int?
-  maxItems           Int                  @default(100)
+  maxItems           Int                    @default(100)
   contentFilter      Json?
   frequencyMinutes   Int                    @default(60)
   scheduleMode       ImportScheduleMode     @default(CRON)
@@ -3425,7 +3430,7 @@ model PlaylistLike {
 }
 
 model Comment {
-  id               String        @id @default(cuid())
+  id               String               @id @default(cuid())
   organizationId   String?
   authorUserId     String
   releaseId        String?
@@ -3434,22 +3439,22 @@ model Comment {
   playlistId       String?
   storyId          String?
   parentCommentId  String?
-  content          String        @db.Text
-  status           CommentStatus @default(VISIBLE)
+  content          String               @db.Text
+  status           CommentStatus        @default(VISIBLE)
   editedAt         DateTime?
   deletedAt        DateTime?
   moderationReason String?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  authorUser       User          @relation(fields: [authorUserId], references: [id], onDelete: Cascade)
-  release          Release?      @relation(fields: [releaseId], references: [id], onDelete: Cascade)
-  track            Track?        @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  organization     Organization?        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  authorUser       User                 @relation(fields: [authorUserId], references: [id], onDelete: Cascade)
+  release          Release?             @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  track            Track?               @relation(fields: [trackId], references: [id], onDelete: Cascade)
   externalMedia    ExternalMediaSource? @relation(fields: [externalMediaId], references: [id], onDelete: Cascade)
-  playlist         Playlist?     @relation(fields: [playlistId], references: [id], onDelete: Cascade)
-  story            Story?        @relation(fields: [storyId], references: [id], onDelete: Cascade)
-  parentComment    Comment?      @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: SetNull)
-  replies          Comment[]     @relation("CommentReplies")
+  playlist         Playlist?            @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  story            Story?               @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  parentComment    Comment?             @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: SetNull)
+  replies          Comment[]            @relation("CommentReplies")
   likes            CommentLike[]
 
   @@index([organizationId, status, createdAt])

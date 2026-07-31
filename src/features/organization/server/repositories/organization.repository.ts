@@ -71,15 +71,11 @@ export class OrganizationRepository {
   }
 
   private async findPersonalOrganizationByOwnerUserId(userId: string) {
-    return prisma.organization.findFirst({
+    const slug = createPersonalWorkspaceSlug(userId);
+
+    return prisma.organization.findUnique({
       where: {
-        ownerUserId: userId,
-        slug: {
-          startsWith: PERSONAL_WORKSPACE_SLUG_PREFIX,
-        },
-      },
-      orderBy: {
-        createdAt: "asc",
+        slug,
       },
       select: {
         id: true,

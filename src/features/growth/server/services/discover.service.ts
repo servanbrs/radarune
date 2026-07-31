@@ -438,7 +438,16 @@ export class DiscoverService {
         };
       });
 
-    return [...radaruneItems, ...externalItems]
+    const uniqueItems = Array.from(
+      new Map(
+        [...radaruneItems, ...externalItems].map((item) => [
+          item.id,
+          item,
+        ]),
+      ).values(),
+    );
+
+    return uniqueItems
       .sort((left, right) => right.score - left.score)
       .slice(0, 40);
   }

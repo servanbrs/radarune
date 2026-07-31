@@ -62,5 +62,5 @@ export default async function HomePage() {
     );
   }
 
-  redirect("/discover");
+  redirect("/dashboard");
 }

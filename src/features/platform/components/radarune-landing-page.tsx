@@ -180,7 +180,11 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
               return (
                 <article className="group overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#11151b] transition hover:-translate-y-1 hover:border-[#efb848]/50" key={release.id}>
                   <div className="relative flex aspect-[1.5/1] flex-col justify-between overflow-hidden bg-[radial-gradient(circle_at_75%_20%,rgba(239,184,72,0.32),transparent_25%),linear-gradient(135deg,#1b2731,#11151b)] p-6">
-                    <img alt={`${release.title} kapak görseli`} className="absolute inset-0 h-full w-full object-cover opacity-80 transition duration-500 group-hover:scale-105" onError={(event) => { event.currentTarget.style.display = "none"; }} src={`/api/public/v1/releases/${release.id}/artwork`} />
+                    <img
+                      alt={`${release.title} kapak görseli`}
+                      className="absolute inset-0 h-full w-full object-cover opacity-80 transition duration-500 group-hover:scale-105"
+                      src={`/api/public/v1/releases/${release.id}/artwork`}
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#11151b] via-[#11151b]/35 to-black/10" />
                     <div className="relative z-10 flex items-start justify-between gap-3"><span className="rounded-full border border-white/15 bg-black/35 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/75">{release.primaryGenre}</span><span className="grid h-10 w-10 place-items-center rounded-full bg-black/35 text-white"><Headphones className="h-4 w-4" aria-hidden="true" /></span></div>
                     <div className="relative z-10"><p className="text-xs uppercase tracking-[0.18em] text-white/60">Canlı katalog</p><h3 className="mt-2 text-2xl font-semibold leading-tight text-white">{release.title}</h3></div>

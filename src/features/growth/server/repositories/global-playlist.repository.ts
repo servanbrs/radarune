@@ -24,7 +24,7 @@ export class GlobalPlaylistRepository {
 
   async listLiveTracks(organizationId: string) {
     return prisma.track.findMany({
-      where: { organizationId, release: { status: "LIVE" } },
+      where: { organizationId, release: { status: { in: ["DISTRIBUTED", "LIVE"] } } },
       orderBy: [{ release: { liveAt: "desc" } }, { trackNumber: "asc" }],
       select: { id: true, title: true, trackNumber: true, release: { select: { id: true, title: true } } },
       take: 500,
@@ -65,7 +65,7 @@ export class GlobalPlaylistRepository {
   }
 
   async addTrack(playlistId: string, trackId: string, organizationId: string, client: DatabaseClient = prisma) {
-    const track = await client.track.findFirst({ where: { id: trackId, organizationId, release: { status: "LIVE" } }, select: { id: true, title: true, releaseId: true } });
+    const track = await client.track.findFirst({ where: { id: trackId, organizationId, release: { status: { in: ["DISTRIBUTED", "LIVE"] } } }, select: { id: true, title: true, releaseId: true } });
     if (!track) throw new Error("Yalnızca bu organizasyona ait canlı parçalar eklenebilir.");
     const playlist = await this.findById(playlistId, client);
     if (!playlist) throw new Error("Global playlist bulunamadı.");
