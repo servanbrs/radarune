@@ -21,7 +21,6 @@ import {
 } from "react";
 
 import { DiscoverFeedCard } from "@/features/growth/components/discover-feed-card";
-import { useGlobalPlayer } from "@/features/growth/components/global-player-provider";
 import type { DiscoverFeedItem } from "@/features/growth/server/services/discover.service";
 import {
   playerCapabilities,
@@ -44,44 +43,6 @@ function stableSortKey(value: string) {
   return hash >>> 0;
 }
 
-function providerEmbedUrl(
-  provider: string,
-  externalUrl: string | null,
-  embedUrl: string | null,
-) {
-  if (embedUrl) return embedUrl;
-  if (!externalUrl) return null;
-
-  try {
-    const parsed = new URL(externalUrl);
-
-    if (provider === "YOUTUBE") {
-      const pathParts = parsed.pathname.split("/").filter(Boolean);
-
-      const videoId = parsed.hostname.includes("youtu.be")
-        ? pathParts[0]
-        : (parsed.searchParams.get("v") ??
-          (pathParts[0] === "embed" || pathParts[0] === "shorts"
-            ? pathParts[1]
-            : null));
-
-      return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
-    }
-
-    if (provider === "SPOTIFY") {
-      const parts = parsed.pathname.split("/").filter(Boolean);
-
-      return parts.length >= 2
-        ? `https://open.spotify.com/embed/${parts[0]}/${parts[1]}`
-        : null;
-    }
-  } catch {
-    return null;
-  }
-
-  return null;
-}
-
 function artworkUrl(item: DiscoverFeedItem | null) {
   if (!item) return null;
 
@@ -96,8 +57,6 @@ export function DiscoverFeedClient({
   feed,
   isAuthenticated = false,
 }: DiscoverFeedClientProps) {
-  const { play } = useGlobalPlayer();
-
   const [activeIndex, setActiveIndex] = useState(0);
 
   const [sortMode, setSortMode] = useState<"recommended" | "votes">(
@@ -304,60 +263,16 @@ export function DiscoverFeedClient({
     }
   }
 
-  function toPlayerItem(item: DiscoverFeedItem): PlayerItem | null {
-    if (item.sourceType === "RADARUNE") {
-      if (!item.trackId) return null;
-
-      return {
-        id: item.trackId,
-        title: item.title,
-        artistName: item.artistName,
-        source: "RADARUNE_AUDIO",
-        sourceLabel: "Radarune",
-        playbackUrl: `/api/public/v1/tracks/${item.trackId}/stream`,
-        embedUrl: null,
-        capabilities: playerCapabilities.RADARUNE_AUDIO,
-      };
-    }
-
-    if (item.provider === "YOUTUBE" || item.provider === "SPOTIFY") {
-      return {
-        id: item.externalMediaId,
-        title: item.title,
-        artistName: item.artistName,
-        source: item.provider === "YOUTUBE" ? "YOUTUBE" : "SPOTIFY_EMBED",
-        sourceLabel: item.provider === "YOUTUBE" ? "YouTube" : "Spotify",
-        playbackUrl: null,
-        embedUrl: providerEmbedUrl(
-          item.provider,
-          item.externalUrl,
-          item.embedUrl,
-        ),
-        externalUrl: item.externalUrl,
-        capabilities:
-          playerCapabilities[
-            item.provider === "YOUTUBE" ? "YOUTUBE" : "SPOTIFY_EMBED"
-          ],
-      };
-    }
-
-    return null;
-  }
-
   function playItem(item: DiscoverFeedItem) {
-    const playerItem = toPlayerItem(item);
-
-    if (!playerItem) return;
+    /*
+     * Alt web player kaldırıldı.
+     * Oynatma yalnızca keşfet kartındaki iframe üzerinden yapılır.
+     */
+    setInlinePlayingId(item.id);
 
     if (item.trackId) {
       void recordTrackEvent(item.trackId, "PLAY");
     }
-
-    const playerQueue = visibleFeed
-      .map(toPlayerItem)
-      .filter((value): value is PlayerItem => Boolean(value));
-
-    play(playerItem, playerQueue);
   }
 
   function playInline(item: DiscoverFeedItem) {

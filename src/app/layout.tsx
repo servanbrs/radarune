@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { GlobalPlayerProvider } from "@/features/growth/components/global-player-provider";
 import { tenantContextService } from "@/features/platform/server/services/tenant-context.service";
 import { prisma } from "@/server/prisma/prisma";
 
@@ -18,7 +17,9 @@ export async function generateMetadata(): Promise<Metadata> {
     "SEO_INDEXING_ENABLED",
   ]);
   const allSettings = tenant
-    ? await prisma.adminSetting.findMany({ where: { organizationId: tenant.id } })
+    ? await prisma.adminSetting.findMany({
+        where: { organizationId: tenant.id },
+      })
     : [];
   const settings = allSettings.filter((item) => seoKeys.has(String(item.key)));
   const value = (key: string, fallback: string) => {
@@ -26,11 +27,16 @@ export async function generateMetadata(): Promise<Metadata> {
     return typeof row?.value === "string" ? row.value : fallback;
   };
   const verification = value("SEO_GOOGLE_SITE_VERIFICATION", "");
-  const indexingValue = settings.find((item) => item.key === "SEO_INDEXING_ENABLED")?.value;
+  const indexingValue = settings.find(
+    (item) => item.key === "SEO_INDEXING_ENABLED",
+  )?.value;
   const indexingEnabled = indexingValue !== false && indexingValue !== "false";
   return {
     title: value("SEO_TITLE", "Radarune | Müzik operasyon platformu"),
-    description: value("SEO_DESCRIPTION", "Sanatçılar ve label ekipleri için release, dağıtım, royalty ve keşif operasyonları."),
+    description: value(
+      "SEO_DESCRIPTION",
+      "Sanatçılar ve label ekipleri için release, dağıtım, royalty ve keşif operasyonları.",
+    ),
     ...(verification ? { verification: { google: verification } } : {}),
     robots: indexingEnabled ? undefined : { index: false, follow: false },
   };
@@ -42,11 +48,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="tr"
-      className={`${""} ${""} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col"><GlobalPlayerProvider>{children}</GlobalPlayerProvider></body>
+    <html lang="tr" className={`${""} ${""} h-full antialiased`}>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }
