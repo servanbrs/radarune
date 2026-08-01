@@ -44,7 +44,20 @@ export function SignUpForm() {
         return;
       }
 
-      router.replace("/dashboard");
+      const otpResult = await authClient.emailOtp.sendVerificationOtp({
+        email: values.email,
+        type: "email-verification",
+      });
+
+      if (otpResult.error) {
+        setRootError(
+          otpResult.error.message ??
+            "Hesap oluşturuldu ancak doğrulama kodu gönderilemedi.",
+        );
+        return;
+      }
+
+      router.replace(`/verify-email?email=${encodeURIComponent(values.email)}`);
       router.refresh();
     });
   });
@@ -64,7 +77,31 @@ export function SignUpForm() {
         />
       </Field>
 
-      <label className="flex items-start gap-3 text-sm text-muted"><input className="mt-1 size-4 accent-accent" type="checkbox" {...form.register("acceptTerms")} /><span><Link className="font-medium text-foreground underline" href="/terms">Kullanım koşullarını</Link>{" "}ve{" "}<Link className="font-medium text-foreground underline" href="/privacy">gizlilik politikasını</Link> kabul ediyorum.{form.formState.errors.acceptTerms?.message ? <span className="mt-1 block text-xs text-danger">{form.formState.errors.acceptTerms.message}</span> : null}</span></label>
+      <label className="flex items-start gap-3 text-sm text-muted">
+        <input
+          className="mt-1 size-4 accent-accent"
+          type="checkbox"
+          {...form.register("acceptTerms")}
+        />
+        <span>
+          <Link className="font-medium text-foreground underline" href="/terms">
+            Kullanım koşullarını
+          </Link>{" "}
+          ve{" "}
+          <Link
+            className="font-medium text-foreground underline"
+            href="/privacy"
+          >
+            gizlilik politikasını
+          </Link>{" "}
+          kabul ediyorum.
+          {form.formState.errors.acceptTerms?.message ? (
+            <span className="mt-1 block text-xs text-danger">
+              {form.formState.errors.acceptTerms.message}
+            </span>
+          ) : null}
+        </span>
+      </label>
 
       <Field
         error={form.formState.errors.email?.message}
@@ -118,11 +155,24 @@ export function SignUpForm() {
         {isPending ? "Hesap oluşturuluyor..." : "Hesap oluştur"}
       </Button>
 
-      <Button className="w-full" onClick={() => void authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" })} type="button" variant="secondary">
+      <Button
+        className="w-full"
+        onClick={() =>
+          void authClient.signIn.social({
+            provider: "google",
+            callbackURL: "/dashboard",
+          })
+        }
+        type="button"
+        variant="secondary"
+      >
         Google ile kayıt ol
       </Button>
 
-      <Link className="text-sm font-medium text-muted hover:text-foreground" href="/sign-in">
+      <Link
+        className="text-sm font-medium text-muted hover:text-foreground"
+        href="/sign-in"
+      >
         Zaten hesabınız var mı? Giriş yapın.
       </Link>
     </form>

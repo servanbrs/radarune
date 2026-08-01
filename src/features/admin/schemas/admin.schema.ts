@@ -8,12 +8,20 @@ export const adminPaginationSchema = z.object({
 
 export const updateUserRoleSchema = z.object({
   role: z.enum(["USER", "ARTIST", "MODERATOR", "ADMIN", "SUPER_ADMIN"]),
-  reason: z.string().trim().min(10, "Sebep en az 10 karakter olmalıdır.").max(1000),
+  reason: z
+    .string()
+    .trim()
+    .min(10, "Sebep en az 10 karakter olmalıdır.")
+    .max(1000),
 });
 
 export const updateUserStatusSchema = z.object({
   status: z.enum(["ACTIVE", "SUSPENDED", "BANNED"]),
-  reason: z.string().trim().min(10, "Sebep en az 10 karakter olmalıdır.").max(1000),
+  reason: z
+    .string()
+    .trim()
+    .min(10, "Sebep en az 10 karakter olmalıdır.")
+    .max(1000),
 });
 
 export const artistApplicationActionSchema = z.object({
@@ -23,16 +31,42 @@ export const artistApplicationActionSchema = z.object({
 });
 
 export const createArtistApplicationSchema = z.object({
-  stageName: z.string().trim().min(2, "Sahne adı en az 2 karakter olmalıdır.").max(160),
-  legalName: z.string().trim().min(2, "Yasal ad en az 2 karakter olmalıdır.").max(200),
-  biography: z.string().trim().min(10, "Biyografi en az 10 karakter olmalıdır.").max(5000),
-  spotifyArtistUrl: z.preprocess((value) => value === "" ? undefined : value, z.string().url("Spotify bağlantısı geçerli değil.").optional()),
-  appleMusicArtistUrl: z.preprocess((value) => value === "" ? undefined : value, z.string().url("Apple Music bağlantısı geçerli değil.").optional()),
-  youtubeChannelUrl: z.preprocess((value) => value === "" ? undefined : value, z.string().url("YouTube bağlantısı geçerli değil.").optional()),
+  stageName: z
+    .string()
+    .trim()
+    .min(2, "Sahne adı en az 2 karakter olmalıdır.")
+    .max(160),
+  legalName: z
+    .string()
+    .trim()
+    .min(2, "Yasal ad en az 2 karakter olmalıdır.")
+    .max(200),
+  biography: z
+    .string()
+    .trim()
+    .min(10, "Biyografi en az 10 karakter olmalıdır.")
+    .max(5000),
+  spotifyArtistUrl: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().url("Spotify bağlantısı geçerli değil.").optional(),
+  ),
+  appleMusicArtistUrl: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().url("Apple Music bağlantısı geçerli değil.").optional(),
+  ),
+  youtubeChannelUrl: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().url("YouTube bağlantısı geçerli değil.").optional(),
+  ),
 });
 
 export const releaseModerationActionSchema = z.object({
-  action: z.enum(["APPROVE", "REJECT", "REQUEST_REVISION", "QUEUE_DISTRIBUTION"]),
+  action: z.enum([
+    "APPROVE",
+    "REJECT",
+    "REQUEST_REVISION",
+    "QUEUE_DISTRIBUTION",
+  ]),
   reason: z.string().trim().max(2000).optional(),
   revisionItems: z
     .array(
@@ -89,15 +123,35 @@ export const updateAdminSettingSchema = z.object({
     "EMAIL_TEMPLATE_WELCOME_BODY",
     "EMAIL_TEMPLATE_PASSWORD_RESET_SUBJECT",
     "EMAIL_TEMPLATE_PASSWORD_RESET_BODY",
+    "SMTP_FROM_NAME",
+    "EMAIL_BRAND_LOGO_URL",
+    "EMAIL_BRAND_PRIMARY_COLOR",
+    "EMAIL_BRAND_FOOTER_TEXT",
+    "EMAIL_TEMPLATE_SIGN_IN_SUBJECT",
+    "EMAIL_TEMPLATE_SIGN_IN_BODY",
   ]),
-  value: z.union([z.string().trim().max(2000), z.boolean(), z.number().int().nonnegative()]),
-  reason: z.string().trim().min(10, "Sebep en az 10 karakter olmalıdır.").max(1000),
+  value: z.union([
+    z.string().trim().max(2000),
+    z.boolean(),
+    z.number().int().nonnegative(),
+  ]),
+  reason: z
+    .string()
+    .trim()
+    .min(10, "Sebep en az 10 karakter olmalıdır.")
+    .max(1000),
 });
 
 export type AdminPaginationInput = z.infer<typeof adminPaginationSchema>;
 export type UpdateUserRoleInput = z.infer<typeof updateUserRoleSchema>;
 export type UpdateUserStatusInput = z.infer<typeof updateUserStatusSchema>;
-export type ArtistApplicationActionInput = z.infer<typeof artistApplicationActionSchema>;
-export type CreateArtistApplicationInput = z.infer<typeof createArtistApplicationSchema>;
-export type ReleaseModerationActionInput = z.infer<typeof releaseModerationActionSchema>;
+export type ArtistApplicationActionInput = z.infer<
+  typeof artistApplicationActionSchema
+>;
+export type CreateArtistApplicationInput = z.infer<
+  typeof createArtistApplicationSchema
+>;
+export type ReleaseModerationActionInput = z.infer<
+  typeof releaseModerationActionSchema
+>;
 export type UpdateAdminSettingInput = z.infer<typeof updateAdminSettingSchema>;

@@ -63,7 +63,7 @@ export function PublicGrowthShell({
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_12%_8%,rgba(201,255,237,0.7),transparent_28%),radial-gradient(circle_at_88%_18%,rgba(222,239,255,0.75),transparent_30%),linear-gradient(180deg,#fffdf9_0%,#f8fbff_55%,#f5f8fb_100%)] pb-32 text-foreground">
       <header className="sticky top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-2xl">
-        <div className="mx-auto grid min-h-[76px] w-full max-w-[1600px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 sm:gap-4 sm:px-5 lg:px-8">
+        <div className="mx-auto grid min-h-[72px] w-full max-w-[1600px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-3 sm:min-h-[76px] sm:gap-4 sm:px-5 lg:px-8">
           <Link
             className="shrink-0 text-base font-black tracking-[0.13em] text-[#087d70] sm:text-lg sm:tracking-[0.15em]"
             href="/"
@@ -72,16 +72,13 @@ export function PublicGrowthShell({
           </Link>
 
           <div className="flex min-w-0 justify-center">
-            <div className="flex w-full max-w-[760px] items-center rounded-full border border-black/5 bg-white px-1.5 py-1.5 shadow-[0_8px_30px_rgba(15,23,42,0.08)] sm:px-2">
+            <div className="flex w-full max-w-[860px] items-center rounded-full border border-black/5 bg-white px-1.5 py-1.5 shadow-[0_8px_30px_rgba(15,23,42,0.08)] sm:px-2">
               <nav
                 aria-label="Ana menü"
                 className="hidden shrink-0 items-center gap-1 lg:flex"
               >
                 {navigation.map((item) => {
-                  const active = isActiveRoute(
-                    pathname,
-                    item.href,
-                  );
+                  const active = isActiveRoute(pathname, item.href);
 
                   return (
                     <Link
@@ -108,9 +105,7 @@ export function PublicGrowthShell({
                 <input
                   aria-label="Site içinde ara"
                   className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none placeholder:text-black/35 sm:px-4"
-                  onChange={(event) =>
-                    setQuery(event.target.value)
-                  }
+                  onChange={(event) => setQuery(event.target.value)}
                   placeholder="Şarkı, sanatçı veya albüm ara..."
                   value={query}
                 />
@@ -170,7 +165,7 @@ export function PublicGrowthShell({
         </nav>
       </header>
 
-      <div className="mx-auto w-full max-w-[1500px] px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-[1500px] px-3 py-6 sm:px-5 sm:py-8 lg:px-7">
         {children}
       </div>
     </main>

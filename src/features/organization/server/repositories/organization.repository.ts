@@ -84,12 +84,8 @@ export class OrganizationRepository {
     });
   }
 
-  async ensurePersonalOrganizationForUser(
-    userId: string,
-    userName: string,
-  ) {
-    const existingMembership =
-      await this.findPrimaryMembershipByUserId(userId);
+  async ensurePersonalOrganizationForUser(userId: string, userName: string) {
+    const existingMembership = await this.findPrimaryMembershipByUserId(userId);
 
     if (existingMembership) {
       return existingMembership;
@@ -98,8 +94,7 @@ export class OrganizationRepository {
     const now = new Date();
     const name = createPersonalWorkspaceName(userName);
 
-    let organization =
-      await this.findPersonalOrganizationByOwnerUserId(userId);
+    let organization = await this.findPersonalOrganizationByOwnerUserId(userId);
 
     if (!organization) {
       const slug = createPersonalWorkspaceSlug(userId);
@@ -151,85 +146,91 @@ export class OrganizationRepository {
 
     const organizationId = organization.id;
 
-    return prisma.$transaction(async (tx) => {
-      await tx.organization.updateMany({
-        where: {
-          id: organizationId,
-          ownerUserId: userId,
-        },
-        data: {
-          name,
-          tenantStatus: "ACTIVE",
-          tenantMode: "SINGLE_TENANT",
-          tenantPlan: "COMMUNITY",
-          onboardingCompletedAt: now,
-        },
-      });
+    return prisma.$transaction(
+      async (tx) => {
+        await tx.organization.updateMany({
+          where: {
+            id: organizationId,
+            ownerUserId: userId,
+          },
+          data: {
+            name,
+            tenantStatus: "ACTIVE",
+            tenantMode: "SINGLE_TENANT",
+            tenantPlan: "COMMUNITY",
+            onboardingCompletedAt: now,
+          },
+        });
 
-      await tx.organizationMembership.createMany({
-        data: [
-          {
-            organizationId,
-            userId,
+        await tx.organizationMembership.createMany({
+          data: [
+            {
+              organizationId,
+              userId,
+              role: "OWNER",
+              tenantRole: "OWNER",
+              status: "ACTIVE",
+              joinedAt: now,
+            },
+          ],
+          skipDuplicates: true,
+        });
+
+        await tx.organizationMembership.update({
+          where: {
+            organizationId_userId: {
+              organizationId,
+              userId,
+            },
+          },
+          data: {
             role: "OWNER",
             tenantRole: "OWNER",
             status: "ACTIVE",
             joinedAt: now,
           },
-        ],
-        skipDuplicates: true,
-      });
+        });
 
-      await tx.organizationMembership.update({
-        where: {
-          organizationId_userId: {
+        await tx.installationState.createMany({
+          data: [
+            {
+              organizationId,
+              status: "COMPLETED",
+              currentStep: "COMPLETED",
+              completedAt: now,
+              lockedAt: now,
+            },
+          ],
+          skipDuplicates: true,
+        });
+
+        await tx.installationState.update({
+          where: {
             organizationId,
-            userId,
           },
-        },
-        data: {
-          role: "OWNER",
-          tenantRole: "OWNER",
-          status: "ACTIVE",
-          joinedAt: now,
-        },
-      });
-
-      await tx.installationState.createMany({
-        data: [
-          {
-            organizationId,
+          data: {
             status: "COMPLETED",
             currentStep: "COMPLETED",
             completedAt: now,
             lockedAt: now,
           },
-        ],
-        skipDuplicates: true,
-      });
+        });
 
-      await tx.installationState.update({
-        where: {
-          organizationId,
-        },
-        data: {
-          status: "COMPLETED",
-          currentStep: "COMPLETED",
-          completedAt: now,
-          lockedAt: now,
-        },
-      });
-
-      return tx.organizationMembership.findUniqueOrThrow({
-        where: {
-          organizationId_userId: {
-            organizationId,
-            userId,
+        return tx.organizationMembership.findUniqueOrThrow({
+          where: {
+            organizationId_userId: {
+              organizationId,
+              userId,
+            },
           },
-        },
-        select: organizationContextSelect,
-      });
-    });
+          select: organizationContextSelect,
+        });
+      },
+      {
+        maxWait: 10_000,
+        timeout: 15_000,
+      },
+    );
   }
 
   async findOrganizationBySlug(slug: string) {
@@ -243,7 +244,10 @@ export class OrganizationRepository {
     });
   }
 
-  async createOrganizationForOwner(userId: string, input: CreateOrganizationInput) {
+  async createOrganizationForOwner(
+    userId: string,
+    input: CreateOrganizationInput,
+  ) {
     return prisma.$transaction(async (tx) => {
       const now = new Date();
       const organization = await tx.organization.create({

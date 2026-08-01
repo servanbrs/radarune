@@ -384,7 +384,7 @@ export function DiscoverFeedClient({
   }, [activeItem?.id]);
 
   return (
-    <div className="relative mx-auto max-w-[1320px]">
+    <div className="relative mx-auto w-full max-w-[1240px]">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-[8%] top-20 h-[680px] overflow-hidden rounded-[5rem] opacity-30 blur-[85px]"
@@ -401,7 +401,7 @@ export function DiscoverFeedClient({
         )}
       </div>
 
-      <div className="relative mb-8 flex flex-col items-center justify-between gap-5 lg:flex-row">
+      <div className="relative mb-6 flex flex-col items-center justify-between gap-4 px-1 sm:mb-8 lg:flex-row">
         <div>
           <p className="text-center text-[11px] font-bold uppercase tracking-[0.28em] text-emerald-700 lg:text-left">
             Sana özel akış
@@ -447,8 +447,8 @@ export function DiscoverFeedClient({
         </div>
       </div>
 
-      <div className="relative grid items-start gap-7 xl:grid-cols-[120px_minmax(0,650px)_minmax(280px,1fr)] xl:justify-center">
-        <aside className="order-2 hidden flex-col items-center gap-3 pt-24 xl:flex">
+      <div className="relative grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,760px)_minmax(280px,360px)] lg:justify-center xl:grid-cols-[72px_minmax(0,760px)_minmax(280px,360px)] xl:gap-7">
+        <aside className="hidden flex-col items-center gap-3 pt-20 xl:col-start-1 xl:row-start-1 xl:flex">
           <button
             aria-label="Önceki içerik"
             className="inline-flex size-12 items-center justify-center rounded-full border border-black/[0.07] bg-white/80 text-[#52605d] shadow-lg backdrop-blur transition hover:-translate-y-1 hover:text-[#101817]"
@@ -474,7 +474,7 @@ export function DiscoverFeedClient({
           </span>
         </aside>
 
-        <div className="order-1 min-w-0">
+        <div className="w-full min-w-0 lg:col-start-1 lg:row-start-1 xl:col-start-2">
           {activeItem ? (
             <div
               className="touch-none select-none transition-[transform,filter,opacity] duration-300 ease-out will-change-transform"
@@ -506,10 +506,10 @@ export function DiscoverFeedClient({
           )}
 
           {activeItem ? (
-            <div className="mt-7 flex items-center justify-center gap-3">
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5 sm:mt-7 sm:gap-3">
               <button
                 aria-label="Beğenme ve geç"
-                className="inline-flex size-14 items-center justify-center rounded-full border border-red-500/15 bg-white/85 text-red-500 shadow-xl backdrop-blur transition hover:-translate-y-1 hover:bg-red-500 hover:text-white"
+                className="inline-flex size-12 items-center justify-center rounded-full border border-red-500/15 bg-white/85 text-red-500 shadow-xl backdrop-blur transition hover:-translate-y-1 hover:bg-red-500 hover:text-white sm:size-14"
                 onClick={nextItem}
                 type="button"
               >
@@ -517,7 +517,7 @@ export function DiscoverFeedClient({
               </button>
 
               <button
-                className="inline-flex h-14 items-center justify-center gap-2 rounded-full border border-black/[0.07] bg-white/85 px-7 text-sm font-semibold text-[#101817] shadow-xl backdrop-blur transition hover:-translate-y-1"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-black/[0.07] bg-white/85 px-5 text-sm font-semibold text-[#101817] shadow-xl backdrop-blur transition hover:-translate-y-1 sm:h-14 sm:px-7"
                 onClick={nextItem}
                 type="button"
               >
@@ -527,7 +527,7 @@ export function DiscoverFeedClient({
 
               <button
                 aria-label="Beğen"
-                className="inline-flex size-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_18px_50px_rgba(16,185,129,0.35)] transition hover:-translate-y-1 hover:scale-105"
+                className="inline-flex size-12 items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_18px_50px_rgba(16,185,129,0.35)] transition hover:-translate-y-1 hover:scale-105 sm:size-14"
                 onClick={() => void voteAndNext()}
                 type="button"
               >
@@ -538,7 +538,7 @@ export function DiscoverFeedClient({
         </div>
 
         {activeItem ? (
-          <aside className="order-3 space-y-4 xl:pt-10">
+          <aside className="grid min-w-0 gap-4 sm:grid-cols-2 lg:col-start-2 lg:row-start-1 lg:block lg:space-y-4 lg:pt-3 xl:col-start-3 xl:pt-3">
             <article className="rounded-[1.75rem] border border-black/[0.07] bg-white/80 p-6 shadow-xl backdrop-blur-xl">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex size-11 items-center justify-center rounded-2xl bg-[#101817] text-white">

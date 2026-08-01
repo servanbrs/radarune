@@ -41,11 +41,18 @@ class AuthSessionService {
     user: DashboardUser;
   }> {
     const session = await this.getRequiredSession();
-    const dashboardUser =
-      await userAuthRepository.findDashboardUserById(session.user.id);
+    const dashboardUser = await userAuthRepository.findDashboardUserById(
+      session.user.id,
+    );
 
     if (!dashboardUser) {
       redirect("/sign-in");
+    }
+
+    if (!dashboardUser.emailVerified) {
+      redirect(
+        `/verify-email?email=${encodeURIComponent(dashboardUser.email)}`,
+      );
     }
 
     const organization =

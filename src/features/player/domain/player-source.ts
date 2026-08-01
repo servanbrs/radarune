@@ -1,4 +1,5 @@
-export type PlayerSourceType = "RADARUNE_AUDIO" | "YOUTUBE" | "SPOTIFY_EMBED" | "EXTERNAL_PREVIEW";
+export type PlayerSourceType =
+  "RADARUNE_AUDIO" | "YOUTUBE" | "SPOTIFY_EMBED" | "EXTERNAL_PREVIEW";
 
 export type PlayerCapabilities = {
   seek: boolean;
@@ -20,13 +21,34 @@ export type PlayerItem = {
   capabilities: PlayerCapabilities;
 };
 
-export const playerCapabilities: Record<PlayerSourceType, PlayerCapabilities> = {
-  RADARUNE_AUDIO: { seek: true, volume: true, queue: true, officialEmbed: false },
-  YOUTUBE: { seek: false, volume: false, queue: false, officialEmbed: true },
-  SPOTIFY_EMBED: { seek: false, volume: false, queue: false, officialEmbed: true },
-  EXTERNAL_PREVIEW: { seek: false, volume: true, queue: true, officialEmbed: false },
-};
+export const playerCapabilities: Record<PlayerSourceType, PlayerCapabilities> =
+  {
+    RADARUNE_AUDIO: {
+      seek: true,
+      volume: true,
+      queue: true,
+      officialEmbed: false,
+    },
+    YOUTUBE: { seek: false, volume: false, queue: false, officialEmbed: true },
+    SPOTIFY_EMBED: {
+      seek: false,
+      volume: false,
+      queue: false,
+      officialEmbed: true,
+    },
+    EXTERNAL_PREVIEW: {
+      seek: false,
+      volume: true,
+      queue: true,
+      officialEmbed: false,
+    },
+  };
 
-export function canDisplayExternalSource(item: Pick<PlayerItem, "source" | "embedUrl">) {
-  return item.source === "RADARUNE_AUDIO" || (item.embedUrl !== null && playerCapabilities[item.source].officialEmbed);
+export function canDisplayExternalSource(
+  item: Pick<PlayerItem, "source" | "embedUrl">,
+) {
+  return (
+    item.source === "RADARUNE_AUDIO" ||
+    (item.embedUrl !== null && playerCapabilities[item.source].officialEmbed)
+  );
 }

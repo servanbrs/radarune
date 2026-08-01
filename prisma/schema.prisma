@@ -594,6 +594,12 @@ enum AdminSettingKey {
   EMAIL_TEMPLATE_WELCOME_BODY
   EMAIL_TEMPLATE_PASSWORD_RESET_SUBJECT
   EMAIL_TEMPLATE_PASSWORD_RESET_BODY
+  SMTP_FROM_NAME
+  EMAIL_BRAND_LOGO_URL
+  EMAIL_BRAND_PRIMARY_COLOR
+  EMAIL_BRAND_FOOTER_TEXT
+  EMAIL_TEMPLATE_SIGN_IN_SUBJECT
+  EMAIL_TEMPLATE_SIGN_IN_BODY
 }
 
 enum SmartLinkBackgroundType {
@@ -1089,6 +1095,7 @@ model User {
   name                           String
   email                          String                           @unique
   emailVerified                  Boolean                          @default(false)
+  twoFactorEnabled               Boolean?                         @default(false)
   systemRole                     UserSystemRole                   @default(USER)
   accountStatus                  UserAccountStatus                @default(ACTIVE)
   image                          String?
@@ -1098,6 +1105,7 @@ model User {
   createdAt                      DateTime                         @default(now())
   updatedAt                      DateTime                         @updatedAt
   accounts                       Account[]
+  twoFactors                     TwoFactor[]
   auditLogs                      AuditLog[]
   artistApplications             ArtistApplication[]
   reviewedArtistApplications     ArtistApplication[]              @relation("ArtistApplicationReviewer")
@@ -1230,6 +1238,19 @@ model Verification {
 
   @@unique([identifier, value])
   @@index([expiresAt])
+}
+
+model TwoFactor {
+  id                      String    @id @default(cuid())
+  secret                  String    @db.Text
+  backupCodes             String    @db.Text
+  verified                Boolean   @default(false)
+  failedVerificationCount Int       @default(0)
+  lockedUntil             DateTime?
+  userId                  String    @unique
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([lockedUntil])
 }
 
 model Organization {

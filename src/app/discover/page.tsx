@@ -27,13 +27,13 @@ export default async function DiscoverPage() {
 
   return (
     <PublicGrowthShell>
-      <main className="relative isolate mx-auto min-h-[calc(100vh-4rem)] w-full max-w-[1800px] overflow-hidden pb-44 sm:pb-48">
+      <main className="relative isolate mx-auto min-h-[calc(100vh-4rem)] w-full overflow-hidden pb-36 sm:pb-44">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 top-0 h-[620px] bg-[radial-gradient(circle_at_14%_10%,rgba(52,211,153,0.18),transparent_32%),radial-gradient(circle_at_84%_8%,rgba(96,165,250,0.15),transparent_34%),linear-gradient(180deg,#f8fffc_0%,#f6f9ff_55%,transparent_100%)]"
         />
 
-        <section className="relative mx-auto max-w-5xl px-4 pb-7 pt-8 text-center sm:px-6 sm:pb-9 sm:pt-12 lg:pt-14">
+        <section className="relative mx-auto max-w-4xl px-1 pb-7 pt-7 text-center sm:px-4 sm:pb-9 sm:pt-11 lg:pt-13">
           <div className="inline-flex items-center gap-2 rounded-full border border-emerald-900/10 bg-white/70 px-4 py-2 shadow-sm backdrop-blur-xl">
             <span className="size-2 rounded-full bg-emerald-500 shadow-[0_0_16px_rgba(16,185,129,0.7)]" />
 
@@ -42,7 +42,7 @@ export default async function DiscoverPage() {
             </span>
           </div>
 
-          <h1 className="mx-auto mt-6 max-w-4xl text-balance text-4xl font-semibold tracking-[-0.06em] text-[#101817] sm:text-5xl lg:text-6xl xl:text-7xl">
+          <h1 className="mx-auto mt-5 max-w-4xl text-balance text-[2.45rem] font-semibold leading-[0.98] tracking-[-0.06em] text-[#101817] sm:text-5xl lg:text-6xl xl:text-7xl">
             Bugünün bilinmeyenleri.
             <span className="block bg-gradient-to-r from-emerald-600 via-[#101817] to-blue-600 bg-clip-text text-transparent">
               Yarının yıldızları.
@@ -69,7 +69,7 @@ export default async function DiscoverPage() {
           </div>
         </section>
 
-        <section className="relative px-3 sm:px-5 lg:px-6 xl:px-8">
+        <section className="relative px-0 sm:px-2 lg:px-4">
           {feed.length ? (
             <DiscoverFeedClient
               feed={feed}
