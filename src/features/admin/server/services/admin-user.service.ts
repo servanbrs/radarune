@@ -5,6 +5,9 @@ import { adminUserRepository } from "@/features/admin/server/repositories/admin-
 import { auditLogService } from "@/features/finance/server/services/audit-log.service";
 import type { FinanceActorContext } from "@/features/finance/server/services/finance-access.service";
 import type { UpdateUserRoleInput, UpdateUserStatusInput } from "@/features/admin/schemas/admin.schema";
+import { createAdminUserSchema, type CreateAdminUserInput } from "@/features/admin/schemas/admin.schema";
+import { auth } from "@/features/authentication/server/auth";
+import { env } from "@/lib/env";
 
 const privilegedRoles = new Set(["ADMIN", "SUPER_ADMIN"]);
 
@@ -100,6 +103,32 @@ export class AdminUserService {
 
       return updated;
     });
+  }
+
+  async createUser(actor: FinanceActorContext, input: CreateAdminUserInput) {
+    assertAdminPermission(actor, "users.manage");
+    const parsed = createAdminUserSchema.parse(input);
+    if (parsed.role === "SUPER_ADMIN" && actor.systemRole !== "SUPER_ADMIN") {
+      throw new Error("SUPER_ADMIN rolünü yalnızca SUPER_ADMIN atayabilir.");
+    }
+
+    const result = await auth.api.signUpEmail({
+      body: { name: parsed.name, email: parsed.email, password: parsed.password },
+      headers: new Headers({ origin: env.BETTER_AUTH_URL }),
+    });
+    if (!result.user) throw new Error("Kullanıcı hesabı oluşturulamadı.");
+
+    const created = await prisma.$transaction(async (tx) => {
+      const updated = await tx.user.update({ where: { id: result.user.id }, data: { systemRole: parsed.role }, select: { id: true, name: true, email: true, systemRole: true } });
+      await tx.organizationMembership.upsert({
+        where: { organizationId_userId: { organizationId: actor.organizationId, userId: result.user.id } },
+        update: { status: "ACTIVE" },
+        create: { organizationId: actor.organizationId, userId: result.user.id, role: "MEMBER", status: "ACTIVE", joinedAt: new Date() },
+      });
+      await auditLogService.create({ organizationId: actor.organizationId, actorUserId: actor.userId, action: "USER_CREATED", entityType: "User", entityId: updated.id, metadata: { role: parsed.role, invitedByAdmin: true } }, tx);
+      return updated;
+    });
+    return created;
   }
 }
 

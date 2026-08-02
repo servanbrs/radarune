@@ -30,9 +30,10 @@ export default async function DiscoverPage() {
   const tenant = await tenantContextService.resolveFromRequest();
   const weeklyPlaylists = tenant ? await globalPlaylistService.listForDiscover(tenant.id) : [];
   const discoverStats = { radarune: feed.filter((item) => item.sourceType === "RADARUNE").length, external: feed.filter((item) => item.sourceType === "EXTERNAL").length, artists: new Set(feed.map((item) => item.artist?.id).filter(Boolean)).size };
+  const currentUser = session ? { name: session.user.name, username: "username" in session.user && typeof session.user.username === "string" ? session.user.username : null } : null;
 
   return (
-    <PublicGrowthShell>
+    <PublicGrowthShell currentUser={currentUser}>
       <main className="relative isolate mx-auto min-h-[calc(100vh-4rem)] w-full overflow-hidden pb-36 sm:pb-44">
         <div
           aria-hidden="true"

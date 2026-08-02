@@ -11,7 +11,8 @@ export default async function HypePage() {
   const session = await authSessionService.getOptionalSession();
   const feed = (await discoverService.getFeed()).sort((a, b) => (b.likeCount ?? 0) - (a.likeCount ?? 0) || b.score - a.score).slice(0, 12);
   const artists = new Set(feed.map((item) => item.artist?.id).filter(Boolean)).size;
-  return <PublicGrowthShell currentUser={session ? { name: session.user.name } : null}>
+  const currentUser = session ? { name: session.user.name, username: "username" in session.user && typeof session.user.username === "string" ? session.user.username : null } : null;
+  return <PublicGrowthShell currentUser={currentUser}>
     <main className="relative overflow-hidden rounded-[2.4rem] bg-[#080f12] text-white shadow-[0_30px_100px_rgba(4,15,13,0.24)]">
       <div aria-hidden className="pointer-events-none absolute -left-24 -top-40 size-[480px] rounded-full bg-orange-400/20 blur-[110px]" /><div aria-hidden className="pointer-events-none absolute -right-20 top-20 size-[420px] rounded-full bg-emerald-400/15 blur-[110px]" />
       <section className="relative grid gap-10 px-6 py-12 sm:px-10 sm:py-16 lg:grid-cols-[1.15fr_.85fr] lg:items-end lg:px-14">

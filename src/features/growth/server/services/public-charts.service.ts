@@ -7,6 +7,8 @@ import { youtubeAdminCredentialService } from "@/features/integrations/server/se
 
 export type PublicChartTrack = {
   id: string;
+  trackId: string | null;
+  releaseId: string | null;
   title: string;
   artistName: string;
   thumbnailUrl: string | null;
@@ -164,6 +166,8 @@ async function fetchYouTubePopular(
     return [
       {
         id: `youtube-${regionCode ?? "global"}-${videoId}`,
+        trackId: null,
+        releaseId: null,
         title,
         artistName:
           item.snippet?.channelTitle?.trim() || "YouTube Music",
@@ -245,6 +249,8 @@ const getRadaruneMostLiked = unstable_cache(
         take: 12,
         select: {
           id: true,
+          trackId: true,
+          releaseId: true,
           title: true,
           artistName: true,
           thumbnailUrl: true,
@@ -262,6 +268,8 @@ const getRadaruneMostLiked = unstable_cache(
 
       return items.map((item) => ({
         id: `radarune-liked-${item.id}`,
+        trackId: item.trackId,
+        releaseId: item.releaseId,
         title: item.title,
         artistName:
           item.artistName?.trim() || "Bilinmeyen sanatçı",
@@ -309,6 +317,8 @@ const getRadaruneMostDiscussed = unstable_cache(
         take: 12,
         select: {
           id: true,
+          trackId: true,
+          releaseId: true,
           title: true,
           artistName: true,
           thumbnailUrl: true,
@@ -324,6 +334,8 @@ const getRadaruneMostDiscussed = unstable_cache(
 
       return items.map((item) => ({
         id: `radarune-discussed-${item.id}`,
+        trackId: item.trackId,
+        releaseId: item.releaseId,
         title: item.title,
         artistName:
           item.artistName?.trim() || "Bilinmeyen sanatçı",
@@ -364,6 +376,8 @@ const getRadaruneNewReleases = unstable_cache(
         take: 12,
         select: {
           id: true,
+          trackId: true,
+          releaseId: true,
           title: true,
           artistName: true,
           thumbnailUrl: true,
@@ -379,6 +393,8 @@ const getRadaruneNewReleases = unstable_cache(
 
         return {
           id: `radarune-new-${item.id}`,
+          trackId: item.trackId,
+          releaseId: item.releaseId,
           title: item.title,
           artistName:
             item.artistName?.trim() || "Bilinmeyen sanatçı",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   Heart,
@@ -90,6 +90,7 @@ export function DiscoverFeedCard({
   const [likeCount, setLikeCount] = useState(item.likeCount ?? 0);
   const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(inlinePlaying);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const artworkUrl =
     item.thumbnailUrl ||
@@ -114,6 +115,7 @@ export function DiscoverFeedCard({
   );
 
   const artistHref = item.artist?.slug ? `/artist/${item.artist.slug}` : null;
+  const isLocalAudio = item.sourceType === "RADARUNE" && Boolean(item.trackId);
 
   const shouldShowYoutube =
     item.provider === "YOUTUBE" &&
@@ -124,6 +126,15 @@ export function DiscoverFeedCard({
     item.provider === "SPOTIFY" &&
     Boolean(spotifyUrl) &&
     (inlinePlaying || playing);
+
+  useEffect(() => {
+    if (!audioRef.current || !isLocalAudio) return;
+    if (playing) {
+      void audioRef.current.play().catch(() => setPlaying(false));
+    } else {
+      audioRef.current.pause();
+    }
+  }, [isLocalAudio, playing]);
 
   async function likeItem() {
     if (!isAuthenticated) {
@@ -169,6 +180,13 @@ export function DiscoverFeedCard({
   }
 
   function togglePlay() {
+    if (isLocalAudio) {
+      setPlaying((current) => !current);
+      onInlinePlay?.(item);
+      onPlay?.(item);
+      return;
+    }
+
     if (item.provider === "YOUTUBE") {
       if (playing) {
         setPlaying(false);
@@ -241,6 +259,8 @@ export function DiscoverFeedCard({
               <Music2 className="size-20 text-white/20" />
             </div>
           )}
+
+          {isLocalAudio && item.trackId ? <audio aria-label={`${item.title} oynatıcı`} className="absolute inset-x-5 bottom-5 z-20 w-[calc(100%-2.5rem)] rounded-full opacity-95" controls onEnded={() => setPlaying(false)} preload="none" ref={audioRef} src={`/api/public/v1/tracks/${item.trackId}/stream`} /> : null}
 
           {!shouldShowYoutube && !shouldShowSpotify ? (
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/5 to-black/20" />

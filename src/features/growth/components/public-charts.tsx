@@ -7,7 +7,7 @@ import {
   Music2,
   Play,
 } from "lucide-react";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type {
   PublicChartSection,
@@ -25,20 +25,34 @@ function ChartTrackCard({
   item: PublicChartTrack;
   rank: number;
 }) {
+  const [playing, setPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const isLocalTrack = item.provider === "RADARUNE" && Boolean(item.trackId);
+  const isEmbed = !isLocalTrack && Boolean(item.embedUrl);
+  const embedUrl = item.embedUrl;
+
+  useEffect(() => {
+    if (!audioRef.current) return;
+    if (playing) {
+      void audioRef.current.play().catch(() => setPlaying(false));
+    } else {
+      audioRef.current.pause();
+    }
+  }, [playing]);
+
+  function togglePlayback() {
+    setPlaying((current) => !current);
+  }
+
   return (
     <article className="group relative w-[260px] shrink-0 snap-start overflow-hidden rounded-[1.6rem] border border-black/[0.07] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_55px_rgba(15,23,42,0.15)] sm:w-[290px]">
-      <a
-        aria-label={`${item.title} kaynağını aç`}
-        className="block"
-        href={item.externalUrl}
-        rel="noreferrer"
-        target="_blank"
-      >
+      <div className="block">
         <div className="relative aspect-video overflow-hidden bg-[#dfe8e7]">
+          {isEmbed && embedUrl ? <iframe allow="autoplay; encrypted-media; picture-in-picture" className="absolute inset-0 size-full" src={`${embedUrl}${embedUrl.includes("?") ? "&" : "?"}autoplay=${playing ? "1" : "0"}&playsinline=1&rel=0`} title={item.title} /> : null}
           {item.thumbnailUrl ? (
             <img
               alt=""
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              className={`${isEmbed || playing ? "hidden" : "h-full w-full"} object-cover transition duration-500 group-hover:scale-105`}
               loading="lazy"
               src={item.thumbnailUrl}
             />
@@ -55,8 +69,11 @@ function ChartTrackCard({
           </span>
 
           <span className="absolute bottom-3 right-3 inline-flex size-11 items-center justify-center rounded-full bg-white text-black shadow-lg transition group-hover:scale-105">
-            <Play className="ml-0.5 size-4 fill-current" />
+            <button aria-label={playing ? "Durdur" : "Radarune içinde oynat"} className="inline-flex size-full items-center justify-center rounded-full" onClick={togglePlayback} type="button">
+              {playing ? <span className="size-3 rounded-sm bg-black" /> : <Play className="ml-0.5 size-4 fill-current" />}
+            </button>
           </span>
+          {isLocalTrack ? <audio className="absolute inset-x-3 bottom-3 z-10 w-[calc(100%-1.5rem)] rounded-full opacity-90" controls onEnded={() => setPlaying(false)} preload="none" ref={audioRef} src={`/api/public/v1/tracks/${item.trackId}/stream`} /> : null}
         </div>
 
         <div className="p-4">
@@ -76,10 +93,10 @@ function ChartTrackCard({
               {item.metricLabel}
             </p>
 
-            <ArrowUpRight className="size-4 text-black/35 transition group-hover:text-[#087d70]" />
+            {item.externalUrl ? <a aria-label="Kaynağı yeni sekmede aç" className="rounded-full p-1 text-black/35 transition hover:bg-black/5 hover:text-[#087d70]" href={item.externalUrl} rel="noreferrer" target="_blank" onClick={(event) => event.stopPropagation()}><ArrowUpRight className="size-4" /></a> : null}
           </div>
         </div>
-      </a>
+      </div>
     </article>
   );
 }

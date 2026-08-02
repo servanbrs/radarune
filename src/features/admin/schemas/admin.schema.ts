@@ -24,6 +24,13 @@ export const updateUserStatusSchema = z.object({
     .max(1000),
 });
 
+export const createAdminUserSchema = z.object({
+  name: z.string().trim().min(2, "Ad soyad en az 2 karakter olmalıdır.").max(120),
+  email: z.email("Geçerli bir e-posta adresi girin.").transform((value) => value.toLowerCase()),
+  password: z.string().min(8, "Geçici parola en az 8 karakter olmalıdır.").max(128),
+  role: z.enum(["USER", "ARTIST", "MODERATOR", "ADMIN", "SUPER_ADMIN"]),
+});
+
 export const artistApplicationActionSchema = z.object({
   action: z.enum(["START_REVIEW", "APPROVE", "REJECT", "REQUEST_REVISION"]),
   reason: z.string().trim().max(2000).optional(),
@@ -145,6 +152,7 @@ export const updateAdminSettingSchema = z.object({
 export type AdminPaginationInput = z.infer<typeof adminPaginationSchema>;
 export type UpdateUserRoleInput = z.infer<typeof updateUserRoleSchema>;
 export type UpdateUserStatusInput = z.infer<typeof updateUserStatusSchema>;
+export type CreateAdminUserInput = z.infer<typeof createAdminUserSchema>;
 export type ArtistApplicationActionInput = z.infer<
   typeof artistApplicationActionSchema
 >;

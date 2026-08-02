@@ -22,10 +22,6 @@ import {
 
 import { DiscoverFeedCard } from "@/features/growth/components/discover-feed-card";
 import type { DiscoverFeedItem } from "@/features/growth/server/services/discover.service";
-import {
-  playerCapabilities,
-  type PlayerItem,
-} from "@/features/player/domain/player-source";
 
 type DiscoverFeedClientProps = {
   feed: DiscoverFeedItem[];
