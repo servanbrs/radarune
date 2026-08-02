@@ -169,19 +169,23 @@ export class PayoutRepository {
     approvedByUserId: string,
     client: DatabaseClient = prisma,
   ) {
-    return client.payout.update({
+    const result = await client.payout.updateMany({
       where: {
         id: payoutId,
+        status: "PENDING",
       },
       data: {
         status: "APPROVED",
         approvedByUserId,
         approvedAt: new Date(),
       },
-      select: {
-        id: true,
-      },
     });
+
+    if (result.count !== 1) {
+      throw new Error("Payout artık PENDING durumda değil.");
+    }
+
+    return { id: payoutId };
   }
 
   async cancelPayout(
@@ -189,19 +193,23 @@ export class PayoutRepository {
     failureReason: string,
     client: DatabaseClient = prisma,
   ) {
-    return client.payout.update({
+    const result = await client.payout.updateMany({
       where: {
         id: payoutId,
+        status: { notIn: ["PAID", "CANCELLED"] },
       },
       data: {
         status: "CANCELLED",
         failureReason,
         cancelledAt: new Date(),
       },
-      select: {
-        id: true,
-      },
     });
+
+    if (result.count !== 1) {
+      throw new Error("Payout artık iptal edilebilir durumda değil.");
+    }
+
+    return { id: payoutId };
   }
 
   async listPayoutsByOrganization(organizationId: string) {
