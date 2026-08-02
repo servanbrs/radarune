@@ -13,7 +13,7 @@ function createCsvBuffer(rows: Array<Record<string, string | number>>) {
     ...rows.map((row) =>
       headers
         .map((header) => {
-          const value = String(row[header] ?? "");
+          const value = sanitizeSpreadsheetValue(row[header]);
           return `"${value.replaceAll('"', '""')}"`;
         })
         .join(","),
@@ -21,6 +21,24 @@ function createCsvBuffer(rows: Array<Record<string, string | number>>) {
   ];
 
   return Buffer.from(lines.join("\n"), "utf8");
+}
+
+function sanitizeSpreadsheetValue(value: string | number | undefined) {
+  const text = String(value ?? "");
+
+  if (/^[=+\-@]/.test(text)) {
+    return `'${text}`;
+  }
+
+  return text;
+}
+
+function sanitizeSpreadsheetRows(rows: Array<Record<string, string | number>>) {
+  return rows.map((row) =>
+    Object.fromEntries(
+      Object.entries(row).map(([key, value]) => [key, sanitizeSpreadsheetValue(value)]),
+    ),
+  );
 }
 
 export class FinanceExportService {
@@ -60,7 +78,7 @@ export class FinanceExportService {
 
     if (format === "xlsx") {
       const workbook = XLSX.utils.book_new();
-      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const worksheet = XLSX.utils.json_to_sheet(sanitizeSpreadsheetRows(rows));
 
       XLSX.utils.book_append_sheet(workbook, worksheet, "Statements");
 
@@ -137,7 +155,7 @@ export class FinanceExportService {
 
     if (format === "xlsx") {
       const workbook = XLSX.utils.book_new();
-      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const worksheet = XLSX.utils.json_to_sheet(sanitizeSpreadsheetRows(rows));
 
       XLSX.utils.book_append_sheet(workbook, worksheet, "Royalty Report");
 
