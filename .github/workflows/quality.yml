@@ -17,6 +17,19 @@ jobs:
     name: Verify application
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: radarune_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
     env:
       NODE_ENV: test
       DATABASE_URL: mysql://root:root@127.0.0.1:3306/radarune_test
