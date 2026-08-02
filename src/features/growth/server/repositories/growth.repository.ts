@@ -315,7 +315,7 @@ export class GrowthRepository {
           where: { status: "ACTIVE" },
           orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
           take: 12,
-          select: { id: true, provider: true, title: true, artistName: true, externalUrl: true, embedUrl: true, thumbnailUrl: true, publishedAt: true, playable: true, embeddable: true },
+          select: { id: true, provider: true, title: true, artistName: true, externalUrl: true, embedUrl: true, thumbnailUrl: true, publishedAt: true, playable: true, embeddable: true, trackId: true },
         },
         applications: { where: { status: "APPROVED" }, select: { id: true }, take: 1 },
         _count: { select: { follows: true } },

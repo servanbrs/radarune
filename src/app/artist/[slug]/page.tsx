@@ -7,6 +7,7 @@ import { artistPublicProfileService } from "@/features/growth/server/services/ar
 import { StructuredData } from "@/features/seo/components/structured-data";
 import { ArtistProfileShareButton } from "@/features/artist/components/artist-profile-share-button";
 import { socialRepository } from "@/features/growth/server/repositories/social.repository";
+import { ArtistMediaPlayer } from "@/features/artist/components/artist-media-player";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -47,8 +48,9 @@ export default async function ArtistPublicPage({ params }: { params: Promise<{ s
             <h2 className="mt-10 text-xl font-semibold" id="releases">Son yayınlar</h2>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {artist.releaseArtistLinks.map((link) => <Link className="group overflow-hidden rounded-2xl border border-line bg-surface-strong" href={`/releases/${link.release.id}`} key={link.id}><div className="aspect-square bg-gradient-to-br from-accent/30 to-surface-strong">{link.release.artworkUploadId ? <img alt={`${link.release.title} kapak`} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" src={`/api/public/v1/releases/${link.release.id}/artwork`} /> : null}</div><div className="p-4"><p className="font-semibold group-hover:text-accent">{link.release.title}</p><div className="mt-2 flex items-center justify-between gap-2 text-xs text-muted"><span>{link.release.primaryGenre}</span><span>{link.release._count.releaseLikes} oy</span></div></div></Link>)}
-              {artist.externalMediaSources.map((item) => <a className="group rounded-2xl border border-line bg-surface-strong p-4" href={item.externalUrl} key={item.id} rel="noreferrer" target="_blank"><div className="flex items-center gap-3">{item.thumbnailUrl ? <div className="h-12 w-12 shrink-0 rounded-xl bg-cover bg-center" style={{ backgroundImage: `url(${item.thumbnailUrl})` }} /> : null}<div className="min-w-0"><p className="truncate font-semibold group-hover:text-accent">{item.title}</p><p className="mt-1 text-xs text-muted">{item.provider === "YOUTUBE" ? "YouTube" : "Spotify"}</p></div></div></a>)}
+              {null}
             </div>
+            <ArtistMediaPlayer items={artist.externalMediaSources} />
             <h2 className="mt-10 text-xl font-semibold">Öne çıkanlar · en çok oy alanlar</h2>
             <div className="mt-4 space-y-2">{[...artist.releaseArtistLinks].sort((a, b) => b.release._count.releaseLikes - a.release._count.releaseLikes).slice(0, 5).map((link) => <div className="flex items-center justify-between rounded-2xl border border-line bg-surface-strong px-4 py-3" key={`popular-${link.id}`}><span className="font-medium">{link.release.title}</span><span className="text-xs text-muted">{link.release._count.releaseLikes} oy</span></div>)}</div>
           </div>

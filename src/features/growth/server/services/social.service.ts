@@ -24,7 +24,7 @@ export class SocialService {
     const parsed = followArtistSchema.parse({ artistId });
     const artist = await prisma.artist.findFirst({
       where: { id: parsed.artistId, organizationId: actor.organizationId },
-      select: { id: true, ownerUserId: true },
+      select: { id: true, ownerUserId: true, organizationId: true },
     });
     if (!artist) {
       throw new Error("Sanatçı bulunamadı.");
@@ -32,7 +32,7 @@ export class SocialService {
     if (artist.ownerUserId === actor.userId) {
       throw new Error("Kendi sanatçı profilinizi takip edemezsiniz.");
     }
-    return socialRepository.followArtist(actor.organizationId, actor.userId, parsed.artistId);
+    return socialRepository.followArtist(artist.organizationId, actor.userId, parsed.artistId);
   }
 
   async unfollowArtist(actor: FinanceActorContext, artistId: string) {
