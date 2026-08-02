@@ -35,7 +35,7 @@ jobs:
         run: npm ci
 
       - name: Typecheck
-        run: npm run typecheck
+        run: npx next typegen && npm run typecheck
 
       - name: Private file guard
         run: npm run security:check
