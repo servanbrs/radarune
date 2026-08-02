@@ -12,6 +12,7 @@ import { payoutService } from "@/features/finance/server/services/payout.service
 import { royaltyEngineService } from "@/features/finance/server/services/royalty-engine.service";
 import { labelService } from "@/features/label/server/services/label.service";
 import Link from "next/link";
+import { AdminShell } from "@/features/admin/components/admin-shell";
 
 export default async function AdminFinancePage() {
   const { organization, user } = await authSessionService.getDashboardContext();
@@ -39,7 +40,7 @@ export default async function AdminFinancePage() {
   ]);
 
   return (
-    <main className="page-shell">
+    <AdminShell title="Finans yönetimi" description="Revenue import, royalty, payout ve finansal düzeltmeleri aynı operasyon görünümünden yönetin.">
       <div className="flex w-full flex-col gap-6">
         <Link className="w-fit rounded-full border border-line bg-surface px-4 py-2 text-sm font-semibold" href="/admin/finance/providers">Payout / ödeme sağlayıcı ayarları</Link>
         <section className="grid gap-6 lg:grid-cols-4">
@@ -178,6 +179,6 @@ export default async function AdminFinancePage() {
           </article>
         </section>
       </div>
-    </main>
+    </AdminShell>
   );
 }
