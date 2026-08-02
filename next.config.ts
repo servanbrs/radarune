@@ -4,6 +4,16 @@ const nextConfig: NextConfig = {
   // The in-app browser may address the dev server as 127.0.0.1 while
   // Next.js is started on localhost. Allow the loopback origin for HMR.
   allowedDevOrigins: ["127.0.0.1"],
+  // Local storage is a persistent runtime volume, not a deploy artifact.
+  // Exclude it from the health route's NFT trace so dynamic filesystem access
+  // cannot pull the whole repository into the production trace.
+  outputFileTracingExcludes: {
+    "/api/health/ready": [
+      "./storage/**/*",
+      "./.radarune-private/**/*",
+      "./.radarune-backups/**/*",
+    ],
+  },
   async headers() {
     return [
       {

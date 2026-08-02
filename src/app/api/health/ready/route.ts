@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { getProductionEnvironmentIssues } from "@/lib/env";
-import { storageProviderRegistry } from "@/features/storage/server/provider-registry";
+import { access, mkdir } from "node:fs/promises";
+import path from "node:path";
+import { HeadBucketCommand, S3Client } from "@aws-sdk/client-s3";
+import { env, getProductionEnvironmentIssues } from "@/lib/env";
 import { prisma } from "@/server/prisma/prisma";
 
 export const runtime = "nodejs";
@@ -27,9 +29,25 @@ async function checkDatabase() {
 }
 
 async function checkStorage() {
-  const adapter = storageProviderRegistry.getConfigured();
-  const configuration = adapter.validateConfiguration();
-  if (!configuration.configured) return false;
-  const result = await adapter.testConnection();
-  return result.success;
+  if (env.STORAGE_PROVIDER === "LOCAL") {
+    if (process.env.NODE_ENV === "production" && !env.STORAGE_ALLOW_LOCAL_IN_PRODUCTION) return false;
+    const root = path.resolve(/* turbopackIgnore: true */ env.STORAGE_LOCAL_ROOT ?? env.STORAGE_LOCAL_PATH ?? "storage");
+    await mkdir(root, { recursive: true });
+    await access(root);
+    return true;
+  }
+
+  const bucket = env.STORAGE_S3_BUCKET;
+  const accessKeyId = env.STORAGE_S3_ACCESS_KEY_ID;
+  const secretAccessKey = env.STORAGE_S3_SECRET_ACCESS_KEY;
+  if (!bucket || !accessKeyId || !secretAccessKey) return false;
+
+  const client = new S3Client({
+    region: env.STORAGE_S3_REGION,
+    ...(env.STORAGE_S3_ENDPOINT ? { endpoint: env.STORAGE_S3_ENDPOINT } : {}),
+    forcePathStyle: env.STORAGE_S3_FORCE_PATH_STYLE,
+    credentials: { accessKeyId, secretAccessKey },
+  });
+  await client.send(new HeadBucketCommand({ Bucket: bucket }));
+  return true;
 }

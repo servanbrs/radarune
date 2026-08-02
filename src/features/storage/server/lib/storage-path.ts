@@ -13,8 +13,8 @@ export function assertSafeStorageKey(key: string) {
 
 export function resolveStoragePath(root: string, key: string) {
   const safeKey = assertSafeStorageKey(key);
-  const rootPath = path.resolve(root);
-  const absolutePath = path.resolve(rootPath, safeKey);
+  const rootPath = path.resolve(/* turbopackIgnore: true */ root);
+  const absolutePath = path.resolve(/* turbopackIgnore: true */ rootPath, safeKey);
   if (absolutePath !== rootPath && !absolutePath.startsWith(`${rootPath}${path.sep}`)) {
     throw new Error("Storage yolu izin verilen dizinin dışına çıkıyor.");
   }

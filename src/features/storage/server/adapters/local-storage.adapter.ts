@@ -23,7 +23,9 @@ export class LocalStorageAdapter implements StorageProviderAdapter {
   readonly type = "LOCAL" as const;
 
   private get root() {
-    return path.resolve(env.STORAGE_LOCAL_ROOT ?? env.STORAGE_LOCAL_PATH ?? path.join(/*turbopackIgnore: true*/ process.cwd(), "storage"));
+    // Keep the fallback relative and static so Next.js NFT does not treat the
+    // entire repository as a runtime filesystem dependency.
+    return path.resolve(/* turbopackIgnore: true */ env.STORAGE_LOCAL_ROOT ?? env.STORAGE_LOCAL_PATH ?? "storage");
   }
 
   validateConfiguration(): StorageConfigurationResult {
