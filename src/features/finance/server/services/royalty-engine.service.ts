@@ -65,6 +65,63 @@ export class RoyaltyEngineService {
     const parsedSplits = input.splits.map((split) => royaltySplitInputSchema.parse(split));
     assertSplitTotals(parsedSplits);
 
+    const beneficiaryUserIds = Array.from(
+      new Set(
+        parsedSplits
+          .map((split) => split.beneficiaryUserId)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    );
+    const artistIds = Array.from(
+      new Set(
+        parsedSplits
+          .map((split) => split.artistId)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    );
+    const labelIds = Array.from(
+      new Set(
+        parsedSplits
+          .map((split) => split.labelId)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    );
+
+    const [memberships, artists, labels] = await Promise.all([
+      beneficiaryUserIds.length
+        ? prisma.organizationMembership.findMany({
+            where: {
+              organizationId: actor.organizationId,
+              userId: { in: beneficiaryUserIds },
+              status: "ACTIVE",
+            },
+            select: { userId: true },
+          })
+        : [],
+      artistIds.length
+        ? prisma.artist.findMany({
+            where: { organizationId: actor.organizationId, id: { in: artistIds } },
+            select: { id: true },
+          })
+        : [],
+      labelIds.length
+        ? prisma.label.findMany({
+            where: { organizationId: actor.organizationId, id: { in: labelIds } },
+            select: { id: true },
+          })
+        : [],
+    ]);
+
+    if (memberships.length !== beneficiaryUserIds.length) {
+      throw new Error("Royalty beneficiary kullanıcısı bu organizasyona ait değil.");
+    }
+    if (artists.length !== artistIds.length) {
+      throw new Error("Royalty artist kaydı bu organizasyona ait değil.");
+    }
+    if (labels.length !== labelIds.length) {
+      throw new Error("Royalty label kaydı bu organizasyona ait değil.");
+    }
+
     await prisma.$transaction(async (tx) => {
       await tx.royaltySplit.deleteMany({
         where: {
