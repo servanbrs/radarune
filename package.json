@@ -12,6 +12,7 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "security:check": "tsx scripts/check-private-files.ts",
+    "test:e2e": "playwright test",
     "validate:production": "NODE_ENV=production tsx scripts/validate-production-env.ts",
     "production:smoke": "tsx scripts/production-smoke.ts",
     "worker:distribution": "NODE_OPTIONS='-r ./scripts/register-server-only.cjs' tsx scripts/distribution-worker.ts",
@@ -66,6 +67,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "dotenv-cli": "^11.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",

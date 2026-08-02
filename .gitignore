@@ -11,6 +11,8 @@
 !.yarn/versions
 # testing
 /coverage
+/test-results/
+/playwright-report/
 # next.js
 /.next/
 /out/
@@ -48,3 +50,6 @@ skills-lock.json
 .youtube-admin-credential-backup-*/
 .youtube-typescript-fix-*/
 *.txt
+
+# Radarune private runtime sessions
+.radarune-private/

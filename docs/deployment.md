@@ -23,6 +23,8 @@ Pull request ve `main`/feature push'larında `.github/workflows/quality.yml` typ
 
 `npm run security:check` Git tarafından takip edilen `.env`, private runtime, storage ve key/certificate dosyalarını reddeder; yalnızca örnek environment dosyaları izinlidir.
 
+`npm run test:e2e` local development server'ı otomatik başlatıp public home ve health endpoint'lerini Chromium ile doğrular. CI workflow'u Chromium'u kurarak bu browser smoke testlerini de çalıştırır.
+
 `prisma migrate dev` shadow database yetkisi olmayan managed MySQL kurulumlarında çalışmayabilir. Production/staging için migration dosyaları review edildikten sonra `prisma migrate deploy` kullanılmalıdır.
 
 ## Worker süreçleri
