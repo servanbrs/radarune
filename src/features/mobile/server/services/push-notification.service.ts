@@ -73,18 +73,29 @@ export class PushNotificationService {
       return { deliveryId: delivery.id, status: "FAILED" as const };
     }
 
-    const response = await fetch("https://exp.host/--/api/v2/push/send", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        to: decryptMobileSecret(delivery.pushToken.tokenEncrypted),
-        title: delivery.pushNotification.title,
-        body: delivery.pushNotification.body,
-        data: { deepLink: delivery.pushNotification.deepLink },
-      } satisfies Partial<ExpoPushMessage>),
-    });
+    let response: Response;
+
+    try {
+      response = await fetch("https://exp.host/--/api/v2/push/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          to: decryptMobileSecret(delivery.pushToken.tokenEncrypted),
+          title: delivery.pushNotification.title,
+          body: delivery.pushNotification.body,
+          data: { deepLink: delivery.pushNotification.deepLink },
+        } satisfies Partial<ExpoPushMessage>),
+      });
+    } catch {
+      await this.failDelivery(
+        delivery.id,
+        "EXPO_PUSH_NETWORK_ERROR",
+        "Push provider bağlantısı kurulamadı.",
+      );
+      return { deliveryId: delivery.id, status: "FAILED" as const };
+    }
 
     const body = (await response.json().catch(() => ({}))) as ExpoPushResult;
     const result = body.data?.[0];
