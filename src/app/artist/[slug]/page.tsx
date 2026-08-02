@@ -4,6 +4,7 @@ import { DiscoverArtistFollowButton } from "@/features/growth/components/discove
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { PublicGrowthShell } from "@/features/growth/components/public-shell";
 import { artistPublicProfileService } from "@/features/growth/server/services/artist-public-profile.service";
+import { StructuredData } from "@/features/seo/components/structured-data";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -24,6 +25,7 @@ export default async function ArtistPublicPage({ params }: { params: Promise<{ s
 
   return (
     <PublicGrowthShell currentUser={session ? { name: session.user.name } : null}>
+      <StructuredData data={{ "@context": "https://schema.org", "@type": artist.type === "SOLO" ? "Person" : "MusicGroup", name: artist.name, url: `https://radarune.com/artist/${artist.slug}`, image: artist.profileImageUrl ?? artist.coverImageUrl ?? undefined, description: artist.seoDescription ?? artist.shortBiography ?? undefined, sameAs: [artist.spotifyProfileUrl, artist.appleMusicProfileUrl, artist.youtubeProfileUrl, artist.instagramProfileUrl, artist.tiktokProfileUrl, artist.websiteUrl].filter((value): value is string => Boolean(value)) }} />
       <section className="panel overflow-hidden p-0">
         <div className="relative min-h-64 overflow-hidden bg-surface-strong p-8 md:p-12">
           {artist.coverImageUrl ? <div aria-hidden className="absolute inset-0 bg-cover bg-center opacity-35" style={{ backgroundImage: `url(${artist.coverImageUrl})` }} /> : null}
