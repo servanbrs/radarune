@@ -41,13 +41,13 @@ Date: 2026-07-28
 
 ## Highest-priority gaps
 
-1. Release lifecycle names are coarser than the target contract (`PENDING_REVIEW`, `REVISION_REQUESTED`, `DISTRIBUTED`, `REMOVED`). Expanding these requires a non-destructive data migration and coordinated updates to state guards, UI labels, provider mapping and tests.
+1. Release lifecycle contract and state guards are implemented (`PENDING_REVIEW`, `REVISION_REQUESTED`, `DISTRIBUTED`, `REMOVED`) and now covered by transition-matrix regression tests.
 2. Upload persistence exists, but production media processing still needs complete codec/bit-depth/channel extraction, normalization, preview/waveform generation and cleanup-worker coverage.
 3. Distribution Operations Center needs dedicated retry, worker and metrics views with cursor pagination. DLQ list/requeue is the first completed slice.
 4. Internal LIVE-to-Discover behavior exists in the growth layer, but scheduled import, moderation and takedown synchronization need end-to-end tests.
 5. The test suite is green but does not yet cover every requested concurrency, webhook replay, storage corruption and discover de-duplication scenario.
 6. Several list screens use fixed bounded `take` values rather than user-facing cursor pagination.
-7. Production deployment still requires real database, storage signing/encryption secrets and any enabled external provider credentials.
+7. Production deployment still requires Hostinger release execution plus real database, storage signing/encryption secrets and any enabled external provider credentials.
 
 ## Implementation order
 
