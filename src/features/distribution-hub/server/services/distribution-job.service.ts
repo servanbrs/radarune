@@ -172,7 +172,8 @@ export class DistributionJobService {
       actor.organizationId,
       provider,
     );
-    const manualOneRpm = provider === "ONE_RPM" && (runtimeConfig?.publicMetadata?.mode === "MANUAL" || !runtimeConfig);
+    const oneRpmMode = provider === "ONE_RPM" ? runtimeConfig?.publicMetadata?.mode ?? "MANUAL" : null;
+    const manualOneRpm = provider === "ONE_RPM" && (oneRpmMode === "MANUAL" || !runtimeConfig);
     if (manualOneRpm && !operationsRole) {
       return {
         success: false as const,
@@ -184,7 +185,11 @@ export class DistributionJobService {
     const validation = manualOneRpm
       ? { success: true as const, issues: [] }
       : distributionValidationService.validateRelease(provider, normalizedPayload, runtimeConfig);
-    const jobStatus = manualOneRpm ? "MANUAL_REVIEW" as const : validation.success ? "QUEUED" as const : "PENDING" as const;
+    const jobStatus = manualOneRpm
+      ? "MANUAL_REVIEW" as const
+      : provider === "ONE_RPM" && oneRpmMode === "AUTOMATION"
+        ? "MANUAL_REVIEW" as const
+        : validation.success ? "QUEUED" as const : "PENDING" as const;
     const payloadHash = buildPayloadHash(parsed.data.payload);
     const idempotencyKey = buildIdempotencyKey({
       releaseId: normalizedPayload.releaseId,

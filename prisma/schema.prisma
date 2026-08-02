@@ -608,6 +608,21 @@ enum SmartLinkBackgroundType {
   IMAGE
 }
 
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_USER
+  RESOLVED
+  CLOSED
+}
+
+enum SupportTicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
 enum SmartLinkPlatformType {
   SPOTIFY
   APPLE_MUSIC
@@ -1191,6 +1206,9 @@ model User {
   reviewedDeletionRequests       UserDeletionRequest[]            @relation("UserDeletionReviewer")
   artistTeamMemberships          ArtistTeamMember[]
   artistDraftUpdates             ArtistProfileDraft[]             @relation("ArtistProfileDraftUpdater")
+  supportTicketsRequested        SupportTicket[]                  @relation("SupportTicketRequester")
+  supportTicketsAssigned         SupportTicket[]                  @relation("SupportTicketAssignee")
+  supportMessages                SupportMessage[]                 @relation("SupportMessageSender")
 }
 
 model Session {
@@ -1319,6 +1337,8 @@ model Organization {
   aiAnalysisJobs                 AiAnalysisJob[]
   aiProviders                    AiProvider[]
   aiUsageRecords                 AiUsageRecord[]
+  supportTickets                 SupportTicket[]
+  supportMessages                SupportMessage[]
   artworkAnalyses                ArtworkAnalysis[]
   audioAnalyses                  AudioAnalysis[]
   audioFingerprints              AudioFingerprint[]
@@ -1785,6 +1805,7 @@ model Release {
   stories                  Story[]
   externalMediaSources     ExternalMediaSource[]
   importMatches            ImportMatch[]
+  supportTickets           SupportTicket[]
 
   @@index([organizationId, status, updatedAt])
   @@index([createdByUserId, status])
@@ -5464,4 +5485,48 @@ model UpdateJob {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId, status, createdAt])
+}
+
+model SupportTicket {
+  id              String                @id @default(cuid())
+  organizationId  String
+  requesterUserId String
+  assignedUserId  String?
+  releaseId       String?
+  subject         String                @db.VarChar(180)
+  status          SupportTicketStatus   @default(OPEN)
+  priority        SupportTicketPriority @default(NORMAL)
+  referenceIsrc   String?
+  referenceUpc    String?
+  lastMessageAt   DateTime              @default(now())
+  resolvedAt      DateTime?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  organization    Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  requester       User                  @relation("SupportTicketRequester", fields: [requesterUserId], references: [id], onDelete: Cascade)
+  assignedUser    User?                 @relation("SupportTicketAssignee", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  release         Release?              @relation(fields: [releaseId], references: [id], onDelete: SetNull)
+  messages        SupportMessage[]
+
+  @@index([organizationId, status, lastMessageAt])
+  @@index([requesterUserId, status, updatedAt])
+  @@index([releaseId])
+  @@index([referenceIsrc])
+  @@index([referenceUpc])
+}
+
+model SupportMessage {
+  id             String        @id @default(cuid())
+  organizationId String
+  ticketId       String
+  senderUserId   String?
+  content        String        @db.Text
+  internal       Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  ticket         SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sender         User?         @relation("SupportMessageSender", fields: [senderUserId], references: [id], onDelete: SetNull)
+
+  @@index([ticketId, createdAt])
+  @@index([organizationId, createdAt])
 }

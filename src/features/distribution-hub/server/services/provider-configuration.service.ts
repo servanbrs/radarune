@@ -130,7 +130,9 @@ export class DistributionProviderConfigurationService {
 
     const publicMetadata = {
       ...parsed.data.publicMetadata,
-      ...(parsed.data.provider === "ONE_RPM" ? { mode: "MANUAL" } : {}),
+      ...(parsed.data.provider === "ONE_RPM" && !parsed.data.publicMetadata.mode
+        ? { mode: "MANUAL" }
+        : {}),
     };
     const configuration = await distributionProviderConfigurationRepository.upsert({
       organizationId: actor.organizationId,

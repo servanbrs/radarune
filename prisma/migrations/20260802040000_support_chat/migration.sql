@@ -1,0 +1,42 @@
+CREATE TABLE `SupportTicket` (
+    `id` VARCHAR(191) NOT NULL,
+    `organizationId` VARCHAR(191) NOT NULL,
+    `requesterUserId` VARCHAR(191) NOT NULL,
+    `assignedUserId` VARCHAR(191) NULL,
+    `releaseId` VARCHAR(191) NULL,
+    `subject` VARCHAR(180) NOT NULL,
+    `status` ENUM('OPEN', 'IN_PROGRESS', 'WAITING_USER', 'RESOLVED', 'CLOSED') NOT NULL DEFAULT 'OPEN',
+    `priority` ENUM('LOW', 'NORMAL', 'HIGH', 'URGENT') NOT NULL DEFAULT 'NORMAL',
+    `referenceIsrc` VARCHAR(191) NULL,
+    `referenceUpc` VARCHAR(191) NULL,
+    `lastMessageAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `resolvedAt` DATETIME(3) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `SupportTicket_organizationId_status_lastMessageAt_idx` (`organizationId`, `status`, `lastMessageAt`),
+    INDEX `SupportTicket_requesterUserId_status_updatedAt_idx` (`requesterUserId`, `status`, `updatedAt`),
+    INDEX `SupportTicket_releaseId_idx` (`releaseId`),
+    INDEX `SupportTicket_referenceIsrc_idx` (`referenceIsrc`),
+    INDEX `SupportTicket_referenceUpc_idx` (`referenceUpc`),
+    CONSTRAINT `SupportTicket_organizationId_fkey` FOREIGN KEY (`organizationId`) REFERENCES `Organization` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `SupportTicket_requesterUserId_fkey` FOREIGN KEY (`requesterUserId`) REFERENCES `User` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `SupportTicket_assignedUserId_fkey` FOREIGN KEY (`assignedUserId`) REFERENCES `User` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT `SupportTicket_releaseId_fkey` FOREIGN KEY (`releaseId`) REFERENCES `Release` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE `SupportMessage` (
+    `id` VARCHAR(191) NOT NULL,
+    `organizationId` VARCHAR(191) NOT NULL,
+    `ticketId` VARCHAR(191) NOT NULL,
+    `senderUserId` VARCHAR(191) NULL,
+    `content` TEXT NOT NULL,
+    `internal` BOOLEAN NOT NULL DEFAULT false,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (`id`),
+    INDEX `SupportMessage_ticketId_createdAt_idx` (`ticketId`, `createdAt`),
+    INDEX `SupportMessage_organizationId_createdAt_idx` (`organizationId`, `createdAt`),
+    CONSTRAINT `SupportMessage_ticketId_fkey` FOREIGN KEY (`ticketId`) REFERENCES `SupportTicket` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `SupportMessage_organizationId_fkey` FOREIGN KEY (`organizationId`) REFERENCES `Organization` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `SupportMessage_senderUserId_fkey` FOREIGN KEY (`senderUserId`) REFERENCES `User` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
