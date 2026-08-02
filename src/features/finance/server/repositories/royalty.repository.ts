@@ -228,10 +228,11 @@ export class RoyaltyRepository {
     });
   }
 
-  async getReportWithLines(reportId: string) {
-    return prisma.royaltyReport.findUnique({
+  async getReportWithLines(reportId: string, organizationId: string) {
+    return prisma.royaltyReport.findFirst({
       where: {
         id: reportId,
+        organizationId,
       },
       select: {
         id: true,

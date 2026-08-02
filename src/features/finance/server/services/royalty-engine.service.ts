@@ -600,7 +600,10 @@ export class RoyaltyEngineService {
     const filteredReports = [];
 
     for (const report of reports) {
-      const detail = await royaltyRepository.getReportWithLines(report.id);
+      const detail = await royaltyRepository.getReportWithLines(
+        report.id,
+        actor.organizationId,
+      );
 
       if (
         detail?.lines.some(
@@ -637,7 +640,10 @@ export class RoyaltyEngineService {
       throw new Error("Royalty raporunu görüntüleme yetkiniz yok.");
     }
 
-    const report = await royaltyRepository.getReportWithLines(reportId);
+    const report = await royaltyRepository.getReportWithLines(
+      reportId,
+      actor.organizationId,
+    );
 
     if (!report) {
       return null;
