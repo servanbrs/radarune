@@ -26,7 +26,9 @@ function createPrismaClient() {
     connectionLimit: env.DATABASE_CONNECTION_LIMIT,
     acquireTimeout: env.DATABASE_ACQUIRE_TIMEOUT_MS,
     connectTimeout: env.DATABASE_CONNECT_TIMEOUT_MS,
-    idleTimeout: env.DATABASE_IDLE_TIMEOUT_SECONDS,
+    // MariaDB pool expects idleTimeout in milliseconds; env keeps seconds
+    // so the deployment-facing setting remains easy to understand.
+    idleTimeout: env.DATABASE_IDLE_TIMEOUT_SECONDS * 1_000,
   });
 
   return new PrismaClient({ adapter });
