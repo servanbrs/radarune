@@ -40,11 +40,15 @@ async function check(pathname: string) {
   }
 }
 
-try {
-  await check("/api/health/live");
-  await check("/api/health/ready");
-  console.log("Production smoke başarılı.");
-} catch (error) {
-  console.error(error instanceof Error ? error.message : "Production smoke başarısız.");
-  process.exitCode = 1;
+async function main() {
+  try {
+    await check("/api/health/live");
+    await check("/api/health/ready");
+    console.log("Production smoke başarılı.");
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : "Production smoke başarısız.");
+    process.exitCode = 1;
+  }
 }
+
+void main();
