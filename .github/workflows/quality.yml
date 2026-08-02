@@ -53,6 +53,9 @@ jobs:
       - name: Generate Prisma client
         run: npm run prisma:generate
 
+      - name: Prepare test database
+        run: npx prisma db push --accept-data-loss
+
       - name: Typecheck
         run: npx next typegen && npm run typecheck
 
