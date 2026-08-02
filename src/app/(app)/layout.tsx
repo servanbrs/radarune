@@ -169,6 +169,11 @@ export default async function AppLayout({
           <span className="ml-auto shrink-0 text-[10px] font-medium text-white/35">Radarune Studio</span>
         </div>
       </div>
+      <div className="overflow-x-auto border-b border-white/[0.06] bg-[#0d1d1a] text-white/65 lg:hidden">
+        <div className="flex min-h-10 min-w-max items-center gap-1 px-3">
+          {[...creatorNavigation, { href: "/releases", label: "Yayınlar" }, { href: "/artist-profile", label: "Sanatçı profili" }, { href: "/discover", label: "Keşfet" }].filter((item, index, items) => items.findIndex((candidate) => candidate.href === item.href) === index).map((item) => <Link className="rounded-lg px-3 py-1.5 text-[11px] font-semibold transition hover:bg-white/10 hover:text-white" href={item.href} key={item.href}>{item.label}</Link>)}
+        </div>
+      </div>
 
       <div className="flex min-w-0 flex-1 flex-col">{children}</div>
 
