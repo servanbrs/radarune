@@ -68,6 +68,9 @@ export class AdminV2AnalyticsService {
     ] = await Promise.all([
       prisma.user.findMany({
         where: {
+          systemRole: {
+            in: ["USER", "ARTIST"],
+          },
           memberships: {
             some: {
               organizationId,
@@ -91,6 +94,9 @@ export class AdminV2AnalyticsService {
             gte: activeThreshold,
           },
           user: {
+            systemRole: {
+              in: ["USER", "ARTIST"],
+            },
             memberships: {
               some: {
                 organizationId,
