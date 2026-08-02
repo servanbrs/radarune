@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export const adminNavigationGroups = [
-  { title: "Genel", items: [{ href: "/admin", label: "Genel Bakış" }, { href: "/admin/v2", label: "V2 Kontrol Merkezi" }, { href: "/admin/users", label: "Kullanıcılar" }, { href: "/admin/users/new", label: "Kullanıcı ekle" }, { href: "/admin/artists", label: "Sanatçılar" }, { href: "/admin/applications", label: "Başvurular" }] },
+  { title: "Genel", items: [{ href: "/admin", label: "Platform Kontrol Merkezi" }, { href: "/admin/users", label: "Kullanıcılar" }, { href: "/admin/users/new", label: "Kullanıcı ekle" }, { href: "/admin/artists", label: "Sanatçılar" }, { href: "/admin/applications", label: "Başvurular" }] },
   { title: "Yayın ve dağıtım", items: [{ href: "/admin/releases", label: "Yayın Moderasyonu" }, { href: "/admin/moderation", label: "Moderatör paneli" }, { href: "/admin/distribution", label: "Dağıtım" }, { href: "/admin/providers", label: "Providerlar" }, { href: "/admin/import-sources", label: "Otomatik Import" }, { href: "/admin/import-review", label: "Import İnceleme" }] },
   { title: "Finans", items: [{ href: "/admin/finance", label: "Finans Yönetimi" }] },
   { title: "İçerik ve büyüme", items: [{ href: "/admin/social/playlists", label: "Listeler / Global playlistler" }, { href: "/admin/intelligence", label: "Yapay Zekâ Yönetimi" }, { href: "/admin/site-builder", label: "Site Builder" }] },
