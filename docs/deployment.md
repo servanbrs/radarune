@@ -19,6 +19,8 @@ SMOKE_BASE_URL=https://app.example.com npm run production:smoke
 
 Komut `/api/health/live` ve `/api/health/ready` endpoint'lerini 10 saniye timeout ile kontrol eder; başarısız readiness durumunda non-zero exit code döndürür.
 
+Pull request ve `main`/feature push'larında `.github/workflows/quality.yml` typecheck, lint, unit test ve production build kapılarını çalıştırır. Gerçek database/provider smoke testi ayrıca deploy ortamında `production:smoke` ile yapılmalıdır.
+
 `prisma migrate dev` shadow database yetkisi olmayan managed MySQL kurulumlarında çalışmayabilir. Production/staging için migration dosyaları review edildikten sonra `prisma migrate deploy` kullanılmalıdır.
 
 ## Worker süreçleri
