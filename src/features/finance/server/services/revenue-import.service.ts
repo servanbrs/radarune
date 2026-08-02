@@ -1,6 +1,7 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { parse } from "csv-parse/sync";
+import { Prisma } from "@/generated/prisma/client";
 import { artistRepository } from "@/features/artist/server/repositories/artist.repository";
 import { rbacService } from "@/features/authorization/server/rbac";
 import { labelRepository } from "@/features/label/server/repositories/label.repository";
@@ -69,17 +70,31 @@ export class RevenueImportService {
     });
 
     const invalidRows = validatedRows.filter((row) => !row.result.success);
-    const importRecord = await revenueImportRepository.createImport({
-      organizationId: params.actor.organizationId,
-      importedByUserId: params.actor.userId,
-      fileName: params.fileName,
-      sourceMimeType: params.mimeType,
-      sourceFileSha256,
-      periodStart: params.periodStart,
-      periodEnd: params.periodEnd,
-      reportingCurrency: params.reportingCurrency,
-      rowCount: parsedRows.length,
-    });
+    let importRecord;
+    try {
+      importRecord = await revenueImportRepository.createImport({
+        organizationId: params.actor.organizationId,
+        importedByUserId: params.actor.userId,
+        fileName: params.fileName,
+        sourceMimeType: params.mimeType,
+        sourceFileSha256,
+        periodStart: params.periodStart,
+        periodEnd: params.periodEnd,
+        reportingCurrency: params.reportingCurrency,
+        rowCount: parsedRows.length,
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        return {
+          success: false as const,
+          message: "Aynı dosya eşzamanlı olarak içe aktarılmış veya daha önce işlenmiş.",
+        };
+      }
+      throw error;
+    }
 
     if (invalidRows.length > 0) {
       await revenueImportRepository.failImport({
