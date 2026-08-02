@@ -16,7 +16,21 @@ process.on("SIGTERM", () => {
 
 async function runWorker() {
   while (!shuttingDown) {
-    const result = await pushNotificationService.processNext();
+    let result: Awaited<ReturnType<typeof pushNotificationService.processNext>>;
+
+    try {
+      result = await pushNotificationService.processNext();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Notification worker hatası.";
+      console.error("[notification-worker] döngü hatası", { message });
+      if (once) {
+        process.exitCode = 1;
+        break;
+      }
+      await sleep(idleDelayMs);
+      continue;
+    }
+
     if (!result && once) {
       break;
     }

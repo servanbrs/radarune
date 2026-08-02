@@ -15,7 +15,21 @@ process.on("SIGTERM", () => { stopping = true; });
 async function run() {
   console.info(`[${workerId}] başladı; final submit otomatik yapılmayacak.`);
   while (!stopping) {
-    const result = await oneRpmAutomationService.prepareNext(workerId);
+    let result: { processed: boolean };
+
+    try {
+      result = await oneRpmAutomationService.prepareNext(workerId);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "ONErpm worker hatası.";
+      console.error(`[${workerId}] hazırlık döngüsü başarısız`, { message });
+      if (once) {
+        process.exitCode = 1;
+        break;
+      }
+      await sleep(idleDelayMs);
+      continue;
+    }
+
     if (!result.processed) {
       if (once) break;
       await sleep(idleDelayMs);
@@ -28,4 +42,3 @@ run().catch((error: unknown) => {
   console.error("[onerpm-automation-worker] fatal error", error instanceof Error ? error.message : "Bilinmeyen hata");
   process.exitCode = 1;
 });
-
