@@ -9,7 +9,7 @@ Branch: `feature/radarune-v2-complete`
 - Başlangıç branch'i `main`, son commit `3cf4d28` (`feat: finalize discover experience and remove global player`).
 - `npm run typecheck`: başarılı.
 - `npm test -- --reporter=dot`: başarılı — 30 test dosyası, 69 test.
-- `npm run build`: başarılı. Next.js 16 production build tamamlandı; `next.config.ts` üzerinden local storage adapter'a giden NFT tracing uyarısı kaldı.
+- `npm run build`: başarılı. Next.js 16 production build tamamlandı; local storage runtime yolu daraltılarak NFT tracing uyarısı giderildi.
 - Prisma schema ve generated client mevcut; migration geçmişi kapsamlı ve release, social, billing, storage, analytics ve distribution alanlarını içeriyor.
 
 ## Çalışan veya güçlü temeli olan modüller
@@ -37,7 +37,7 @@ Branch: `feature/radarune-v2-complete`
 - Platform analytics için consent, bot filtering, admin exclusion ve visitor/session hash modelinin uçtan uca kullanımı doğrulanmalı.
 - Finance import, royalty split ve payout yetki izolasyonunun kapsamlı integration testleri eksik.
 - Setup wizard, feature flags, maintenance/registration/application flag senkronizasyonu eksik veya parçalı.
-- E2E test script'i ve production smoke test akışı yok.
+- E2E browser suite credential/seed gerektiriyor; deploy sonrası live/readiness doğrulaması için `npm run production:smoke` eklendi.
 - Deployment, worker, security ve configuration dokümantasyonu eksik.
 
 ## Güvenlik ve runtime riskleri
@@ -73,4 +73,3 @@ Branch: `feature/radarune-v2-complete`
 4. Worker/cron/health durumlarının gerçek heartbeat ve queue verisiyle bağlanması.
 5. E2E ve production smoke testleri.
 6. Deployment, backup/restore, worker ve security dokümantasyonu.
-

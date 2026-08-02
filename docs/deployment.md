@@ -11,6 +11,14 @@ npm run validate:production
 npm start
 ```
 
+Deploy sonrası canlılık ve readiness kontrolü için uygulama ayakta iken çalıştırılabilir:
+
+```bash
+SMOKE_BASE_URL=https://app.example.com npm run production:smoke
+```
+
+Komut `/api/health/live` ve `/api/health/ready` endpoint'lerini 10 saniye timeout ile kontrol eder; başarısız readiness durumunda non-zero exit code döndürür.
+
 `prisma migrate dev` shadow database yetkisi olmayan managed MySQL kurulumlarında çalışmayabilir. Production/staging için migration dosyaları review edildikten sonra `prisma migrate deploy` kullanılmalıdır.
 
 ## Worker süreçleri
@@ -31,4 +39,3 @@ ONErpm worker yalnızca manuel login/2FA ile daha önce oluşturulmuş storage s
 - `/api/admin/system/health`: admin yetkisiyle database, auth, mail, queue ve encryption kontrolleri.
 
 Backup/restore ve production provider credential testleri deploy sonrasında ayrıca doğrulanmalıdır.
-
