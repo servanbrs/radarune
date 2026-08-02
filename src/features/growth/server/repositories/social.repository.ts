@@ -3,6 +3,11 @@ import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/server/prisma/prisma";
 
 export class SocialRepository {
+  async isFollowing(userId: string, artistId: string) {
+    const follow = await prisma.follow.findUnique({ where: { userId_artistId: { userId, artistId } }, select: { id: true } });
+    return Boolean(follow);
+  }
+
   async addTrackToPlaylist(organizationId: string, userId: string, playlistId: string, trackId: string) {
     const playlist = await prisma.playlist.findFirst({ where: { id: playlistId, ownerUserId: userId, organizationId }, select: { id: true } });
     if (!playlist) throw new Error("Playlist bulunamadı veya bu playlist size ait değil.");

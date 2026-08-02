@@ -6,11 +6,13 @@ import { useState } from "react";
 export function DiscoverArtistFollowButton({
   artistId,
   isAuthenticated,
+  initialFollowing = false,
 }: {
   artistId: string;
   isAuthenticated: boolean;
+  initialFollowing?: boolean;
 }) {
-  const [following, setFollowing] = useState(false);
+  const [following, setFollowing] = useState(initialFollowing);
   const [pending, setPending] = useState(false);
 
   if (!isAuthenticated) return null;
