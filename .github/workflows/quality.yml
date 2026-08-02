@@ -54,7 +54,7 @@ jobs:
         run: npm run prisma:generate
 
       - name: Prepare test database
-        run: npx prisma db push --accept-data-loss
+        run: npm run prisma:migrate:deploy
 
       - name: Typecheck
         run: npx next typegen && npm run typecheck
