@@ -10,13 +10,18 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/features/authentication/lib/auth-client";
-import { safeRedirectPath } from "@/features/authentication/lib/safe-redirect";
 import {
   type SignInFormValues,
   signInFormSchema,
 } from "@/features/authentication/schemas/auth-form.schema";
 
-export function SignInForm({ googleEnabled }: { googleEnabled: boolean }) {
+export function SignInForm({
+  googleEnabled,
+  nextPath,
+}: {
+  googleEnabled: boolean;
+  nextPath: string;
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [rootError, setRootError] = useState<string | null>(null);
@@ -66,16 +71,14 @@ export function SignInForm({ googleEnabled }: { googleEnabled: boolean }) {
           return;
         }
 
-        const next = new URLSearchParams(window.location.search).get("next");
         const verifyUrl = new URL("/verify-login", window.location.origin);
         verifyUrl.searchParams.set("sent", "1");
-        verifyUrl.searchParams.set("next", safeRedirectPath(next));
+        verifyUrl.searchParams.set("next", nextPath);
         window.location.replace(verifyUrl.toString());
         return;
       }
 
-      const next = new URLSearchParams(window.location.search).get("next");
-      router.replace(safeRedirectPath(next));
+      router.replace(nextPath);
       router.refresh();
     });
   });
