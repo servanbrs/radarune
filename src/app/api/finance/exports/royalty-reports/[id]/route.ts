@@ -23,6 +23,7 @@ export async function GET(request: Request, context: RouteContext) {
 
     return new Response(file.body, {
       headers: {
+        "Cache-Control": "private, no-store",
         "Content-Disposition": `attachment; filename="${file.fileName}"`,
         "Content-Type": file.contentType,
       },

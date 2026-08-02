@@ -41,5 +41,8 @@ export async function withFinanceActor(
 export function financeJson(data: unknown, status = 200) {
   return NextResponse.json(serializeForJson(data), {
     status,
+    headers: {
+      "Cache-Control": "private, no-store",
+    },
   });
 }
