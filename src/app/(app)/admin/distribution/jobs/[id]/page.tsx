@@ -4,6 +4,7 @@ import { rbacService } from "@/features/authorization/server/rbac";
 import { adminDistributionService } from "@/features/distribution-hub/server/services/admin-distribution.service";
 import { distributionProviderConfigurationRepository } from "@/features/distribution-hub/server/repositories/provider-configuration.repository";
 import { DistributionJobControls } from "@/features/distribution-hub/components/distribution-job-controls";
+import { AdminShell } from "@/features/admin/components/admin-shell";
 
 type AdminDistributionJobDetailPageProps = {
   params: Promise<{
@@ -38,7 +39,7 @@ export default async function AdminDistributionJobDetailPage({
   }
 
   return (
-    <main className="page-shell">
+    <AdminShell title={job.releaseTitle} description="Dağıtım job durumunu, provider yapılandırmasını ve güvenli işlem kontrollerini inceleyin.">
       <section className="panel p-6">
         <p className="text-xs uppercase tracking-[0.24em] text-muted">Job detayı</p>
         <h1 className="mt-3 text-3xl font-semibold">{job.releaseTitle}</h1>
@@ -73,7 +74,7 @@ export default async function AdminDistributionJobDetailPage({
         initialConfigurationId={job.providerConfigurationId}
         configurations={configurations.map((config) => ({ id: config.id, provider: config.provider, environment: config.environment, isEnabled: config.isEnabled }))}
       />
-    </main>
+    </AdminShell>
   );
 }
 
