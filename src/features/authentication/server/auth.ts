@@ -147,6 +147,8 @@ export const auth = betterAuth({
 
     twoFactor({
       issuer: "Radarune",
+      twoFactorCookieMaxAge: 600,
+      trustDeviceMaxAge: 30 * 24 * 60 * 60,
 
       /*
        * İlk başarılı şifreli girişte 2FA otomatik
@@ -157,6 +159,7 @@ export const auth = betterAuth({
 
       otpOptions: {
         period: 600,
+        storeOTP: "encrypted",
 
         async sendOTP({ user, otp }) {
           const organizationId = await organizationIdForUser(user.id);
