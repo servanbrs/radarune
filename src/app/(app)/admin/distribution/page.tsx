@@ -15,6 +15,7 @@ import {
   XCircle,
 } from "lucide-react";
 
+import { AdminShell } from "@/features/admin/components/admin-shell";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { rbacService } from "@/features/authorization/server/rbac";
 import { ProcessNextJobButton } from "@/features/distribution-hub/components/process-next-job-button";
@@ -48,6 +49,63 @@ const statusClasses: Record<string, string> = {
   CANCELLED: "border-zinc-200 bg-zinc-50 text-zinc-700",
   MANUAL_REVIEW: "border-rose-200 bg-rose-50 text-rose-700",
 };
+
+const distributionModules = [
+  {
+    href: "/admin/distribution/jobs",
+    icon: Workflow,
+    eyebrow: "01 · KUYRUK",
+    title: "Job kuyruğu",
+    description: "Yayınların hangi provider’a gönderildiğini, deneme sayısını ve anlık durumunu izleyin.",
+    action: "Jobları aç",
+    tone: "bg-sky-50 text-sky-700 border-sky-200",
+  },
+  {
+    href: "/admin/distribution/providers",
+    icon: Network,
+    eyebrow: "02 · BAĞLANTI",
+    title: "Provider merkezi",
+    description: "ONErpm ve diğer dağıtım sağlayıcılarının credential, mod, yetenek ve retry ayarlarını yönetin.",
+    action: "Providerları yönet",
+    tone: "bg-violet-50 text-violet-700 border-violet-200",
+  },
+  {
+    href: "/admin/distribution/health",
+    icon: Activity,
+    eyebrow: "03 · İZLEME",
+    title: "Sistem sağlığı",
+    description: "Provider bağlantı testlerini, yanıt sürelerini ve son kontrol sonuçlarını görün.",
+    action: "Sağlığı kontrol et",
+    tone: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  },
+  {
+    href: "/admin/distribution/webhooks",
+    icon: Webhook,
+    eyebrow: "04 · GERİ BİLDİRİM",
+    title: "Webhook merkezi",
+    description: "Provider’dan gelen teslim, canlı ve hata bildirimlerinin imza doğrulamasını takip edin.",
+    action: "Webhookları izle",
+    tone: "bg-cyan-50 text-cyan-700 border-cyan-200",
+  },
+  {
+    href: "/admin/distribution/retry",
+    icon: TimerReset,
+    eyebrow: "05 · OTOMASYON",
+    title: "Retry kuyruğu",
+    description: "Geçici hatalarda tekrar denenecek işleri ve bir sonraki çalışma zamanını yönetin.",
+    action: "Retry listesini aç",
+    tone: "bg-amber-50 text-amber-700 border-amber-200",
+  },
+  {
+    href: "/admin/distribution/dead-letter",
+    icon: ShieldAlert,
+    eyebrow: "06 · MÜDAHALE",
+    title: "Dead-letter",
+    description: "Otomatik deneme sınırını aşan işleri manuel inceleyin ve güvenli biçimde yeniden kuyruğa alın.",
+    action: "Bekleyenleri incele",
+    tone: "bg-rose-50 text-rose-700 border-rose-200",
+  },
+] as const;
 
 export default async function AdminDistributionPage() {
   const { organization, user } =
@@ -112,7 +170,10 @@ export default async function AdminDistributionPage() {
     manualReviewJobs.length > 0;
 
   return (
-    <main className="page-shell">
+    <AdminShell
+      title="Dağıtım operasyon merkezi"
+      description="Yayın kuyruğu, provider bağlantıları, ONErpm otomasyonu ve hata müdahalesi tek çalışma alanında."
+    >
       <div className="flex w-full flex-col gap-6">
         <section className="panel overflow-hidden">
           <div className="border-b border-line p-6 md:p-8">
@@ -242,6 +303,50 @@ export default async function AdminDistributionPage() {
                 Manuel inceleme
               </p>
             </div>
+          </div>
+        </section>
+
+        <section className="panel overflow-hidden">
+          <div className="border-b border-line px-6 py-5 md:px-8">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.22em] text-accent">
+                  Modül rehberi
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+                  Dağıtımda ne nerede?
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
+                  Her kart tek bir operasyonu anlatır. Açılan alt ekranlar aynı Admin V2 kabuğunu ve menü düzenini korur.
+                </p>
+              </div>
+              <span className="rounded-full border border-line bg-surface-strong px-3 py-1.5 text-xs font-semibold text-muted">
+                {distributionModules.length} operasyon modülü
+              </span>
+            </div>
+          </div>
+          <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
+            {distributionModules.map((module) => {
+              const Icon = module.icon;
+              return (
+                <Link
+                  className="group rounded-2xl border border-line bg-surface p-4 transition hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-[0_14px_32px_rgba(15,23,42,0.08)]"
+                  href={module.href}
+                  key={module.href}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <span className={`flex size-10 items-center justify-center rounded-xl border ${module.tone}`}>
+                      <Icon className="size-5" />
+                    </span>
+                    <ArrowRight className="size-4 text-muted transition group-hover:translate-x-1 group-hover:text-accent" />
+                  </div>
+                  <p className="mt-4 text-[10px] font-bold tracking-[0.18em] text-muted">{module.eyebrow}</p>
+                  <h3 className="mt-1 text-base font-semibold">{module.title}</h3>
+                  <p className="mt-2 min-h-[4.5rem] text-sm leading-6 text-muted">{module.description}</p>
+                  <span className="mt-3 inline-flex text-xs font-bold text-accent">{module.action} →</span>
+                </Link>
+              );
+            })}
           </div>
         </section>
 
@@ -535,6 +640,6 @@ export default async function AdminDistributionPage() {
           </section>
         ) : null}
       </div>
-    </main>
+    </AdminShell>
   );
 }
