@@ -4,7 +4,31 @@ import { prisma } from "@/server/prisma/prisma";
 
 export class UserProfileRepository {
   async findByUsername(username: string) {
-    return prisma.user.findUnique({ where: { username }, select: { id: true, username: true, name: true, image: true, createdAt: true } });
+    return prisma.user.findUnique({
+      where: { username },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        image: true,
+        createdAt: true,
+        _count: { select: { playlists: { where: { public: true } }, follows: true, playlistLikes: true } },
+        playlists: {
+          where: { public: true },
+          orderBy: { updatedAt: "desc" },
+          take: 12,
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            description: true,
+            coverImageUrl: true,
+            updatedAt: true,
+            _count: { select: { tracks: true, likes: true } },
+          },
+        },
+      },
+    });
   }
 
   async findHistory(username: string) {
