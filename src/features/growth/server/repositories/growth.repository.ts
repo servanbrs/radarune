@@ -39,6 +39,9 @@ export class GrowthRepository {
         description: input.description ?? null,
         coverImageUrl: input.coverImageUrl ?? null,
         ctaText: input.ctaText,
+        seoTitle: input.seoTitle ?? null,
+        seoDescription: input.seoDescription ?? null,
+        ogImageUrl: input.ogImageUrl ?? null,
         active: input.active,
         platforms: {
           create: input.platforms.map((platform) => ({
@@ -53,6 +56,50 @@ export class GrowthRepository {
       },
       select: { id: true, slug: true },
     });
+  }
+
+  async updateSmartLink(
+    organizationId: string,
+    id: string,
+    input: CreateSmartLinkInput,
+    client: DatabaseClient = prisma,
+  ) {
+    const result = await client.smartLink.updateMany({
+      where: { id, organizationId },
+      data: {
+        artistId: input.artistId,
+        releaseId: input.releaseId ?? null,
+        title: input.title,
+        slug: input.slug,
+        description: input.description ?? null,
+        coverImageUrl: input.coverImageUrl ?? null,
+        ctaText: input.ctaText,
+        seoTitle: input.seoTitle ?? null,
+        seoDescription: input.seoDescription ?? null,
+        ogImageUrl: input.ogImageUrl ?? null,
+        active: input.active,
+      },
+    });
+    if (result.count !== 1) return null;
+    await client.smartLinkPlatform.deleteMany({ where: { smartLinkId: id, organizationId } });
+    if (input.platforms.length > 0) {
+      await client.smartLinkPlatform.createMany({
+        data: input.platforms.map((platform) => ({
+          organizationId,
+          smartLinkId: id,
+          platform: platform.platform,
+          url: platform.url,
+          sortOrder: platform.sortOrder,
+          active: platform.active,
+          buttonText: platform.buttonText ?? null,
+        })),
+      });
+    }
+    return client.smartLink.findFirst({ where: { id, organizationId }, select: { id: true, slug: true } });
+  }
+
+  async deleteSmartLink(organizationId: string, id: string, client: DatabaseClient = prisma) {
+    return client.smartLink.deleteMany({ where: { id, organizationId } });
   }
 
   async findSmartLinkBySlug(slug: string) {
@@ -114,6 +161,46 @@ export class GrowthRepository {
         utmCampaign: input.utmCampaign ?? null,
       },
       select: { id: true },
+    });
+  }
+
+  async recordSmartLinkClick(input: {
+    organizationId: string;
+    smartLinkId: string;
+    platformId: string;
+    visitorHash: string;
+    ipHash: string;
+    userAgent?: string;
+    referrer?: string;
+    utmSource?: string;
+    utmMedium?: string;
+    utmCampaign?: string;
+  }) {
+    return prisma.$transaction(async (tx) => {
+      const click = await tx.smartLinkClick.create({
+        data: {
+          organizationId: input.organizationId,
+          smartLinkId: input.smartLinkId,
+          platformId: input.platformId,
+          visitorHash: input.visitorHash,
+          ipHash: input.ipHash,
+          device: input.userAgent?.slice(0, 120) ?? null,
+          referrer: input.referrer ?? null,
+          utmSource: input.utmSource ?? null,
+          utmMedium: input.utmMedium ?? null,
+          utmCampaign: input.utmCampaign ?? null,
+        },
+        select: { id: true },
+      });
+      await tx.smartLinkPlatform.update({ where: { id: input.platformId }, data: { clickCount: { increment: 1 } } });
+      return click;
+    });
+  }
+
+  async findPublicSmartLinkPlatform(slug: string, platformId: string) {
+    return prisma.smartLinkPlatform.findFirst({
+      where: { id: platformId, active: true, smartLink: { slug, active: true } },
+      select: { id: true, url: true, organizationId: true, smartLinkId: true },
     });
   }
 

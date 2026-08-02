@@ -17,6 +17,7 @@ export default async function SmartLinkDetailPage({ params }: { params: Promise<
         <p className="text-xs uppercase tracking-[0.24em] text-muted">Smart Link</p>
         <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
           <div><h1 className="text-3xl font-semibold">{link.title}</h1><p className="mt-2 text-sm text-muted">/{link.slug} · {link.artist.name}</p></div>
+          <Link className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground" href={`/smart-links/${link.id}/edit`}>Düzenle</Link>
           <span className="rounded-full border border-line px-3 py-1 text-xs font-semibold">{link.active ? "Aktif" : "Taslak"}</span>
         </div>
         {link.description ? <p className="mt-6 max-w-2xl leading-7 text-muted">{link.description}</p> : null}

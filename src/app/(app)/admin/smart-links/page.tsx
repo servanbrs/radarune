@@ -12,9 +12,9 @@ export default async function AdminSmartLinksPage() {
 
   return <AdminShell title="Smart Link yönetimi" description="Spotify, Apple Music ve diğer platform bağlantılarını tek bir paylaşılabilir sayfada yönetin.">
     <div className="space-y-5">
-      <div className="flex justify-end"><Button><Link href="/smart-links/new">Yeni Smart Link</Link></Button></div>
+      <div className="flex justify-end"><Button><Link href="/admin/smart-links/new">Yeni Smart Link</Link></Button></div>
       <section className="grid gap-3">
-        {links.length === 0 ? <div className="panel p-10 text-center"><p className="font-semibold">Henüz Smart Link yok</p><p className="mt-2 text-sm text-muted">Yeni bir kampanya oluşturduğunuzda burada listelenir.</p></div> : links.map((link) => <Link className="panel block p-5 transition hover:-translate-y-0.5 hover:border-accent" href={`/smart-links/${link.id}`} key={link.id}><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-lg font-semibold">{link.title}</h2><p className="mt-1 text-sm text-muted">/{link.slug} · {link.artist.name}</p></div><span className="rounded-full border border-line bg-surface-strong px-3 py-1 text-xs font-semibold">{link.active ? "Aktif" : "Pasif"}</span></div></Link>)}
+        {links.length === 0 ? <div className="panel p-10 text-center"><p className="font-semibold">Henüz Smart Link yok</p><p className="mt-2 text-sm text-muted">Yeni bir kampanya oluşturduğunuzda burada listelenir.</p></div> : links.map((link) => <Link className="panel block p-5 transition hover:-translate-y-0.5 hover:border-accent" href={`/admin/smart-links/${link.id}`} key={link.id}><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-lg font-semibold">{link.title}</h2><p className="mt-1 text-sm text-muted">/{link.slug} · {link.artist.name} · {link.platforms.length} bağlantı</p></div><span className="rounded-full border border-line bg-surface-strong px-3 py-1 text-xs font-semibold">{link.active ? "Aktif" : "Taslak"}</span></div></Link>)}
       </section>
     </div>
   </AdminShell>;

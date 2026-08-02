@@ -168,6 +168,23 @@ export class EntitlementService {
       remaining: value - usage,
     };
   }
+
+  /** Smart Link is a free core growth feature; configured plans may still tighten its quota. */
+  async assertSmartLinkCreationAvailable(scope: BillingScopeInput) {
+    const featureMap = await this.getFeatureMap(scope);
+    const enabled = featureMap.get("smart_links.enabled");
+    if (enabled === false) throw new Error("smart_links.enabled özelliği mevcut plan için aktif değil.");
+    const configuredLimit = featureMap.get("smart_links.max");
+    if (typeof configuredLimit === "number") {
+      const usage = await this.getUsage(scope, "smart_links.max");
+      if (usage + 1 > configuredLimit) throw new Error("smart_links.max limiti aşıldı.");
+      return { limit: configuredLimit, usage, remaining: configuredLimit - usage };
+    }
+    const usage = await this.getUsage(scope, "smart_links.max");
+    const freeLimit = 10;
+    if (usage + 1 > freeLimit) throw new Error("Ücretsiz Smart Link limiti (10) aşıldı.");
+    return { limit: freeLimit, usage, remaining: freeLimit - usage };
+  }
 }
 
 export const entitlementService = new EntitlementService();

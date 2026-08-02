@@ -27,6 +27,21 @@ export class SmartLinkAnalyticsService {
       ...(input.utmCampaign ? { utmCampaign: input.utmCampaign } : {}),
     });
   }
+
+  async recordClick(input: { organizationId: string; smartLinkId: string; platformId: string; ip: string; userAgent?: string; referrer?: string; utmSource?: string; utmMedium?: string; utmCampaign?: string }) {
+    return growthRepository.recordSmartLinkClick({
+      organizationId: input.organizationId,
+      smartLinkId: input.smartLinkId,
+      platformId: input.platformId,
+      ipHash: hashPrivacyValue(input.ip),
+      visitorHash: hashPrivacyValue(`${input.ip}:${input.userAgent ?? ""}`),
+      ...(input.userAgent ? { userAgent: input.userAgent } : {}),
+      ...(input.referrer ? { referrer: input.referrer } : {}),
+      ...(input.utmSource ? { utmSource: input.utmSource } : {}),
+      ...(input.utmMedium ? { utmMedium: input.utmMedium } : {}),
+      ...(input.utmCampaign ? { utmCampaign: input.utmCampaign } : {}),
+    });
+  }
 }
 
 export const smartLinkAnalyticsService = new SmartLinkAnalyticsService();

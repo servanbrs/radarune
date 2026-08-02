@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: smartLink?.seoTitle ?? smartLink?.title ?? "Radarune Smart Link",
     description: smartLink?.seoDescription ?? smartLink?.description ?? "Radarune üzerinde müziği dinle.",
-    openGraph: { images: smartLink?.ogImageUrl ?? smartLink?.coverImageUrl ? [smartLink.ogImageUrl ?? smartLink.coverImageUrl ?? ""] : [] },
+    openGraph: { images: smartLink?.ogImageUrl || smartLink?.coverImageUrl ? [smartLink.ogImageUrl ?? smartLink.coverImageUrl ?? ""] : [] },
   };
 }
 
@@ -54,11 +54,12 @@ export default async function SmartLinkPublicPage({ params, searchParams }: { pa
         {smartLink.description ? <p className="mt-4 text-sm leading-7 text-muted">{smartLink.description}</p> : null}
         <div className="mt-8 grid gap-3">
           {smartLink.platforms.map((platform) => (
-            <a className="rounded-2xl bg-foreground px-5 py-4 text-sm font-semibold text-white transition hover:opacity-90" href={platform.url} key={platform.id} rel="noopener noreferrer" target="_blank">
+            <a className="rounded-2xl bg-foreground px-5 py-4 text-sm font-semibold text-white transition hover:opacity-90" href={`/l/${smartLink.slug}/go/${platform.id}`} key={platform.id} rel="noopener noreferrer" target="_blank">
               {platform.buttonText ?? `${platform.platform} üzerinde ${smartLink.ctaText}`}
             </a>
           ))}
         </div>
+        <p className="mt-8 text-xs text-muted">Radarune ile oluşturuldu · <a className="font-semibold hover:text-foreground" href="/">Ücretsiz Smart Link oluştur</a></p>
       </section>
     </PublicGrowthShell>
   );

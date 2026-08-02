@@ -43,6 +43,9 @@ export const createSmartLinkSchema = z.object({
   description: z.string().trim().max(2000).transform(stripHtml).optional(),
   coverImageUrl: httpsUrlSchema.optional(),
   ctaText: z.string().trim().min(1).max(60).transform(stripHtml).default("Dinle"),
+  seoTitle: z.string().trim().max(60).transform(stripHtml).optional(),
+  seoDescription: z.string().trim().max(160).transform(stripHtml).optional(),
+  ogImageUrl: httpsUrlSchema.optional(),
   active: z.boolean().default(false),
   platforms: z
     .array(
@@ -72,6 +75,8 @@ export const createSmartLinkSchema = z.object({
     )
     .default([]),
 });
+
+export const updateSmartLinkSchema = createSmartLinkSchema;
 
 export const createPreSaveCampaignSchema = z
   .object({
