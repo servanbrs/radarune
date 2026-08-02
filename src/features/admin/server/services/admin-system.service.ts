@@ -6,6 +6,7 @@ import { updateAdminSettingSchema, type UpdateAdminSettingInput } from "@/featur
 import { adminSystemRepository } from "@/features/admin/server/repositories/admin-system.repository";
 import { auditLogService } from "@/features/finance/server/services/audit-log.service";
 import type { FinanceActorContext } from "@/features/finance/server/services/finance-access.service";
+import { configurationResolver } from "@/features/configuration/server/configuration-resolver.service";
 
 const defaults: Array<{ key: UpdateAdminSettingInput["key"]; value: string | boolean | number }> = [
   { key: "PLATFORM_NAME", value: "Radarune" },
@@ -93,6 +94,11 @@ export class AdminSystemService {
         },
         tx,
       );
+
+      configurationResolver.invalidate({
+        organizationId: actor.organizationId,
+        key: setting.key,
+      });
 
       return setting;
     });
