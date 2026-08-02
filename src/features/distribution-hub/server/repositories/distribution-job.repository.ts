@@ -52,10 +52,15 @@ const distributionJobSelect = {
 } satisfies Prisma.DistributionJobSelect;
 
 export class DistributionJobRepository {
-  async findById(id: string, client: DatabaseClient = prisma) {
-    return client.distributionJob.findUnique({
+  async findById(
+    id: string,
+    organizationId?: string,
+    client: DatabaseClient = prisma,
+  ) {
+    return client.distributionJob.findFirst({
       where: {
         id,
+        ...(organizationId ? { organizationId } : {}),
       },
       select: distributionJobSelect,
     });

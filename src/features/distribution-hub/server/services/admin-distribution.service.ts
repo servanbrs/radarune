@@ -26,8 +26,7 @@ export class AdminDistributionService {
 
   async getJob(actor: FinanceActorContext, jobId: string) {
     assertView(actor);
-    const job = await distributionJobRepository.findById(jobId);
-    return job && job.organizationId === actor.organizationId ? job : null;
+    return distributionJobRepository.findById(jobId, actor.organizationId);
   }
 
   async listWebhooks(actor: FinanceActorContext) {
@@ -44,8 +43,8 @@ export class AdminDistributionService {
 
   async updateJob(actor: FinanceActorContext, jobId: string, input: { status?: DistributionJobStatus; provider?: DistributionProviderKey; providerConfigurationId?: string | null }) {
     if (!rbacService.hasEffectivePermission({ membershipRole: actor.membershipRole, systemRole: actor.systemRole, permission: "distribution:manage" })) throw new Error("Dağıtım job yönetme yetkiniz yok.");
-    const job = await distributionJobRepository.findById(jobId);
-    if (!job || job.organizationId !== actor.organizationId) throw new Error("Distribution job bulunamadı.");
+    const job = await distributionJobRepository.findById(jobId, actor.organizationId);
+    if (!job) throw new Error("Distribution job bulunamadı.");
     const providerConfigurationId = input.providerConfigurationId;
     if (providerConfigurationId) {
       const configs = await distributionProviderConfigurationRepository.listByOrganizationId(actor.organizationId);

@@ -112,8 +112,8 @@ export class DistributionJobService {
       throw new Error("Distribution job kaydını görüntülemek için yetkiniz yok.");
     }
 
-    const job = await distributionJobRepository.findById(jobId);
-    if (!job || job.organizationId !== actor.organizationId) {
+    const job = await distributionJobRepository.findById(jobId, actor.organizationId);
+    if (!job) {
       return null;
     }
 
@@ -356,9 +356,9 @@ export class DistributionJobService {
   async cancelJob(actor: FinanceActorContext, jobId: string, reason: string) {
     assertManagePermission(actor);
 
-    const job = await distributionJobRepository.findById(jobId);
+    const job = await distributionJobRepository.findById(jobId, actor.organizationId);
 
-    if (!job || job.organizationId !== actor.organizationId) {
+    if (!job) {
       return {
         success: false as const,
         message: "Distribution job bulunamadı.",
@@ -413,9 +413,9 @@ export class DistributionJobService {
   async retryJob(actor: FinanceActorContext, jobId: string) {
     assertManagePermission(actor);
 
-    const job = await distributionJobRepository.findById(jobId);
+    const job = await distributionJobRepository.findById(jobId, actor.organizationId);
 
-    if (!job || job.organizationId !== actor.organizationId) {
+    if (!job) {
       return {
         success: false as const,
         message: "Distribution job bulunamadı.",
