@@ -300,7 +300,7 @@ export class GrowthRepository {
   }
 
   async findPublicArtist(slug: string) {
-    return prisma.artist.findFirst({
+    const artist = await prisma.artist.findFirst({
       where: { slug },
       include: {
         releaseArtistLinks: {
@@ -320,6 +320,13 @@ export class GrowthRepository {
         _count: { select: { follows: true } },
       },
     });
+    if (!artist) return null;
+    const publishedWhere: Prisma.ReleaseArtistWhereInput = { artistId: artist.id, release: { status: { in: ["DISTRIBUTED", "LIVE"] } } };
+    const [publishedReleaseCount, totalReleaseVotes] = await Promise.all([
+      prisma.releaseArtist.count({ where: publishedWhere }),
+      prisma.releaseLike.count({ where: { release: { status: { in: ["DISTRIBUTED", "LIVE"] }, artists: { some: { artistId: artist.id } } } } }),
+    ]);
+    return { ...artist, publicStats: { publishedReleaseCount, totalReleaseVotes } };
   }
 
   async findSlugRedirect(oldSlug: string) {
