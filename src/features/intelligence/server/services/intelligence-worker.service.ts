@@ -57,7 +57,19 @@ export class IntelligenceWorkerService {
 
     const providerCode = job.provider?.code ?? "INTERNAL_RULE_ENGINE";
     const provider = aiProviderRegistry.get(providerCode);
-    const configuration = await provider.validateConfiguration();
+    let configuration: Awaited<ReturnType<typeof provider.validateConfiguration>>;
+
+    try {
+      configuration = await provider.validateConfiguration();
+    } catch {
+      return this.retry(
+        job.id,
+        attempt.id,
+        startedAt,
+        "PROVIDER_CONFIGURATION_ERROR",
+        "AI provider yapılandırması okunamadı; job yeniden denenecek.",
+      );
+    }
 
     if (!configuration.success) {
       return this.configurationRequired(job.id, attempt.id, startedAt, configuration.code, configuration.message);
@@ -124,6 +136,44 @@ export class IntelligenceWorkerService {
     ]);
 
     return { jobId, status: "CONFIGURATION_REQUIRED" as const, message };
+  }
+
+  private async retry(
+    jobId: string,
+    attemptId: string,
+    startedAt: Date,
+    code: string,
+    message: string,
+  ) {
+    const finishedAt = new Date();
+    const nextAttemptAt = new Date(finishedAt.getTime() + 60_000);
+
+    await prisma.$transaction([
+      prisma.aiAnalysisAttempt.update({
+        where: { id: attemptId },
+        data: {
+          status: "FAILED",
+          retryable: true,
+          errorCode: code,
+          errorMessage: message,
+          finishedAt,
+          durationMs: finishedAt.getTime() - startedAt.getTime(),
+        },
+      }),
+      prisma.aiAnalysisJob.update({
+        where: { id: jobId },
+        data: {
+          status: "RETRY_SCHEDULED",
+          nextAttemptAt,
+          lastErrorCode: code,
+          lastErrorMessage: message,
+          lockedAt: null,
+          lockedBy: null,
+        },
+      }),
+    ]);
+
+    return { jobId, status: "RETRY_SCHEDULED" as const, message };
   }
 }
 
