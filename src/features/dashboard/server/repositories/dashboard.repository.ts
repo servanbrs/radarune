@@ -10,6 +10,9 @@ export class DashboardRepository {
       recentReleases,
       recentAuditLogs,
       failedDistributionJobs,
+      smartLinkCount,
+      smartLinkViews,
+      smartLinkClicks,
     ] = await Promise.all([
       prisma.release.groupBy({
         by: ["status"],
@@ -91,6 +94,10 @@ export class DashboardRepository {
           status: "FAILED",
         },
       }),
+
+      prisma.smartLink.count({ where: { organizationId, active: true } }),
+      prisma.smartLinkView.count({ where: { organizationId } }),
+      prisma.smartLinkClick.count({ where: { organizationId } }),
     ]);
 
     const releaseCounts = releaseStatusDistribution.reduce<
@@ -118,6 +125,9 @@ export class DashboardRepository {
         playlistAppearances:
           revenueSummary._sum.playlistAppearances ?? 0,
         netRevenueMinor: revenueSummary._sum.netRevenueMinor ?? 0n,
+        activeSmartLinks: smartLinkCount,
+        smartLinkViews,
+        smartLinkClicks,
       },
       recentReleases,
       recentAuditLogs,

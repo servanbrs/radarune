@@ -32,6 +32,9 @@ type DashboardData = {
     downloads: number;
     playlistAppearances: number;
     netRevenueMinor: bigint;
+    activeSmartLinks: number;
+    smartLinkViews: number;
+    smartLinkClicks: number;
   };
   recentReleases: Array<{
     id: string;
@@ -498,6 +501,12 @@ export function DashboardOverview({
           {metrics.map((metric) => (
             <MetricCard key={metric.label} {...metric} />
           ))}
+        </section>
+
+        <section className="relative overflow-hidden rounded-[2rem] border border-emerald-900/10 bg-[linear-gradient(115deg,#eafff6_0%,#f4f9ff_55%,#fff8e8_100%)] p-5 shadow-[0_18px_70px_rgba(22,101,76,0.08)] md:p-6">
+          <div className="pointer-events-none absolute -right-16 -top-20 size-56 rounded-full bg-emerald-300/20 blur-3xl" />
+          <div className="relative flex flex-wrap items-end justify-between gap-4"><div><p className="text-[10px] font-bold uppercase tracking-[0.24em] text-emerald-700">Growth snapshot</p><h2 className="mt-2 text-xl font-semibold text-[#10201b]">Müziğinin Radarune’daki hareketi</h2><p className="mt-1 text-sm text-[#63736d]">Smart Link ve keşif performansını tek bakışta takip et.</p></div><Link className="rounded-xl bg-[#10201b] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-[#1d3930]" href="/smart-links">Growth araçlarını aç →</Link></div>
+          <div className="relative mt-5 grid gap-3 sm:grid-cols-3"><div className="rounded-2xl border border-white/80 bg-white/70 p-4"><p className="text-xs text-[#63736d]">Aktif Smart Link</p><p className="mt-2 text-2xl font-semibold text-[#10201b]">{data.stats.activeSmartLinks}</p></div><div className="rounded-2xl border border-white/80 bg-white/70 p-4"><p className="text-xs text-[#63736d]">Smart Link görüntülenmesi</p><p className="mt-2 text-2xl font-semibold text-[#10201b]">{data.stats.smartLinkViews.toLocaleString("tr-TR")}</p></div><div className="rounded-2xl border border-white/80 bg-white/70 p-4"><p className="text-xs text-[#63736d]">Platform tıklaması</p><p className="mt-2 text-2xl font-semibold text-[#10201b]">{data.stats.smartLinkClicks.toLocaleString("tr-TR")}</p></div></div>
         </section>
 
         {manageableArtistsCount === 0 ? (
