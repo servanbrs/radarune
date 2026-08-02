@@ -29,6 +29,7 @@ export class ArtistRepository {
             releaseArtistLinks: true,
             follows: true,
             smartLinks: true,
+            applications: { where: { status: "APPROVED" } },
           },
         },
       },

@@ -317,6 +317,7 @@ export class GrowthRepository {
           take: 12,
           select: { id: true, provider: true, title: true, artistName: true, externalUrl: true, embedUrl: true, thumbnailUrl: true, publishedAt: true, playable: true, embeddable: true },
         },
+        applications: { where: { status: "APPROVED" }, select: { id: true }, take: 1 },
         _count: { select: { follows: true } },
       },
     });
@@ -330,7 +331,7 @@ export class GrowthRepository {
         _sum: { streamCount: true, playlistAppearances: true },
       }),
     ]);
-    return { ...artist, publicStats: { publishedReleaseCount, totalReleaseVotes, totalStreams: audienceSummary._sum.streamCount ?? 0, playlistAppearances: audienceSummary._sum.playlistAppearances ?? 0 } };
+    return { ...artist, publicStats: { publishedReleaseCount, totalReleaseVotes, totalStreams: audienceSummary._sum.streamCount ?? 0, playlistAppearances: audienceSummary._sum.playlistAppearances ?? 0, verified: artist.applications.length > 0 } };
   }
 
   async findSlugRedirect(oldSlug: string) {

@@ -78,7 +78,7 @@ type DashboardOverviewProps = {
     profileImageUrl: string | null;
     coverImageUrl: string | null;
     profilePublishedAt: Date | null;
-    _count: { releaseArtistLinks: number; follows: number; smartLinks: number };
+    _count: { releaseArtistLinks: number; follows: number; smartLinks: number; applications: number };
   }>;
   artistsCount: number;
   canManageArtists: boolean;
@@ -547,7 +547,7 @@ export function DashboardOverview({
                     <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-emerald-300/15 text-lg font-bold text-emerald-200">
                       {artist.profileImageUrl ? <Image alt="" className="object-cover" fill sizes="48px" src={artist.profileImageUrl} unoptimized /> : artist.name.slice(0, 1).toUpperCase()}
                     </div>
-                    <div className="min-w-0 flex-1"><div className="flex items-center gap-2"><h3 className="truncate font-semibold">{artist.name}</h3><span className="shrink-0 rounded-full bg-emerald-300/15 px-2 py-0.5 text-[10px] font-bold text-emerald-200">Sanatçı</span></div><p className="mt-1 truncate text-xs text-white/45">radarune.com/artist/{artist.slug}</p></div>
+                    <div className="min-w-0 flex-1"><div className="flex items-center gap-2"><h3 className="truncate font-semibold">{artist.name}</h3><span className="shrink-0 rounded-full bg-emerald-300/15 px-2 py-0.5 text-[10px] font-bold text-emerald-200">{artist._count.applications > 0 ? "Doğrulanmış sanatçı" : "Sanatçı profili"}</span></div><p className="mt-1 truncate text-xs text-white/45">radarune.com/artist/{artist.slug}</p></div>
                   </div>
                   <div className="mt-4 grid grid-cols-3 gap-2 text-center"><div className="rounded-xl bg-black/15 p-2"><p className="text-sm font-semibold">{artist._count.releaseArtistLinks}</p><p className="mt-1 text-[10px] text-white/40">Yayın</p></div><div className="rounded-xl bg-black/15 p-2"><p className="text-sm font-semibold">{artist._count.follows}</p><p className="mt-1 text-[10px] text-white/40">Takipçi</p></div><div className="rounded-xl bg-black/15 p-2"><p className="text-sm font-semibold">{artist._count.smartLinks}</p><p className="mt-1 text-[10px] text-white/40">Link</p></div></div>
                   <div className="mt-4 flex gap-2"><Link className="flex-1 rounded-xl bg-emerald-300 px-3 py-2 text-center text-xs font-bold text-[#08201a]" href={`/artist/${artist.slug}`}>Profili aç</Link><Link className="rounded-xl border border-white/10 px-3 py-2 text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white" href={`/dashboard/artists/${artist.id}/profile`}>Düzenle</Link></div>
