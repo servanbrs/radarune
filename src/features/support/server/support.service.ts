@@ -61,7 +61,48 @@ export class SupportService {
   async updateTicket(actor: FinanceActorContext, ticketId: string, input: unknown) {
     if (!canAccessAdmin(actor)) throw new Error("Destek talebi yönetme yetkiniz yok.");
     const parsed = updateSupportTicketSchema.parse(input);
-    return prisma.supportTicket.update({ where: { id: ticketId, organizationId: actor.organizationId }, data: { ...(parsed.status ? { status: parsed.status, ...(parsed.status === "RESOLVED" || parsed.status === "CLOSED" ? { resolvedAt: new Date() } : {}) } : {}), ...(parsed.priority ? { priority: parsed.priority } : {}), ...(parsed.assignedUserId !== undefined ? { assignedUserId: parsed.assignedUserId } : {}) } });
+
+    const ticket = await prisma.supportTicket.findFirst({
+      where: { id: ticketId, organizationId: actor.organizationId },
+      select: { id: true },
+    });
+
+    if (!ticket) {
+      throw new Error("Destek talebi bulunamadı.");
+    }
+
+    if (parsed.assignedUserId) {
+      const assignee = await prisma.organizationMembership.findFirst({
+        where: {
+          organizationId: actor.organizationId,
+          userId: parsed.assignedUserId,
+          status: "ACTIVE",
+        },
+        select: { id: true },
+      });
+
+      if (!assignee) {
+        throw new Error("Atanacak kullanıcı bu organizasyonda aktif değil.");
+      }
+    }
+
+    return prisma.supportTicket.update({
+      where: { id: ticket.id },
+      data: {
+        ...(parsed.status
+          ? {
+              status: parsed.status,
+              ...(parsed.status === "RESOLVED" || parsed.status === "CLOSED"
+                ? { resolvedAt: new Date() }
+                : {}),
+            }
+          : {}),
+        ...(parsed.priority ? { priority: parsed.priority } : {}),
+        ...(parsed.assignedUserId !== undefined
+          ? { assignedUserId: parsed.assignedUserId }
+          : {}),
+      },
+    });
   }
 }
 
