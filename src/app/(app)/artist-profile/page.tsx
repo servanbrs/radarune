@@ -15,7 +15,8 @@ export default async function ArtistProfilePage() {
         {artists.map((artist) => (
           <Link className="panel block p-5" href={`/artist/${artist.slug}`} key={artist.id}>
             <h2 className="text-lg font-semibold">{artist.name}</h2>
-            <p className="mt-1 text-sm text-muted">/{artist.slug}</p>
+            <p className="mt-1 text-sm text-muted">radarune.com/artist/{artist.slug}</p>
+            <p className="mt-3 text-xs font-semibold text-accent">Public profili aç · Discover’da paylaş</p>
           </Link>
         ))}
       </section>

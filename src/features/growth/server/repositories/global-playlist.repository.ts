@@ -9,7 +9,7 @@ export class GlobalPlaylistRepository {
       where: { organizationId: null, public: true },
       orderBy: [{ featured: "desc" }, { updatedAt: "desc" }],
       include: {
-        tracks: { orderBy: { sortOrder: "asc" }, include: { track: { select: { id: true, title: true, trackNumber: true }, }, release: { select: { title: true } } } },
+        tracks: { orderBy: { sortOrder: "asc" }, include: { track: { select: { id: true, title: true, trackNumber: true, artists: { orderBy: { sortOrder: "asc" }, take: 1, select: { artist: { select: { id: true, name: true, slug: true } } } } }, }, release: { select: { title: true } } } },
         _count: { select: { likes: true } },
       },
     });

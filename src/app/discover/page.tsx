@@ -4,8 +4,11 @@ import { Music2 } from "lucide-react";
 import { toAdminActor } from "@/features/admin/server/admin-context";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { DiscoverFeedClient } from "@/features/growth/components/discover-feed-client";
+import { GlobalPlaylistVoteCard } from "@/features/growth/components/global-playlist-vote-card";
 import { PublicGrowthShell } from "@/features/growth/components/public-shell";
 import { discoverService } from "@/features/growth/server/services/discover.service";
+import { globalPlaylistService } from "@/features/growth/server/services/global-playlist.service";
+import { tenantContextService } from "@/features/platform/server/services/tenant-context.service";
 
 export default async function DiscoverPage() {
   const session = await authSessionService.getOptionalSession();
@@ -24,6 +27,8 @@ export default async function DiscoverPage() {
     : undefined;
 
   const feed = await discoverService.getFeed(actor);
+  const tenant = await tenantContextService.resolveFromRequest();
+  const weeklyPlaylists = tenant ? await globalPlaylistService.listForDiscover(tenant.id) : [];
 
   return (
     <PublicGrowthShell>
@@ -68,6 +73,8 @@ export default async function DiscoverPage() {
             </span>
           </div>
         </section>
+
+        {weeklyPlaylists.length ? <section className="relative mx-auto mt-4 max-w-6xl px-4 sm:px-6"><div className="mb-5 flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-700">Topluluk seçimi</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-[#101817]">Haftanın Best Şarkıları</h2><p className="mt-2 text-sm text-[#65706e]">Radarune’da yayındaki şarkıları keşfet, sanatçı profilini incele ve favorine oy ver.</p></div><span className="rounded-full border border-black/10 bg-white/70 px-3 py-2 text-xs font-semibold text-[#65706e]">Haftalık oylama</span></div><div className="grid gap-4 lg:grid-cols-2">{weeklyPlaylists.filter((playlist) => playlist.featured || playlist.campaign?.active).slice(0, 4).map((playlist) => <GlobalPlaylistVoteCard key={playlist.id} playlist={{ ...playlist, tracks: playlist.tracks.map((item) => ({ ...item, track: { ...item.track, artists: item.track.artists } })) }} />)}</div></section> : null}
 
         <section className="relative px-0 sm:px-2 lg:px-4">
           {feed.length ? (
