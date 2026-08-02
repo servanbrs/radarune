@@ -2,7 +2,7 @@ name: Radarune quality
 
 on:
   push:
-    branches: [main, "feature/**"]
+    branches: [main]
   pull_request:
 
 permissions:
@@ -20,6 +20,9 @@ jobs:
     env:
       NODE_ENV: test
       DATABASE_URL: mysql://root:root@127.0.0.1:3306/radarune_test
+      BETTER_AUTH_SECRET: ci-only-secret-for-build-validation-32-chars
+      BETTER_AUTH_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
 
     steps:
       - name: Checkout
