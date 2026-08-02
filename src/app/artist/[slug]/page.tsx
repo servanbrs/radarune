@@ -5,6 +5,7 @@ import { authSessionService } from "@/features/authentication/server/services/au
 import { PublicGrowthShell } from "@/features/growth/components/public-shell";
 import { artistPublicProfileService } from "@/features/growth/server/services/artist-public-profile.service";
 import { StructuredData } from "@/features/seo/components/structured-data";
+import { ArtistProfileShareButton } from "@/features/artist/components/artist-profile-share-button";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -33,7 +34,7 @@ export default async function ArtistPublicPage({ params }: { params: Promise<{ s
             <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-3xl border border-line bg-surface text-3xl font-semibold text-accent">
               {artist.profileImageUrl ? <div className="h-full w-full bg-cover bg-center" style={{ backgroundImage: `url(${artist.profileImageUrl})` }} /> : artist.name.slice(0, 1).toUpperCase()}
             </div>
-            <div className="min-w-0"><p className="text-xs uppercase tracking-[0.24em] text-accent">Radarune artist channel</p><h1 className="mt-2 text-4xl font-semibold md:text-5xl">{artist.name}</h1><p className="mt-2 text-sm text-muted">{artist.type === "SOLO" ? "Solo sanatçı" : artist.type} · Radarune’da yayınlanan resmi profil</p><div className="mt-4"><DiscoverArtistFollowButton artistId={artist.id} isAuthenticated={Boolean(session)} /></div></div>
+            <div className="min-w-0"><p className="text-xs uppercase tracking-[0.24em] text-accent">Radarune artist channel</p><h1 className="mt-2 text-4xl font-semibold md:text-5xl">{artist.name}</h1><p className="mt-2 text-sm text-muted">{artist.type === "SOLO" ? "Solo sanatçı" : artist.type} · Radarune’da yayınlanan resmi profil</p><div className="mt-4 flex flex-wrap gap-2"><DiscoverArtistFollowButton artistId={artist.id} isAuthenticated={Boolean(session)} /><ArtistProfileShareButton slug={artist.slug} /></div></div>
           </div>
         </div>
         <nav aria-label="Sanatçı kanalı" className="flex gap-1 overflow-x-auto border-b border-line px-6 py-3 md:px-10"><a className="shrink-0 rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background" href="#releases">Yayınlar</a><a className="shrink-0 rounded-xl px-4 py-2 text-sm font-semibold text-muted hover:bg-surface-strong" href="#about">Hakkında</a><a className="shrink-0 rounded-xl px-4 py-2 text-sm font-semibold text-muted hover:bg-surface-strong" href="#links">Bağlantılar</a></nav>
