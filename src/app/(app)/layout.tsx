@@ -77,14 +77,14 @@ export default async function AppLayout({
 
   return (
     <div className="app-shell flex min-h-screen min-w-0 flex-col">
-      <header className="sticky top-0 z-50 border-b border-line/70 bg-surface/95 text-foreground backdrop-blur-xl">
-        <div className="relative mx-auto flex min-h-16 w-full max-w-[1600px] items-center gap-4 px-4 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#081311]/95 text-white shadow-[0_12px_50px_rgba(4,15,13,0.18)] backdrop-blur-2xl">
+        <div className="relative mx-auto flex min-h-[72px] w-full max-w-[1600px] items-center gap-4 px-4 sm:px-6 lg:px-8">
           <Link className="min-w-0 shrink-0" href="/dashboard">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-accent">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-emerald-300">
               Radarune
             </p>
 
-            <p className="hidden text-sm font-semibold text-foreground sm:block">
+            <p className="hidden text-sm font-semibold text-white/75 sm:block">
               Music Platform
             </p>
           </Link>
@@ -92,7 +92,7 @@ export default async function AppLayout({
           <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 lg:flex">
             {primaryNavigation.map((item) => (
               <Link
-                className="whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium text-muted transition hover:bg-white hover:text-foreground"
+                className="whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium text-white/60 transition hover:bg-white/10 hover:text-white"
                 href={item.href}
                 key={item.href}
               >
@@ -106,7 +106,7 @@ export default async function AppLayout({
               <GlobalSearch />
             </div>
 
-            <NotificationBell />
+                <NotificationBell />
 
             <UserMenu
               adminAccess={adminAccess}
@@ -136,7 +136,7 @@ export default async function AppLayout({
               <nav className="mt-3 grid max-h-[60vh] gap-1 overflow-y-auto">
                 {[...primaryNavigation, ...creatorNavigation].map((item) => (
                   <Link
-                    className="rounded-xl px-3 py-3 text-sm font-medium text-muted transition hover:bg-white hover:text-foreground"
+                    className="rounded-xl px-3 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
                     href={item.href}
                     key={item.href}
                   >
@@ -146,7 +146,7 @@ export default async function AppLayout({
 
                 {adminAccess ? (
                   <Link
-                    className="rounded-xl bg-foreground px-3 py-3 text-sm font-semibold text-white"
+                    className="rounded-xl bg-emerald-300 px-3 py-3 text-sm font-semibold text-[#08201a]"
                     href="/admin"
                   >
                     Yönetim Paneli

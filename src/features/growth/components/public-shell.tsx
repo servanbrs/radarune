@@ -61,11 +61,11 @@ export function PublicGrowthShell({
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_12%_8%,rgba(201,255,237,0.7),transparent_28%),radial-gradient(circle_at_88%_18%,rgba(222,239,255,0.75),transparent_30%),linear-gradient(180deg,#fffdf9_0%,#f8fbff_55%,#f5f8fb_100%)] pb-32 text-foreground">
-      <header className="sticky top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-2xl">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_12%_8%,rgba(99,238,187,0.2),transparent_28%),radial-gradient(circle_at_88%_18%,rgba(116,143,255,0.2),transparent_30%),linear-gradient(180deg,#f8fffc_0%,#f6f9ff_55%,#f4f7f6_100%)] pb-32 text-foreground">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#081311]/95 text-white shadow-[0_12px_50px_rgba(4,15,13,0.2)] backdrop-blur-2xl">
         <div className="mx-auto grid min-h-[72px] w-full max-w-[1600px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-3 sm:min-h-[76px] sm:gap-4 sm:px-5 lg:px-8">
           <Link
-            className="shrink-0 text-base font-black tracking-[0.13em] text-[#087d70] sm:text-lg sm:tracking-[0.15em]"
+            className="shrink-0 text-base font-black tracking-[0.13em] text-emerald-300 sm:text-lg sm:tracking-[0.15em]"
             href="/"
           >
             RADARUNE
@@ -84,8 +84,8 @@ export function PublicGrowthShell({
                     <Link
                       className={
                         active
-                          ? "rounded-full bg-[#0b8274]/10 px-5 py-2.5 text-sm font-semibold text-[#087d70]"
-                          : "rounded-full px-5 py-2.5 text-sm font-semibold text-black/65 transition hover:bg-black/[0.04] hover:text-black"
+                          ? "rounded-full bg-emerald-300/15 px-5 py-2.5 text-sm font-semibold text-emerald-200"
+                          : "rounded-full px-5 py-2.5 text-sm font-semibold text-white/65 transition hover:bg-white/10 hover:text-white"
                       }
                       href={item.href}
                       key={item.href}
@@ -96,7 +96,7 @@ export function PublicGrowthShell({
                 })}
               </nav>
 
-              <div className="mx-2 hidden h-7 w-px bg-black/10 lg:block" />
+              <div className="mx-2 hidden h-7 w-px bg-white/10 lg:block" />
 
               <form
                 className="flex min-w-0 flex-1 items-center"
@@ -104,7 +104,7 @@ export function PublicGrowthShell({
               >
                 <input
                   aria-label="Site içinde ara"
-                  className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none placeholder:text-black/35 sm:px-4"
+                    className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none placeholder:text-white/35 sm:px-4"
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Şarkı, sanatçı veya albüm ara..."
                   value={query}
@@ -112,7 +112,7 @@ export function PublicGrowthShell({
 
                 <button
                   aria-label="Ara"
-                  className="mr-1 inline-flex size-9 shrink-0 items-center justify-center rounded-full text-black/60 transition hover:bg-black/5 hover:text-black"
+                  className="mr-1 inline-flex size-9 shrink-0 items-center justify-center rounded-full text-white/60 transition hover:bg-white/10 hover:text-white"
                   type="submit"
                 >
                   <Search className="size-4" />
@@ -143,7 +143,7 @@ export function PublicGrowthShell({
 
         <nav
           aria-label="Mobil ana menü"
-          className="flex items-center justify-center gap-1 border-t border-black/5 px-3 py-2 lg:hidden"
+          className="flex items-center justify-center gap-1 border-t border-white/10 px-3 py-2 lg:hidden"
         >
           {navigation.map((item) => {
             const active = isActiveRoute(pathname, item.href);
@@ -152,8 +152,8 @@ export function PublicGrowthShell({
               <Link
                 className={
                   active
-                    ? "rounded-full bg-[#0b8274]/10 px-4 py-2 text-xs font-semibold text-[#087d70]"
-                    : "rounded-full px-4 py-2 text-xs font-semibold text-black/60 transition hover:bg-black/[0.04]"
+                    ? "rounded-full bg-emerald-300/15 px-4 py-2 text-xs font-semibold text-emerald-200"
+                    : "rounded-full px-4 py-2 text-xs font-semibold text-white/60 transition hover:bg-white/10"
                 }
                 href={item.href}
                 key={item.href}
