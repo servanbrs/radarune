@@ -21,6 +21,8 @@ Komut `/api/health/live` ve `/api/health/ready` endpoint'lerini 10 saniye timeou
 
 Pull request ve `main`/feature push'larında `.github/workflows/quality.yml` typecheck, lint, unit test ve production build kapılarını çalıştırır. Gerçek database/provider smoke testi ayrıca deploy ortamında `production:smoke` ile yapılmalıdır.
 
+`npm run security:check` Git tarafından takip edilen `.env`, private runtime, storage ve key/certificate dosyalarını reddeder; yalnızca örnek environment dosyaları izinlidir.
+
 `prisma migrate dev` shadow database yetkisi olmayan managed MySQL kurulumlarında çalışmayabilir. Production/staging için migration dosyaları review edildikten sonra `prisma migrate deploy` kullanılmalıdır.
 
 ## Worker süreçleri

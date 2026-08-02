@@ -37,6 +37,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Private file guard
+        run: npm run security:check
+
       - name: Lint
         run: npm run lint
 
