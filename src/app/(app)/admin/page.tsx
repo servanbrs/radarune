@@ -13,6 +13,7 @@ export default async function AdminPage() {
     <AdminShell
       title="Platform kontrol merkezi"
       description="Kullanıcı, yayın, keşfet ve dağıtım operasyonlarının gerçek zamanlı görünümü."
+      showIntro={false}
     >
       <AdminV2Dashboard dashboard={dashboard} />
     </AdminShell>
