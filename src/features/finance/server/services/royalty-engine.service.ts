@@ -591,32 +591,15 @@ export class RoyaltyEngineService {
     }
 
     const accessibleArtistIds = await financeAccessService.listAccessibleArtistIds(actor);
-    const reports = await royaltyRepository.listReportsByOrganization(actor.organizationId);
 
     if (accessibleArtistIds === null) {
-      return reports;
+      return royaltyRepository.listReportsByOrganization(actor.organizationId);
     }
 
-    const filteredReports = [];
-
-    for (const report of reports) {
-      const detail = await royaltyRepository.getReportWithLines(
-        report.id,
-        actor.organizationId,
-      );
-
-      if (
-        detail?.lines.some(
-          (line) =>
-            line.beneficiaryUserId === actor.userId ||
-            (line.artistId ? accessibleArtistIds.includes(line.artistId) : false),
-        )
-      ) {
-        filteredReports.push(report);
-      }
-    }
-
-    return filteredReports;
+    return royaltyRepository.listReportsByOrganization(actor.organizationId, {
+      beneficiaryUserId: actor.userId,
+      artistIds: accessibleArtistIds,
+    });
   }
 
   async getReportDetail(actor: RoyaltyActor, reportId: string) {

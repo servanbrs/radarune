@@ -206,10 +206,28 @@ export class RoyaltyRepository {
     });
   }
 
-  async listReportsByOrganization(organizationId: string) {
+  async listReportsByOrganization(
+    organizationId: string,
+    visibility?: {
+      beneficiaryUserId: string;
+      artistIds: string[];
+    },
+  ) {
     return prisma.royaltyReport.findMany({
       where: {
         organizationId,
+        ...(visibility
+          ? {
+              lines: {
+                some: {
+                  OR: [
+                    { beneficiaryUserId: visibility.beneficiaryUserId },
+                    { artistId: { in: visibility.artistIds } },
+                  ],
+                },
+              },
+            }
+          : {}),
       },
       orderBy: {
         createdAt: "desc",
