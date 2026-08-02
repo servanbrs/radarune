@@ -29,6 +29,7 @@ export default async function DiscoverPage() {
   const feed = await discoverService.getFeed(actor);
   const tenant = await tenantContextService.resolveFromRequest();
   const weeklyPlaylists = tenant ? await globalPlaylistService.listForDiscover(tenant.id) : [];
+  const discoverStats = { radarune: feed.filter((item) => item.sourceType === "RADARUNE").length, external: feed.filter((item) => item.sourceType === "EXTERNAL").length, artists: new Set(feed.map((item) => item.artist?.id).filter(Boolean)).size };
 
   return (
     <PublicGrowthShell>
@@ -73,6 +74,8 @@ export default async function DiscoverPage() {
             </span>
           </div>
         </section>
+
+        <section className="relative mx-auto mb-8 grid max-w-5xl grid-cols-3 gap-2 px-4 sm:gap-3 sm:px-6"><div className="rounded-2xl border border-black/[0.07] bg-white/75 p-3 text-center shadow-sm backdrop-blur-xl sm:p-4"><p className="text-xl font-semibold text-[#101817] sm:text-2xl">{discoverStats.radarune}</p><p className="mt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#7a8783] sm:text-xs">Radarune yayını</p></div><div className="rounded-2xl border border-black/[0.07] bg-white/75 p-3 text-center shadow-sm backdrop-blur-xl sm:p-4"><p className="text-xl font-semibold text-[#101817] sm:text-2xl">{discoverStats.artists}</p><p className="mt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#7a8783] sm:text-xs">Sanatçı</p></div><div className="rounded-2xl border border-black/[0.07] bg-white/75 p-3 text-center shadow-sm backdrop-blur-xl sm:p-4"><p className="text-xl font-semibold text-[#101817] sm:text-2xl">{discoverStats.external}</p><p className="mt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#7a8783] sm:text-xs">Dış kaynak</p></div></section>
 
         {weeklyPlaylists.length ? <section className="relative mx-auto mt-4 max-w-6xl px-4 sm:px-6"><div className="mb-5 flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-700">Topluluk seçimi</p><h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-[#101817]">Haftanın Best Şarkıları</h2><p className="mt-2 text-sm text-[#65706e]">Radarune’da yayındaki şarkıları keşfet, sanatçı profilini incele ve favorine oy ver.</p></div><span className="rounded-full border border-black/10 bg-white/70 px-3 py-2 text-xs font-semibold text-[#65706e]">Haftalık oylama</span></div><div className="grid gap-4 lg:grid-cols-2">{weeklyPlaylists.filter((playlist) => playlist.featured || playlist.campaign?.active).slice(0, 4).map((playlist) => <GlobalPlaylistVoteCard key={playlist.id} playlist={{ id: playlist.id, name: playlist.name, slug: playlist.slug, description: playlist.description, featured: playlist.featured, tracks: playlist.tracks.map((item) => ({ track: item.track, release: item.release })), campaign: playlist.campaign ? { slug: playlist.campaign.slug, active: playlist.campaign.active, endsAt: playlist.campaign.endsAt.toISOString(), voteCount: playlist.campaign.voteCount } : null }} />)}</div></section> : null}
 
