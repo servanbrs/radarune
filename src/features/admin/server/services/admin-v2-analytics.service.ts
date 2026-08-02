@@ -158,6 +158,11 @@ export class AdminV2AnalyticsService {
       prisma.discoverEvent.count({
         where: {
           organizationId,
+          user: {
+            systemRole: {
+              in: ["USER", "ARTIST"],
+            },
+          },
           createdAt: {
             gte: today,
           },
@@ -167,7 +172,7 @@ export class AdminV2AnalyticsService {
       prisma.playbackSession.count({
         where: {
           organizationId,
-          createdAt: {
+          streamCountedAt: {
             gte: today,
           },
         },
