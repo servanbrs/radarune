@@ -421,6 +421,10 @@ export function DashboardOverview({
                 <span className="truncate">{organizationName}</span>
               </div>
 
+              <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.28em] text-[#efb848]">
+                Radarune V2 çalışma alanı
+              </p>
+
               <h1 className="text-balance text-3xl font-semibold tracking-tight md:text-5xl">
                 {getGreeting()}, {firstName}.
               </h1>
@@ -450,6 +454,13 @@ export function DashboardOverview({
               >
                 <Plus className="size-4" />
                 Yeni yayın
+              </Link>
+
+              <Link
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/15"
+                href="/dashboard/support"
+              >
+                Destek merkezi
               </Link>
             </div>
           </div>
