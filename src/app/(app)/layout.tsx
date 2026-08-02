@@ -76,7 +76,7 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="flex min-h-screen min-w-0 flex-col">
+    <div className="app-shell flex min-h-screen min-w-0 flex-col">
       <header className="sticky top-0 z-50 border-b border-line/70 bg-surface/95 text-foreground backdrop-blur-xl">
         <div className="relative mx-auto flex min-h-16 w-full max-w-[1600px] items-center gap-4 px-4 sm:px-6 lg:px-8">
           <Link className="min-w-0 shrink-0" href="/dashboard">
