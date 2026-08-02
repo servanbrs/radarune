@@ -23,6 +23,9 @@ export class ArtistRepository {
         _count: {
           select: {
             labelLinks: true,
+            releaseArtistLinks: true,
+            follows: true,
+            smartLinks: true,
           },
         },
       },

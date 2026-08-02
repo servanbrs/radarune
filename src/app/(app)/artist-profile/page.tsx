@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowUpRight, ExternalLink, Pencil, Sparkles } from "lucide-react";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { artistService } from "@/features/artist/server/services/artist.service";
 
@@ -7,17 +8,15 @@ export default async function ArtistProfilePage() {
   const artists = await artistService.listByOrganizationId(organization.organization.id);
   return (
     <main className="page-shell">
-      <section className="panel p-6 md:p-8">
+      <section className="relative overflow-hidden rounded-[2rem] border border-black/10 bg-[#0a1715] p-6 text-white shadow-[0_24px_90px_rgba(4,15,13,0.18)] md:p-8">
+        <div className="pointer-events-none absolute -right-16 -top-24 size-72 rounded-full bg-emerald-400/20 blur-3xl" />
         <p className="text-xs uppercase tracking-[0.24em] text-muted">Artist profile</p>
-        <h1 className="mt-3 text-3xl font-semibold">Public sanatçı profilleri</h1>
+        <h1 className="relative mt-3 text-3xl font-semibold">Sanatçı kanalların</h1>
+        <p className="relative mt-3 max-w-2xl text-sm leading-6 text-white/55">Yayınlarını, oylarını ve takipçi hareketini tek bir creator görünümünde yönet. Public kanalın site içi arama, Google ve paylaşılabilir profil bağlantılarıyla bulunabilir.</p>
       </section>
-      <section className="grid gap-4">
+      <section className="grid gap-4 md:grid-cols-2">
         {artists.map((artist) => (
-          <Link className="panel block p-5" href={`/artist/${artist.slug}`} key={artist.id}>
-            <h2 className="text-lg font-semibold">{artist.name}</h2>
-            <p className="mt-1 text-sm text-muted">radarune.com/artist/{artist.slug}</p>
-            <p className="mt-3 text-xs font-semibold text-accent">Public profili aç · Discover’da paylaş</p>
-          </Link>
+          <article className="panel overflow-hidden p-5" key={artist.id}><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-accent">Artist channel</p><h2 className="mt-2 text-xl font-semibold">{artist.name}</h2><p className="mt-1 truncate text-xs text-muted">radarune.com/artist/{artist.slug}</p></div><span className="flex size-10 items-center justify-center rounded-2xl bg-accent/10 text-accent"><Sparkles className="size-4" /></span></div><div className="mt-5 grid grid-cols-3 gap-2"><div className="rounded-xl border border-line bg-surface-strong/60 p-3"><p className="text-lg font-semibold">{artist._count.releaseArtistLinks}</p><p className="text-[10px] uppercase tracking-wider text-muted">Yayın</p></div><div className="rounded-xl border border-line bg-surface-strong/60 p-3"><p className="text-lg font-semibold">{artist._count.follows}</p><p className="text-[10px] uppercase tracking-wider text-muted">Takipçi</p></div><div className="rounded-xl border border-line bg-surface-strong/60 p-3"><p className="text-lg font-semibold">{artist._count.smartLinks}</p><p className="text-[10px] uppercase tracking-wider text-muted">Smart Link</p></div></div><div className="mt-5 flex flex-wrap gap-2"><Link className="inline-flex items-center gap-1.5 rounded-xl bg-foreground px-3 py-2 text-xs font-semibold text-background" href={`/artist/${artist.slug}`}>Kanalı aç <ExternalLink className="size-3.5" /></Link><Link className="inline-flex items-center gap-1.5 rounded-xl border border-line px-3 py-2 text-xs font-semibold" href={`/dashboard/artists/${artist.id}/profile`}>Düzenle <Pencil className="size-3.5" /></Link><Link className="inline-flex items-center gap-1.5 rounded-xl border border-line px-3 py-2 text-xs font-semibold" href="/smart-links/new">Smart Link <ArrowUpRight className="size-3.5" /></Link></div></article>
         ))}
       </section>
     </main>
