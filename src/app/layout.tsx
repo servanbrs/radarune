@@ -1,44 +1,54 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { configurationResolver } from "@/features/configuration/server/configuration-resolver.service";
 import { tenantContextService } from "@/features/platform/server/services/tenant-context.service";
-import { prisma } from "@/server/prisma/prisma";
+
+const stringSetting = (value: unknown) =>
+  typeof value === "string" && value.trim().length > 0 ? value : undefined;
+
+const booleanSetting = (value: unknown) => {
+  if (typeof value === "boolean") return value;
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return undefined;
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   const tenant = await tenantContextService.resolveFromRequest();
-  // Keep the metadata lookup independent from the generated enum definition.
-  // This is important during rolling deploys where the database may already
-  // contain newer AdminSettingKey values while a dev/old server still has a
-  // cached Prisma client. Filtering after the query prevents that mismatch
-  // from taking down every page during SSR.
-  const seoKeys = new Set([
-    "SEO_TITLE",
-    "SEO_DESCRIPTION",
-    "SEO_GOOGLE_SITE_VERIFICATION",
-    "SEO_INDEXING_ENABLED",
+  const organizationId = tenant?.id;
+  const [title, description, verification, indexing] = await Promise.all([
+    configurationResolver.resolve({
+      key: "SEO_TITLE",
+      ...(organizationId ? { organizationId } : {}),
+      defaultValue: "Radarune | Müzik operasyon platformu",
+      parse: stringSetting,
+    }),
+    configurationResolver.resolve({
+      key: "SEO_DESCRIPTION",
+      ...(organizationId ? { organizationId } : {}),
+      defaultValue: "Sanatçılar ve label ekipleri için release, dağıtım, royalty ve keşif operasyonları.",
+      parse: stringSetting,
+    }),
+    configurationResolver.resolve({
+      key: "SEO_GOOGLE_SITE_VERIFICATION",
+      ...(organizationId ? { organizationId } : {}),
+      defaultValue: "",
+      parse: stringSetting,
+    }),
+    configurationResolver.resolve({
+      key: "SEO_INDEXING_ENABLED",
+      ...(organizationId ? { organizationId } : {}),
+      defaultValue: true,
+      parse: booleanSetting,
+    }),
   ]);
-  const allSettings = tenant
-    ? await prisma.adminSetting.findMany({
-        where: { organizationId: tenant.id },
-      })
-    : [];
-  const settings = allSettings.filter((item) => seoKeys.has(String(item.key)));
-  const value = (key: string, fallback: string) => {
-    const row = settings.find((item) => item.key === key);
-    return typeof row?.value === "string" ? row.value : fallback;
-  };
-  const verification = value("SEO_GOOGLE_SITE_VERIFICATION", "");
-  const indexingValue = settings.find(
-    (item) => item.key === "SEO_INDEXING_ENABLED",
-  )?.value;
-  const indexingEnabled = indexingValue !== false && indexingValue !== "false";
+
+  const verificationValue = verification.value;
   return {
-    title: value("SEO_TITLE", "Radarune | Müzik operasyon platformu"),
-    description: value(
-      "SEO_DESCRIPTION",
-      "Sanatçılar ve label ekipleri için release, dağıtım, royalty ve keşif operasyonları.",
-    ),
-    ...(verification ? { verification: { google: verification } } : {}),
-    robots: indexingEnabled ? undefined : { index: false, follow: false },
+    title: title.value,
+    description: description.value,
+    ...(verificationValue ? { verification: { google: verificationValue } } : {}),
+    robots: indexing.value ? undefined : { index: false, follow: false },
   };
 }
 
