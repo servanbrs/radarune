@@ -118,7 +118,8 @@ export class ProviderWebhookService {
         )
       : null;
 
-    const event = await prisma.$transaction(async (tx) => {
+    try {
+      const event = await prisma.$transaction(async (tx) => {
       const created = await providerWebhookEventRepository.create(
         {
           ...(delivery?.organizationId ? { organizationId: delivery.organizationId } : {}),
@@ -212,14 +213,27 @@ export class ProviderWebhookService {
         tx,
       );
 
-      return created;
-    });
+        return created;
+      });
 
-    return {
-      success: true as const,
-      statusCode: 200,
-      data: event,
-    };
+      return {
+        success: true as const,
+        statusCode: 200,
+        data: event,
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        return {
+          success: true as const,
+          statusCode: 200,
+          data: {
+            duplicate: true,
+          },
+        };
+      }
+
+      throw error;
+    }
   }
 }
 
