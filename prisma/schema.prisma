@@ -2867,6 +2867,7 @@ model PlaybackSession {
   track                Track          @relation(fields: [trackId], references: [id], onDelete: Cascade)
 
   @@index([organizationId, trackId, createdAt])
+  @@index([organizationId, streamCountedAt])
   @@index([userId, createdAt])
   @@index([streamCountedAt])
 }
@@ -3584,6 +3585,7 @@ model DiscoverEvent {
 
   @@unique([userId, trackId, eventType, createdAt])
   @@index([eventType, createdAt])
+  @@index([organizationId, userId, createdAt])
   @@index([userId, eventType, createdAt])
   @@index([trackId, eventType, createdAt])
 }
