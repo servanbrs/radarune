@@ -150,10 +150,11 @@ export class PayoutRepository {
     });
   }
 
-  async findPayoutById(payoutId: string) {
-    return prisma.payout.findUnique({
+  async findPayoutById(payoutId: string, organizationId: string) {
+    return prisma.payout.findFirst({
       where: {
         id: payoutId,
+        organizationId,
       },
       select: {
         id: true,

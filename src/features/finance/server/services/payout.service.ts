@@ -179,9 +179,9 @@ export class PayoutService {
   async approvePayout(actor: FinanceActorContext, payoutId: string) {
     assertCanManagePayout(actor, "payouts:approve");
 
-    const payout = await payoutRepository.findPayoutById(payoutId);
+    const payout = await payoutRepository.findPayoutById(payoutId, actor.organizationId);
 
-    if (!payout || payout.organizationId !== actor.organizationId) {
+    if (!payout) {
       return {
         success: false as const,
         message: "Payout kaydı bulunamadı.",
@@ -226,9 +226,9 @@ export class PayoutService {
     assertCanManagePayout(actor, "payouts:cancel");
 
     const input = payoutDecisionSchema.parse(rawInput);
-    const payout = await payoutRepository.findPayoutById(payoutId);
+    const payout = await payoutRepository.findPayoutById(payoutId, actor.organizationId);
 
-    if (!payout || payout.organizationId !== actor.organizationId) {
+    if (!payout) {
       return {
         success: false as const,
         message: "Payout kaydı bulunamadı.",
