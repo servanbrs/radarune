@@ -70,10 +70,11 @@ export class PayoutRepository {
     });
   }
 
-  async findMethodById(methodId: string) {
-    return prisma.payoutMethod.findUnique({
+  async findMethodById(methodId: string, organizationId: string) {
+    return prisma.payoutMethod.findFirst({
       where: {
         id: methodId,
+        organizationId,
       },
       select: {
         id: true,
@@ -93,10 +94,15 @@ export class PayoutRepository {
     });
   }
 
-  async findDuplicateOpenPayout(statementId: string, client: DatabaseClient = prisma) {
+  async findDuplicateOpenPayout(
+    statementId: string,
+    organizationId: string,
+    client: DatabaseClient = prisma,
+  ) {
     return client.payout.findFirst({
       where: {
         statementId,
+        organizationId,
         status: {
           in: ["PENDING", "APPROVED", "PROCESSING", "PAID"],
         },

@@ -76,7 +76,10 @@ export class PayoutService {
       };
     }
 
-    const payoutMethod = await payoutRepository.findMethodById(input.payoutMethodId);
+    const payoutMethod = await payoutRepository.findMethodById(
+      input.payoutMethodId,
+      actor.organizationId,
+    );
 
     if (
       !payoutMethod ||
@@ -113,7 +116,11 @@ export class PayoutService {
 
     try {
       const payout = await prisma.$transaction(async (tx) => {
-        const duplicate = await payoutRepository.findDuplicateOpenPayout(input.statementId, tx);
+        const duplicate = await payoutRepository.findDuplicateOpenPayout(
+          input.statementId,
+          actor.organizationId,
+          tx,
+        );
 
         if (duplicate) {
           throw new Error("Bu statement için zaten açık veya tamamlanmış bir payout kaydı var.");
