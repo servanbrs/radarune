@@ -230,12 +230,23 @@ export class DistributionProviderConfigurationService {
 
     const adapter = distributionProviderRegistry.getAdapter(provider);
     const startedAt = performance.now();
-    const result = await adapter.testConnection({
-      environment: configuration.environment,
-      credentials: configuration.credentials,
-      publicMetadata: configuration.publicMetadata,
-      ...(configuration.webhookSecret ? { webhookSecret: configuration.webhookSecret } : {}),
-    });
+    let result: Awaited<ReturnType<typeof adapter.testConnection>>;
+
+    try {
+      result = await adapter.testConnection({
+        environment: configuration.environment,
+        credentials: configuration.credentials,
+        publicMetadata: configuration.publicMetadata,
+        ...(configuration.webhookSecret ? { webhookSecret: configuration.webhookSecret } : {}),
+      });
+    } catch {
+      result = {
+        success: false,
+        code: "PROVIDER_ERROR",
+        message: "Provider bağlantı testi sırasında beklenmeyen bir hata oluştu.",
+        retryable: true,
+      };
+    }
     const finishedAt = performance.now();
 
     await distributionProviderConfigurationRepository.recordHealthCheck({
