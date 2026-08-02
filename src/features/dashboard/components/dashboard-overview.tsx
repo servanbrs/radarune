@@ -9,12 +9,15 @@ import {
   CalendarDays,
   Disc3,
   Download,
+  Globe2,
   Headphones,
   Lightbulb,
+  MapPin,
   Music2,
   Plus,
   Radio,
   Sparkles,
+  Share2,
   Users,
   WalletCards,
   type LucideIcon,
@@ -35,6 +38,9 @@ type DashboardData = {
     activeSmartLinks: number;
     smartLinkViews: number;
     smartLinkClicks: number;
+    audienceCountries: Array<{ country: string | null; _count: { _all: number } }>;
+    audienceCities: Array<{ city: string | null; _count: { _all: number } }>;
+    audienceSources: Array<{ utmSource: string | null; _count: { _all: number } }>;
   };
   recentReleases: Array<{
     id: string;
@@ -64,12 +70,23 @@ type DashboardData = {
 };
 
 type DashboardOverviewProps = {
+  artists: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    type: string;
+    profileImageUrl: string | null;
+    coverImageUrl: string | null;
+    profilePublishedAt: Date | null;
+    _count: { releaseArtistLinks: number; follows: number; smartLinks: number };
+  }>;
   artistsCount: number;
   canManageArtists: boolean;
   manageableArtistsCount: number;
   data: DashboardData;
   labelsCount: number;
   organizationName: string;
+  role: string;
   userName: string;
 };
 
@@ -277,15 +294,24 @@ function EmptyState({
 }
 
 export function DashboardOverview({
+  artists,
   artistsCount,
   canManageArtists,
   data,
   manageableArtistsCount,
   labelsCount,
   organizationName,
+  role,
   userName,
 }: DashboardOverviewProps) {
   const firstName = userName.trim().split(/\s+/)[0] || userName;
+
+  const roleName = role === "ARTIST" ? "Sanatçı hesabı" : ["ORGANIZER", "LABEL", "LABEL_MANAGER"].includes(role) ? "Label / organizatör hesabı" : "Creator hesabı";
+  const roleDescription = role === "ARTIST"
+    ? "Kendi sanatçı kanalını, yayınlarını ve performansını yönet."
+    : ["ORGANIZER", "LABEL", "LABEL_MANAGER"].includes(role)
+      ? "Bağlı sanatçıları, şirket kataloğunu ve dağıtımı tek merkezden yönet."
+      : "Profilini tamamla, sanatçı veya organizatör olarak yayın araçlarını aç.";
 
   const metrics: MetricCardProps[] = [
     {
@@ -425,7 +451,7 @@ export function DashboardOverview({
               </div>
 
               <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.28em] text-[#efb848]">
-                Radarune V2 çalışma alanı
+                {roleName}
               </p>
 
               <h1 className="text-balance text-3xl font-semibold tracking-tight md:text-5xl">
@@ -433,8 +459,7 @@ export function DashboardOverview({
               </h1>
 
               <p className="mt-4 max-w-2xl text-sm leading-7 text-white/60 md:text-base">
-                Kataloğunu yönet, yeni yayınlarını hazırla ve müziğinin
-                performansını tek bir merkezden takip et.
+                {roleDescription}
               </p>
             </div>
 
@@ -503,10 +528,57 @@ export function DashboardOverview({
           ))}
         </section>
 
+        <section className="rounded-[2rem] border border-black/[0.07] bg-[#10201d] p-5 text-white shadow-[0_20px_70px_rgba(8,35,28,0.14)] md:p-6">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-emerald-300">Artist roster</p>
+              <h2 className="mt-2 text-xl font-semibold">Sanatçı kanalların</h2>
+              <p className="mt-1 text-sm text-white/50">Profil, yayın, oy ve bağlantı yönetimine buradan geç.</p>
+            </div>
+            <Link className="rounded-xl border border-white/10 bg-white/[0.06] px-4 py-2.5 text-xs font-semibold text-white/75 transition hover:bg-white/10 hover:text-white" href={canManageArtists ? "/artists" : "/artist-profile"}>
+              {canManageArtists ? "Tüm sanatçıları yönet" : "Profil ayarlarına git"} <ArrowRight className="ml-1 inline size-3.5" />
+            </Link>
+          </div>
+          {artists.length > 0 ? (
+            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {artists.slice(0, 6).map((artist) => (
+                <article className="group rounded-2xl border border-white/10 bg-white/[0.06] p-4 transition hover:-translate-y-0.5 hover:bg-white/[0.09]" key={artist.id}>
+                  <div className="flex items-center gap-3">
+                    <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-emerald-300/15 text-lg font-bold text-emerald-200">
+                      {artist.profileImageUrl ? <Image alt="" className="object-cover" fill sizes="48px" src={artist.profileImageUrl} unoptimized /> : artist.name.slice(0, 1).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1"><div className="flex items-center gap-2"><h3 className="truncate font-semibold">{artist.name}</h3><span className="shrink-0 rounded-full bg-emerald-300/15 px-2 py-0.5 text-[10px] font-bold text-emerald-200">Sanatçı</span></div><p className="mt-1 truncate text-xs text-white/45">radarune.com/artist/{artist.slug}</p></div>
+                  </div>
+                  <div className="mt-4 grid grid-cols-3 gap-2 text-center"><div className="rounded-xl bg-black/15 p-2"><p className="text-sm font-semibold">{artist._count.releaseArtistLinks}</p><p className="mt-1 text-[10px] text-white/40">Yayın</p></div><div className="rounded-xl bg-black/15 p-2"><p className="text-sm font-semibold">{artist._count.follows}</p><p className="mt-1 text-[10px] text-white/40">Takipçi</p></div><div className="rounded-xl bg-black/15 p-2"><p className="text-sm font-semibold">{artist._count.smartLinks}</p><p className="mt-1 text-[10px] text-white/40">Link</p></div></div>
+                  <div className="mt-4 flex gap-2"><Link className="flex-1 rounded-xl bg-emerald-300 px-3 py-2 text-center text-xs font-bold text-[#08201a]" href={`/artist/${artist.slug}`}>Profili aç</Link><Link className="rounded-xl border border-white/10 px-3 py-2 text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white" href={`/dashboard/artists/${artist.id}/profile`}>Düzenle</Link></div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-5 rounded-2xl border border-dashed border-white/15 px-5 py-8 text-sm text-white/50">Henüz bağlı bir sanatçı profili yok. Yayın göndermek için önce sanatçı profilini oluştur.</div>
+          )}
+        </section>
+
         <section className="relative overflow-hidden rounded-[2rem] border border-emerald-900/10 bg-[linear-gradient(115deg,#eafff6_0%,#f4f9ff_55%,#fff8e8_100%)] p-5 shadow-[0_18px_70px_rgba(22,101,76,0.08)] md:p-6">
           <div className="pointer-events-none absolute -right-16 -top-20 size-56 rounded-full bg-emerald-300/20 blur-3xl" />
           <div className="relative flex flex-wrap items-end justify-between gap-4"><div><p className="text-[10px] font-bold uppercase tracking-[0.24em] text-emerald-700">Growth snapshot</p><h2 className="mt-2 text-xl font-semibold text-[#10201b]">Müziğinin Radarune’daki hareketi</h2><p className="mt-1 text-sm text-[#63736d]">Smart Link ve keşif performansını tek bakışta takip et.</p></div><Link className="rounded-xl bg-[#10201b] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-[#1d3930]" href="/smart-links">Growth araçlarını aç →</Link></div>
           <div className="relative mt-5 grid gap-3 sm:grid-cols-3"><div className="rounded-2xl border border-white/80 bg-white/70 p-4"><p className="text-xs text-[#63736d]">Aktif Smart Link</p><p className="mt-2 text-2xl font-semibold text-[#10201b]">{data.stats.activeSmartLinks}</p></div><div className="rounded-2xl border border-white/80 bg-white/70 p-4"><p className="text-xs text-[#63736d]">Smart Link görüntülenmesi</p><p className="mt-2 text-2xl font-semibold text-[#10201b]">{data.stats.smartLinkViews.toLocaleString("tr-TR")}</p></div><div className="rounded-2xl border border-white/80 bg-white/70 p-4"><p className="text-xs text-[#63736d]">Platform tıklaması</p><p className="mt-2 text-2xl font-semibold text-[#10201b]">{data.stats.smartLinkClicks.toLocaleString("tr-TR")}</p></div></div>
+        </section>
+
+        <section className="grid gap-4 lg:grid-cols-[1.1fr_1.1fr_0.8fr]">
+          <article className="panel p-5 md:p-6">
+            <div className="flex items-center justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.22em] text-accent">Audience signal</p><h2 className="mt-2 text-lg font-semibold text-foreground">Ülke bazlı erişim</h2></div><Globe2 className="size-5 text-accent" /></div>
+            <div className="mt-5 space-y-3">{data.stats.audienceCountries.length > 0 ? data.stats.audienceCountries.map((row) => <div className="flex items-center justify-between rounded-xl border border-line bg-surface-strong/50 px-3 py-2.5" key={row.country}><span className="text-sm font-medium">{row.country}</span><span className="text-xs text-muted">{row._count._all.toLocaleString("tr-TR")} ziyaret</span></div>) : <p className="text-sm text-muted">Smart Link ziyaretleri ülke bilgisi oluşturduğunda burada görünür.</p>}</div>
+          </article>
+          <article className="panel p-5 md:p-6">
+            <div className="flex items-center justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.22em] text-accent">Audience signal</p><h2 className="mt-2 text-lg font-semibold text-foreground">Şehir bazlı erişim</h2></div><MapPin className="size-5 text-accent" /></div>
+            <div className="mt-5 space-y-3">{data.stats.audienceCities.length > 0 ? data.stats.audienceCities.map((row) => <div className="flex items-center justify-between rounded-xl border border-line bg-surface-strong/50 px-3 py-2.5" key={row.city}><span className="text-sm font-medium">{row.city}</span><span className="text-xs text-muted">{row._count._all.toLocaleString("tr-TR")} ziyaret</span></div>) : <p className="text-sm text-muted">Şehir kırılımı Smart Link trafik verisi geldikçe oluşur.</p>}</div>
+          </article>
+          <article className="overflow-hidden rounded-[2rem] bg-[#10201d] p-5 text-white shadow-[0_18px_60px_rgba(8,35,28,0.12)] md:p-6">
+            <div className="flex items-center justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.22em] text-emerald-300">Campaign params</p><h2 className="mt-2 text-lg font-semibold">Sosyal kaynaklar</h2></div><Share2 className="size-5 text-emerald-300" /></div>
+            <p className="mt-2 text-sm leading-6 text-white/50">TikTok, Instagram ve diğer UTM kaynaklarının Smart Link etkisini izle.</p>
+            <div className="mt-5 space-y-3">{data.stats.audienceSources.length > 0 ? data.stats.audienceSources.map((row) => <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2.5" key={row.utmSource}><span className="text-sm font-medium">{row.utmSource}</span><span className="text-xs text-white/50">{row._count._all.toLocaleString("tr-TR")}</span></div>) : <p className="text-sm text-white/45">Henüz UTM kaynağı yok.</p>}</div>
+          </article>
         </section>
 
         {manageableArtistsCount === 0 ? (

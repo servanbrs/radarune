@@ -13,6 +13,9 @@ export class DashboardRepository {
       smartLinkCount,
       smartLinkViews,
       smartLinkClicks,
+      audienceCountries,
+      audienceCities,
+      audienceSources,
     ] = await Promise.all([
       prisma.release.groupBy({
         by: ["status"],
@@ -98,6 +101,27 @@ export class DashboardRepository {
       prisma.smartLink.count({ where: { organizationId, active: true } }),
       prisma.smartLinkView.count({ where: { organizationId } }),
       prisma.smartLinkClick.count({ where: { organizationId } }),
+      prisma.smartLinkView.groupBy({
+        by: ["country"],
+        where: { organizationId, country: { not: null } },
+        _count: { _all: true },
+        orderBy: { _count: { country: "desc" } },
+        take: 5,
+      }),
+      prisma.smartLinkView.groupBy({
+        by: ["city"],
+        where: { organizationId, city: { not: null } },
+        _count: { _all: true },
+        orderBy: { _count: { city: "desc" } },
+        take: 5,
+      }),
+      prisma.smartLinkView.groupBy({
+        by: ["utmSource"],
+        where: { organizationId, utmSource: { not: null } },
+        _count: { _all: true },
+        orderBy: { _count: { utmSource: "desc" } },
+        take: 6,
+      }),
     ]);
 
     const releaseCounts = releaseStatusDistribution.reduce<
@@ -128,6 +152,9 @@ export class DashboardRepository {
         activeSmartLinks: smartLinkCount,
         smartLinkViews,
         smartLinkClicks,
+        audienceCountries,
+        audienceCities,
+        audienceSources,
       },
       recentReleases,
       recentAuditLogs,

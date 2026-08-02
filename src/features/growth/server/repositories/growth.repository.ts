@@ -322,11 +322,15 @@ export class GrowthRepository {
     });
     if (!artist) return null;
     const publishedWhere: Prisma.ReleaseArtistWhereInput = { artistId: artist.id, release: { status: { in: ["DISTRIBUTED", "LIVE"] } } };
-    const [publishedReleaseCount, totalReleaseVotes] = await Promise.all([
+    const [publishedReleaseCount, totalReleaseVotes, audienceSummary] = await Promise.all([
       prisma.releaseArtist.count({ where: publishedWhere }),
       prisma.releaseLike.count({ where: { release: { status: { in: ["DISTRIBUTED", "LIVE"] }, artists: { some: { artistId: artist.id } } } } }),
+      prisma.storeRevenue.aggregate({
+        where: { artistId: artist.id },
+        _sum: { streamCount: true, playlistAppearances: true },
+      }),
     ]);
-    return { ...artist, publicStats: { publishedReleaseCount, totalReleaseVotes } };
+    return { ...artist, publicStats: { publishedReleaseCount, totalReleaseVotes, totalStreams: audienceSummary._sum.streamCount ?? 0, playlistAppearances: audienceSummary._sum.playlistAppearances ?? 0 } };
   }
 
   async findSlugRedirect(oldSlug: string) {

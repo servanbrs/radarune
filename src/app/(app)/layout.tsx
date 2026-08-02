@@ -117,15 +117,15 @@ export default async function AppLayout({
           </div>
 
           <details className="group relative ml-auto lg:hidden">
-            <summary className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-xl border border-line bg-surface text-lg [&::-webkit-details-marker]:hidden">
+            <summary className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-xl border border-white/10 bg-white/[0.08] text-lg text-white [&::-webkit-details-marker]:hidden">
               ☰
             </summary>
 
-            <div className="absolute right-0 top-12 z-50 w-[min(340px,calc(100vw-2rem))] rounded-3xl border border-line bg-surface p-3 shadow-2xl">
-              <div className="border-b border-line px-3 pb-3">
-                <p className="truncate font-semibold">{user.name}</p>
+            <div className="absolute right-0 top-12 z-50 w-[min(340px,calc(100vw-2rem))] rounded-3xl border border-white/10 bg-[#10201d] p-3 text-white shadow-2xl">
+              <div className="border-b border-white/10 px-3 pb-3">
+                <p className="truncate font-semibold text-white">{user.name}</p>
 
-                <p className="mt-1 truncate text-xs text-muted">{user.email}</p>
+                <p className="mt-1 truncate text-xs text-white/50">{user.email}</p>
               </div>
 
               <div className="mt-3 px-1">

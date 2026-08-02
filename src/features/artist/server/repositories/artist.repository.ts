@@ -19,6 +19,9 @@ export class ArtistRepository {
         type: true,
         spotifyProfileUrl: true,
         appleMusicProfileUrl: true,
+        profileImageUrl: true,
+        coverImageUrl: true,
+        profilePublishedAt: true,
         createdAt: true,
         _count: {
           select: {

@@ -71,11 +71,11 @@ export function GlobalSearch() {
     !result.imported.length;
   return (
     <div className="relative hidden w-full xl:block">
-      <div className="flex items-center gap-2 rounded-xl border border-line bg-surface-strong px-3 py-2">
-        <Search className="h-4 w-4 text-muted" />
+      <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.07] px-3 py-2 shadow-inner shadow-black/10">
+        <Search className="h-4 w-4 text-white/55" />
         <input
           aria-label="Şarkı veya sanatçı ara"
-          className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted"
+          className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/40"
           onChange={(e) => {
             setQuery(e.target.value);
             setOpen(true);
@@ -87,7 +87,7 @@ export function GlobalSearch() {
         {query ? (
           <button
             aria-label="Aramayı temizle"
-            className="text-muted"
+            className="text-white/55 transition hover:text-white"
             onClick={() => {
               setQuery("");
               setOpen(false);
@@ -99,18 +99,18 @@ export function GlobalSearch() {
         ) : null}
       </div>
       {open && query.length > 1 ? (
-        <div className="absolute left-0 right-0 top-12 z-[60] max-h-96 overflow-y-auto rounded-2xl border border-line bg-surface p-2 shadow-2xl">
+        <div className="absolute left-0 right-0 top-12 z-[60] max-h-96 overflow-y-auto rounded-2xl border border-white/10 bg-[#10201d] p-2 text-white shadow-2xl">
           {loading ? (
-            <p className="p-3 text-sm text-muted">Aranıyor…</p>
+            <p className="p-3 text-sm text-white/55">Aranıyor…</p>
           ) : result?.error ? (
             <p className="p-3 text-sm text-danger">{result.error}</p>
           ) : empty ? (
-            <p className="p-3 text-sm text-muted">Sonuç bulunamadı.</p>
+            <p className="p-3 text-sm text-white/55">Sonuç bulunamadı.</p>
           ) : (
             <div className="grid gap-1">
               {result?.artists.map((item) => (
                 <Link
-                  className="rounded-xl px-3 py-2 text-sm hover:bg-surface-strong"
+                  className="rounded-xl px-3 py-2 text-sm text-white/85 hover:bg-white/10"
                   href={`/artist/${item.slug}`}
                   key={`a-${item.id}`}
                   onClick={() => setOpen(false)}
@@ -124,7 +124,7 @@ export function GlobalSearch() {
               ))}
               {result?.releases.map((item) => (
                 <Link
-                  className="rounded-xl px-3 py-2 text-sm hover:bg-surface-strong"
+                  className="rounded-xl px-3 py-2 text-sm text-white/85 hover:bg-white/10"
                   href={`/releases/${item.id}`}
                   key={`r-${item.id}`}
                   onClick={() => setOpen(false)}
@@ -138,7 +138,7 @@ export function GlobalSearch() {
               ))}
               {result?.tracks.map((item) => (
                 <Link
-                  className="rounded-xl px-3 py-2 text-sm hover:bg-surface-strong"
+                  className="rounded-xl px-3 py-2 text-sm text-white/85 hover:bg-white/10"
                   href={`/releases/${item.release.id}`}
                   key={`t-${item.id}`}
                   onClick={() => setOpen(false)}
@@ -152,7 +152,7 @@ export function GlobalSearch() {
               ))}
               {result?.imported.map((item) => (
                 <a
-                  className="rounded-xl px-3 py-2 text-sm hover:bg-surface-strong"
+                  className="rounded-xl px-3 py-2 text-sm text-white/85 hover:bg-white/10"
                   href={item.externalUrl}
                   key={`i-${item.id}`}
                   rel="noreferrer"

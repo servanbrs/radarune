@@ -30,12 +30,14 @@ export default async function DashboardPage() {
 
   return (
     <DashboardOverview
+      artists={artists}
       artistsCount={artists.length}
       canManageArtists={rbacService.hasPermission(organization.role, "artist:update")}
       data={dashboard}
       labelsCount={labels.length}
       manageableArtistsCount={manageableArtistIds.length}
       organizationName={organization.organization.name}
+      role={user.systemRole}
       userName={user.name}
     />
   );
