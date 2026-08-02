@@ -78,13 +78,18 @@ export class ReleaseDeliveryRepository {
     externalReleaseId: string,
     client: DatabaseClient = prisma,
   ) {
-    return client.releaseDelivery.findFirst({
+    const matches = await client.releaseDelivery.findMany({
       where: {
         provider,
         externalReleaseId,
       },
+      take: 2,
       select: releaseDeliverySelect,
     });
+
+    // Provider IDs are indexed, not globally unique. Never let an ambiguous
+    // external ID update the first tenant returned by the database.
+    return matches.length === 1 ? matches[0] : null;
   }
 
   async upsertForJob(
