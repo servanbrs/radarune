@@ -26,7 +26,11 @@ export function SupportInbox({ admin = false }: { admin?: boolean }) {
     if (response.ok) setSelected((await response.json()) as Thread);
   }, []);
 
-  useEffect(() => { void loadTickets(); }, [loadTickets]);
+  useEffect(() => {
+    // Polling intentionally synchronizes this client with the support API.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadTickets();
+  }, [loadTickets]);
   useEffect(() => {
     const timer = window.setInterval(() => { void loadTickets(); if (selected) void loadThread(selected.id); }, 5000);
     return () => window.clearInterval(timer);
@@ -59,4 +63,3 @@ export function SupportInbox({ admin = false }: { admin?: boolean }) {
     </section>
   </div>;
 }
-
