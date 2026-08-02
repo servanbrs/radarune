@@ -63,7 +63,7 @@ function calculateScore(checks: InternalHealthCheck[]): number {
 
 async function runMeasuredCheck(
   input: Omit<InternalHealthCheck, "durationMs">,
-  operation?: () => Promise<void>,
+  operation?: () => Promise<Pick<InternalHealthCheck, "status" | "message"> | void>,
 ): Promise<InternalHealthCheck> {
   const startedAt = Date.now();
 
@@ -75,17 +75,21 @@ async function runMeasuredCheck(
   }
 
   try {
-    await operation();
+    const result = await operation();
 
     return {
       ...input,
+      ...(result ?? {}),
       durationMs: Date.now() - startedAt,
     };
-  } catch {
+  } catch (error) {
+    const detail = error instanceof Error
+      ? error.message.replace(/(password|passwd|pwd)=([^&\s]+)/gi, "$1=***").slice(0, 180)
+      : "Bilinmeyen hata.";
     return {
       ...input,
       status: "FAIL",
-      message: `${input.title} kontrolü başarısız oldu.`,
+      message: `${input.title} kontrolü başarısız oldu: ${detail}`,
       durationMs: Date.now() - startedAt,
     };
   }
@@ -164,26 +168,30 @@ export class SystemHealthService {
       },
     );
 
-    const queueStartedAt = Date.now();
-    const [pendingJobs, staleJobs] = await Promise.all([
-      prisma.distributionJob.count({
-        where: { organizationId: actor.organizationId, status: { in: ["PENDING", "QUEUED", "RETRY_SCHEDULED"] } },
-      }),
-      prisma.distributionJob.count({
-        where: { organizationId: actor.organizationId, status: "PROCESSING", lockedAt: { lt: new Date(Date.now() - 10 * 60 * 1000) } },
-      }),
-    ]);
-    const queueCheck: InternalHealthCheck = {
-      checkKey: "queue",
-      title: "Distribution Queue",
-      status: staleJobs > 0 ? "FAIL" : pendingJobs > 0 ? "WARNING" : "PASS",
-      message: staleJobs > 0
-        ? `${staleJobs} job 10 dakikadan uzun süredir kilitli.`
-        : pendingJobs > 0
-          ? `${pendingJobs} job worker tarafından bekleniyor.`
-          : "Bekleyen veya kilitli job bulunmuyor.",
-      durationMs: Date.now() - queueStartedAt,
-    };
+    const queueCheck = await runMeasuredCheck(
+      {
+        checkKey: "queue",
+        title: "Distribution Queue",
+        status: "PASS",
+        message: "Bekleyen veya kilitli job bulunmuyor.",
+      },
+      async () => {
+        const [pendingJobs, staleJobs] = await Promise.all([
+          prisma.distributionJob.count({
+            where: { organizationId: actor.organizationId, status: { in: ["PENDING", "QUEUED", "RETRY_SCHEDULED"] } },
+          }),
+          prisma.distributionJob.count({
+            where: { organizationId: actor.organizationId, status: "PROCESSING", lockedAt: { lt: new Date(Date.now() - 10 * 60 * 1000) } },
+          }),
+        ]);
+
+        return staleJobs > 0
+          ? { status: "FAIL" as const, message: `${staleJobs} job 10 dakikadan uzun süredir kilitli.` }
+          : pendingJobs > 0
+            ? { status: "WARNING" as const, message: `${pendingJobs} job worker tarafından bekliyor.` }
+            : undefined;
+      },
+    );
 
     const checks: InternalHealthCheck[] = [
       databaseCheck,
@@ -194,30 +202,30 @@ export class SystemHealthService {
       queueCheck,
     ];
 
-    await prisma.$transaction(
-      checks.map((check) =>
-        prisma.systemHealthCheck.upsert({
-          where: {
-            organizationId_checkKey: {
+    try {
+      await prisma.$transaction(
+        checks.map((check) =>
+          prisma.systemHealthCheck.upsert({
+            where: {
+              organizationId_checkKey: {
+                organizationId: actor.organizationId,
+                checkKey: check.checkKey,
+              },
+            },
+            update: { status: check.status, message: check.message, checkedAt },
+            create: {
               organizationId: actor.organizationId,
               checkKey: check.checkKey,
+              status: check.status,
+              message: check.message,
+              checkedAt,
             },
-          },
-          update: {
-            status: check.status,
-            message: check.message,
-            checkedAt,
-          },
-          create: {
-            organizationId: actor.organizationId,
-            checkKey: check.checkKey,
-            status: check.status,
-            message: check.message,
-            checkedAt,
-          },
-        }),
-      ),
-    );
+          }),
+        ),
+      );
+    } catch {
+      // Health checks must still be returned when persistence is unavailable.
+    }
 
     const serializedChecks: SystemHealthCheckResult[] = checks.map(
       (check) => ({

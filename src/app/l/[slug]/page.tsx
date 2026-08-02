@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PublicGrowthShell } from "@/features/growth/components/public-shell";
 import { growthRepository } from "@/features/growth/server/repositories/growth.repository";
@@ -59,7 +60,7 @@ export default async function SmartLinkPublicPage({ params, searchParams }: { pa
             </a>
           ))}
         </div>
-        <p className="mt-8 text-xs text-muted">Radarune ile oluşturuldu · <a className="font-semibold hover:text-foreground" href="/">Ücretsiz Smart Link oluştur</a></p>
+        <p className="mt-8 text-xs text-muted">Radarune ile oluşturuldu · <Link className="font-semibold hover:text-foreground" href="/">Ücretsiz Smart Link oluştur</Link></p>
       </section>
     </PublicGrowthShell>
   );

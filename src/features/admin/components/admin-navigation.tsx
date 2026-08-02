@@ -91,6 +91,7 @@ export const adminNavigationGroups: AdminNavGroup[] = [
     title: "Entegrasyonlar",
     icon: Network,
     items: [
+      { href: "/admin/integrations", label: "Entegrasyon merkezi", icon: Network },
       { href: "/admin/providers", label: "Provider merkezi", icon: Boxes },
       { href: "/admin/import-sources", label: "Otomatik import", icon: Workflow },
       { href: "/admin/import-review", label: "Import inceleme", icon: ClipboardCheck },

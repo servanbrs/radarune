@@ -33,7 +33,6 @@ export default async function AppLayout({
   });
 
   const adminAccess = canAccessAdmin(actor);
-  const adminTheme = adminAccess;
 
   const creatorAccess = creatorAccessService.getAccess({
     systemRole: user.systemRole,
