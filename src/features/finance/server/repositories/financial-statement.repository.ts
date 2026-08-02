@@ -112,10 +112,11 @@ export class FinancialStatementRepository {
     });
   }
 
-  async getStatementById(statementId: string) {
-    return prisma.financialStatement.findUnique({
+  async getStatementById(statementId: string, organizationId: string) {
+    return prisma.financialStatement.findFirst({
       where: {
         id: statementId,
+        organizationId,
       },
       select: {
         id: true,

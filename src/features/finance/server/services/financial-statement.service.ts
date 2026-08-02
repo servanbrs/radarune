@@ -66,11 +66,11 @@ export class FinancialStatementService {
     assertStatementAccess(actor);
 
     const [statement, accessibleArtistIds] = await Promise.all([
-      financialStatementRepository.getStatementById(statementId),
+      financialStatementRepository.getStatementById(statementId, actor.organizationId),
       financeAccessService.listAccessibleArtistIds(actor),
     ]);
 
-    if (!statement || statement.organizationId !== actor.organizationId) {
+    if (!statement) {
       return null;
     }
 
