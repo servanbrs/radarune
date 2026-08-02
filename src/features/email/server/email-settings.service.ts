@@ -4,6 +4,7 @@ import nodemailer from "nodemailer";
 
 import { env } from "@/lib/env";
 import { prisma } from "@/server/prisma/prisma";
+import { configurationResolver } from "@/features/configuration/server/configuration-resolver.service";
 import {
   decryptPlatformSecret,
   encryptPlatformSecret,
@@ -92,22 +93,6 @@ function textValue(
   return typeof value === "string" ? value : defaultValue;
 }
 
-function numberValue(
-  values: Map<string, unknown>,
-  key: string,
-  defaultValue: number,
-) {
-  const value = values.get(key);
-
-  if (typeof value === "number") {
-    return value;
-  }
-
-  const parsed = Number(value);
-
-  return Number.isFinite(parsed) ? parsed : defaultValue;
-}
-
 function decryptPassword(encryptedValue: string, defaultValue: string) {
   if (!encryptedValue) {
     return defaultValue;
@@ -130,11 +115,11 @@ function decryptPassword(encryptedValue: string, defaultValue: string) {
 }
 
 async function loadOrganizationSettings(
-  organizationId: string,
+  organizationId?: string,
 ): Promise<EmailSettings> {
   const rows = await prisma.adminSetting.findMany({
     where: {
-      organizationId,
+      ...(organizationId ? { organizationId } : { organizationId: null }),
     },
     select: {
       key: true,
@@ -148,16 +133,51 @@ async function loadOrganizationSettings(
 
   const password = decryptPassword(textValue(values, "SMTP_PASSWORD", ""), "");
 
+  const resolve = async <T>(
+    key: Parameters<typeof configurationResolver.resolve<T>>[0]["key"],
+    defaultValue: T,
+    parse: (value: unknown) => T | undefined,
+  ) => {
+    const result = await configurationResolver.resolve({
+      key,
+      ...(organizationId ? { organizationId } : {}),
+      defaultValue,
+      parse,
+    });
+    return result.value;
+  };
+
+  const [provider, host, port, username, resolvedPassword, fromEmail] =
+    await Promise.all([
+      resolve("SMTP_MAIL_PROVIDER", fallback.provider, (value) =>
+        typeof value === "string" ? normalizeProvider(value) : undefined,
+      ),
+      resolve("SMTP_HOST", fallback.host, (value) =>
+        typeof value === "string" ? value.trim() : undefined,
+      ),
+      resolve("SMTP_PORT", fallback.port, (value) => {
+        const parsed = typeof value === "number" ? value : Number(value);
+        return Number.isFinite(parsed) ? parsed : undefined;
+      }),
+      resolve("SMTP_USERNAME", fallback.username, (value) =>
+        typeof value === "string" ? value.trim() : undefined,
+      ),
+      resolve("SMTP_PASSWORD", fallback.password, (value) =>
+        typeof value === "string" ? decryptPassword(value, fallback.password) : undefined,
+      ),
+      resolve("SMTP_FROM_EMAIL", fallback.fromEmail, (value) =>
+        typeof value === "string" ? value.trim() : undefined,
+      ),
+    ]);
+
   return {
-    organizationId,
-    provider: normalizeProvider(
-      textValue(values, "SMTP_MAIL_PROVIDER", fallback.provider),
-    ),
-    host: textValue(values, "SMTP_HOST", fallback.host).trim(),
-    port: numberValue(values, "SMTP_PORT", fallback.port),
-    username: textValue(values, "SMTP_USERNAME", fallback.username).trim(),
-    password,
-    fromEmail: textValue(values, "SMTP_FROM_EMAIL", fallback.fromEmail).trim(),
+    organizationId: organizationId ?? null,
+    provider,
+    host,
+    port,
+    username,
+    password: resolvedPassword || password,
+    fromEmail,
     fromName: textValue(values, "SMTP_FROM_NAME", fallback.fromName).trim(),
     logoUrl: textValue(values, "EMAIL_BRAND_LOGO_URL", fallback.logoUrl).trim(),
     primaryColor: normalizeColor(
@@ -222,53 +242,13 @@ function isCompleteSmtpConfiguration(settings: EmailSettings) {
   );
 }
 
-async function findGlobalEmailOrganizationId() {
-  const candidates = await prisma.adminSetting.findMany({
-    where: {
-      key: {
-        in: ["SMTP_HOST", "SMTP_USERNAME", "SMTP_PASSWORD"],
-      },
-    },
-    orderBy: {
-      updatedAt: "desc",
-    },
-    select: {
-      organizationId: true,
-    },
-    distinct: ["organizationId"],
-    take: 20,
-  });
-
-  for (const candidate of candidates) {
-    if (!candidate.organizationId) {
-      continue;
-    }
-
-    const settings = await loadOrganizationSettings(candidate.organizationId);
-
-    if (isCompleteSmtpConfiguration(settings)) {
-      return candidate.organizationId;
-    }
-  }
-
-  return null;
-}
-
 export async function getEmailSettings(
   organizationId?: string,
 ): Promise<EmailSettings> {
-  if (organizationId) {
-    const organizationSettings = await loadOrganizationSettings(organizationId);
+  const settings = await loadOrganizationSettings(organizationId);
 
-    if (isCompleteSmtpConfiguration(organizationSettings)) {
-      return organizationSettings;
-    }
-  }
-
-  const globalOrganizationId = await findGlobalEmailOrganizationId();
-
-  if (globalOrganizationId) {
-    return loadOrganizationSettings(globalOrganizationId);
+  if (isCompleteSmtpConfiguration(settings)) {
+    return settings;
   }
 
   return {
