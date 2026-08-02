@@ -1,4 +1,5 @@
 import "server-only";
+import { Prisma } from "@/generated/prisma/client";
 import type { DatabaseClient } from "@/server/prisma/database-client";
 import { prisma } from "@/server/prisma/prisma";
 
@@ -111,6 +112,21 @@ export class PayoutRepository {
         id: true,
       },
     });
+  }
+
+  async lockStatementForPayout(
+    statementId: string,
+    organizationId: string,
+    client: DatabaseClient,
+  ) {
+    await client.$queryRaw(
+      Prisma.sql`
+        SELECT id
+        FROM FinancialStatement
+        WHERE id = ${statementId} AND organizationId = ${organizationId}
+        FOR UPDATE
+      `,
+    );
   }
 
   async createPayout(

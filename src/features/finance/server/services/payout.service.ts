@@ -116,6 +116,12 @@ export class PayoutService {
 
     try {
       const payout = await prisma.$transaction(async (tx) => {
+        await payoutRepository.lockStatementForPayout(
+          input.statementId,
+          actor.organizationId,
+          tx,
+        );
+
         const duplicate = await payoutRepository.findDuplicateOpenPayout(
           input.statementId,
           actor.organizationId,

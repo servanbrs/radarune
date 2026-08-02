@@ -4,6 +4,7 @@ vi.mock("server-only", () => ({}));
 
 const findMethodById = vi.fn();
 const findDuplicateOpenPayout = vi.fn();
+const lockStatementForPayout = vi.fn();
 const createPayout = vi.fn();
 const findPayoutById = vi.fn();
 const approvePayout = vi.fn();
@@ -19,6 +20,7 @@ vi.mock("@/features/finance/server/repositories/payout.repository", () => ({
     listPayoutsByOrganization: vi.fn(),
     findMethodById,
     findDuplicateOpenPayout,
+    lockStatementForPayout,
     createPayout,
     findPayoutById,
     approvePayout,
