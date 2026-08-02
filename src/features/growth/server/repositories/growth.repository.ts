@@ -120,7 +120,7 @@ export class GrowthRepository {
     return prisma.smartLink.findMany({
       where: { organizationId },
       orderBy: { createdAt: "desc" },
-      include: { artist: true, release: true, platforms: true },
+      include: { artist: true, release: true, platforms: true, _count: { select: { views: true, clicks: true } } },
     });
   }
 
