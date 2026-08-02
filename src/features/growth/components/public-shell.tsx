@@ -72,7 +72,7 @@ export function PublicGrowthShell({
           </Link>
 
           <div className="flex min-w-0 justify-center">
-            <div className="flex w-full max-w-[860px] items-center rounded-full border border-black/5 bg-white px-1.5 py-1.5 shadow-[0_8px_30px_rgba(15,23,42,0.08)] sm:px-2">
+            <div className="flex w-full max-w-[860px] items-center rounded-full border border-white/10 bg-white/[0.06] px-1.5 py-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.18)] sm:px-2">
               <nav
                 aria-label="Ana menü"
                 className="hidden shrink-0 items-center gap-1 lg:flex"
@@ -112,7 +112,7 @@ export function PublicGrowthShell({
 
                 <button
                   aria-label="Ara"
-                  className="mr-1 inline-flex size-9 shrink-0 items-center justify-center rounded-full text-white/60 transition hover:bg-white/10 hover:text-white"
+                className="mr-1 inline-flex size-9 shrink-0 items-center justify-center rounded-full text-white/60 transition hover:bg-emerald-300/15 hover:text-emerald-200"
                   type="submit"
                 >
                   <Search className="size-4" />
@@ -130,7 +130,7 @@ export function PublicGrowthShell({
               </>
             ) : (
               <Link
-                className="whitespace-nowrap rounded-full bg-[#111111] px-3.5 py-2.5 text-xs font-semibold text-white sm:px-5 sm:text-sm"
+                className="whitespace-nowrap rounded-full bg-emerald-300 px-3.5 py-2.5 text-xs font-bold text-[#08201a] shadow-[0_8px_24px_rgba(110,231,183,0.18)] sm:px-5 sm:text-sm"
                 href={`/sign-in?next=${encodeURIComponent(
                   pathname || "/discover",
                 )}`}
