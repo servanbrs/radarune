@@ -35,10 +35,31 @@ export class DistributionProcessorService {
       };
     }
 
-    const runtimeConfig = await distributionProviderConfigurationService.getRuntimeConfiguration(
-      job.organizationId,
-      job.provider,
-    );
+    let runtimeConfig: Awaited<
+      ReturnType<
+        typeof distributionProviderConfigurationService.getRuntimeConfiguration
+      >
+    >;
+
+    try {
+      runtimeConfig =
+        await distributionProviderConfigurationService.getRuntimeConfiguration(
+          job.organizationId,
+          job.provider,
+        );
+    } catch {
+      await databaseDistributionQueueService.retry(
+        job.id,
+        new Date(Date.now() + 60_000),
+        "WORKER_CONFIGURATION_ERROR",
+        "Provider yapılandırması okunamadı; job yeniden denenecek.",
+      );
+
+      return {
+        success: false as const,
+        message: "Provider yapılandırması okunamadı; job yeniden denenecek.",
+      };
+    }
     const adapter = distributionProviderRegistry.getAdapter(job.provider);
     const payload = job.canonicalPayload as unknown as Parameters<
       typeof distributionValidationService.validateRelease
