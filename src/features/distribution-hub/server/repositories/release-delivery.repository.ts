@@ -114,34 +114,25 @@ export class ReleaseDeliveryRepository {
     },
     client: DatabaseClient = prisma,
   ) {
-    const existing = await this.findByReleaseAndProvider(
-      input.organizationId,
-      input.releaseId,
-      input.provider,
-      client,
-    );
-
-    if (existing) {
-      return client.releaseDelivery.update({
-        where: {
-          id: existing.id,
+    return client.releaseDelivery.upsert({
+      where: {
+        organizationId_releaseId_provider: {
+          organizationId: input.organizationId,
+          releaseId: input.releaseId,
+          provider: input.provider,
         },
-        data: {
-          jobId: input.jobId,
-          providerConfigurationId: input.providerConfigurationId ?? null,
-          releaseVersion: input.releaseVersion,
-          status: input.status,
-          externalReleaseId: input.externalReleaseId ?? null,
-          externalReleaseUrl: input.externalReleaseUrl ?? null,
-          submittedAt: input.submittedAt ?? null,
-          failureReason: input.failureReason ?? null,
-        },
-        select: releaseDeliverySelect,
-      });
-    }
-
-    return client.releaseDelivery.create({
-      data: {
+      },
+      update: {
+        jobId: input.jobId,
+        providerConfigurationId: input.providerConfigurationId ?? null,
+        releaseVersion: input.releaseVersion,
+        status: input.status,
+        externalReleaseId: input.externalReleaseId ?? null,
+        externalReleaseUrl: input.externalReleaseUrl ?? null,
+        submittedAt: input.submittedAt ?? null,
+        failureReason: input.failureReason ?? null,
+      },
+      create: {
         organizationId: input.organizationId,
         jobId: input.jobId,
         providerConfigurationId: input.providerConfigurationId ?? null,
