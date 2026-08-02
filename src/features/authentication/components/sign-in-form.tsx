@@ -10,12 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/features/authentication/lib/auth-client";
+import { safeRedirectPath } from "@/features/authentication/lib/safe-redirect";
 import {
   type SignInFormValues,
   signInFormSchema,
 } from "@/features/authentication/schemas/auth-form.schema";
 
-export function SignInForm() {
+export function SignInForm({ googleEnabled }: { googleEnabled: boolean }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [rootError, setRootError] = useState<string | null>(null);
@@ -65,11 +66,16 @@ export function SignInForm() {
           return;
         }
 
-        window.location.replace("/verify-login?sent=1");
+        const next = new URLSearchParams(window.location.search).get("next");
+        const verifyUrl = new URL("/verify-login", window.location.origin);
+        verifyUrl.searchParams.set("sent", "1");
+        verifyUrl.searchParams.set("next", safeRedirectPath(next));
+        window.location.replace(verifyUrl.toString());
         return;
       }
 
-      router.replace("/dashboard");
+      const next = new URLSearchParams(window.location.search).get("next");
+      router.replace(safeRedirectPath(next));
       router.refresh();
     });
   });
@@ -114,19 +120,21 @@ export function SignInForm() {
         {isPending ? "Giriş yapılıyor…" : "Giriş yap"}
       </Button>
 
-      <Button
-        className="w-full"
-        onClick={() =>
-          void authClient.signIn.social({
-            provider: "google",
-            callbackURL: "/dashboard",
-          })
-        }
-        type="button"
-        variant="secondary"
-      >
-        Google ile devam et
-      </Button>
+      {googleEnabled ? (
+        <Button
+          className="w-full"
+          onClick={() =>
+            void authClient.signIn.social({
+              provider: "google",
+              callbackURL: "/dashboard",
+            })
+          }
+          type="button"
+          variant="secondary"
+        >
+          Google ile devam et
+        </Button>
+      ) : null}
 
       <Link
         className="text-sm font-medium text-muted hover:text-foreground"

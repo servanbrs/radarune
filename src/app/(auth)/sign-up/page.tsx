@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { AuthShell } from "@/features/authentication/components/auth-shell";
 import { SignUpForm } from "@/features/authentication/components/sign-up-form";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
+import { env } from "@/lib/env";
 
 export default async function SignUpPage() {
   const session = await authSessionService.getOptionalSession();
@@ -19,7 +20,7 @@ export default async function SignUpPage() {
       footerText="Zaten hesabınız var mı?"
       title="Hesap oluştur"
     >
-      <SignUpForm />
+      <SignUpForm googleEnabled={Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET)} />
     </AuthShell>
   );
 }

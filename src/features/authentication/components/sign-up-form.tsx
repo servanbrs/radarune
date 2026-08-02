@@ -14,7 +14,7 @@ import {
   signUpFormSchema,
 } from "@/features/authentication/schemas/auth-form.schema";
 
-export function SignUpForm() {
+export function SignUpForm({ googleEnabled }: { googleEnabled: boolean }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [rootError, setRootError] = useState<string | null>(null);
@@ -155,19 +155,21 @@ export function SignUpForm() {
         {isPending ? "Hesap oluşturuluyor..." : "Hesap oluştur"}
       </Button>
 
-      <Button
-        className="w-full"
-        onClick={() =>
-          void authClient.signIn.social({
-            provider: "google",
-            callbackURL: "/dashboard",
-          })
-        }
-        type="button"
-        variant="secondary"
-      >
-        Google ile kayıt ol
-      </Button>
+      {googleEnabled ? (
+        <Button
+          className="w-full"
+          onClick={() =>
+            void authClient.signIn.social({
+              provider: "google",
+              callbackURL: "/dashboard",
+            })
+          }
+          type="button"
+          variant="secondary"
+        >
+          Google ile kayıt ol
+        </Button>
+      ) : null}
 
       <Link
         className="text-sm font-medium text-muted hover:text-foreground"

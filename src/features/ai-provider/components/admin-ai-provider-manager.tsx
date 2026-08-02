@@ -152,6 +152,8 @@ export function AdminAiProviderManager() {
   }, []);
 
   useEffect(() => {
+    // This effect intentionally synchronizes the client with the remote provider registry.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadProviders();
   }, [loadProviders]);
 

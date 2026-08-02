@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/features/authentication/lib/auth-client";
+import { safeRedirectPath } from "@/features/authentication/lib/safe-redirect";
 
 const RESEND_SECONDS = 60;
 
@@ -91,7 +92,8 @@ export function VerifyLoginOtpForm() {
       setMessage("Giriş doğrulandı. Dashboard açılıyor…");
 
       window.setTimeout(() => {
-        router.replace("/dashboard");
+        const next = new URLSearchParams(window.location.search).get("next");
+        router.replace(safeRedirectPath(next));
         router.refresh();
       }, 500);
     });

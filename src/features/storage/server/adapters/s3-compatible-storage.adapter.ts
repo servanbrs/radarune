@@ -4,7 +4,7 @@ import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, Head
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Readable } from "node:stream";
 import { env } from "@/lib/env";
-import type { MultipartUpload, StorageCapability, StorageConfigurationResult, StorageObjectMetadata, StorageProviderAdapter, StorageStreamUploadInput, StorageUploadInput, StorageProviderType } from "@/features/storage/domain/storage-provider";
+import type { StorageCapability, StorageConfigurationResult, StorageProviderAdapter, StorageStreamUploadInput, StorageUploadInput, StorageProviderType } from "@/features/storage/domain/storage-provider";
 
 export class S3CompatibleStorageAdapter implements StorageProviderAdapter {
   constructor(readonly type: Exclude<StorageProviderType, "LOCAL">) {}
