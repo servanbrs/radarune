@@ -27,7 +27,7 @@ export class ArtistProfileService {
         await client.artistSlugHistory.create({ data: { artistId: artist.id, oldSlug: artist.slug, newSlug: parsed.slug } });
       }
       const { ...updateData } = parsed;
-      const updated = await client.artist.update({ where: { id: artist.id }, data: updateData as Prisma.ArtistUpdateInput, select: { id: true, name: true, slug: true, updatedAt: true } });
+      const updated = await client.artist.update({ where: { id: artist.id }, data: { ...(updateData as Prisma.ArtistUpdateInput), profilePublishedAt: artist.profilePublishedAt ?? new Date() }, select: { id: true, name: true, slug: true, updatedAt: true } });
       await auditLogService.create({ organizationId: input.organizationId, actorUserId: input.userId, action: "ARTIST_PROFILE_UPDATED", entityType: "Artist", entityId: artist.id, metadata: { changedFields: Object.keys(parsed), slugChanged: parsed.slug !== undefined && parsed.slug !== artist.slug } }, client);
       return updated;
     });

@@ -8,7 +8,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [artists, smartLinks, users, playlists, campaigns] = await Promise.all([
     prisma.artist.findMany({
       where: {
-        releaseArtistLinks: { some: { release: { status: { in: ["DISTRIBUTED", "LIVE"] } } } },
+        OR: [{ profilePublishedAt: { not: null } }, { releaseArtistLinks: { some: { release: { status: { in: ["DISTRIBUTED", "LIVE"] } } } } }],
         organization: { tenantStatus: "ACTIVE" },
       },
       select: { slug: true, updatedAt: true },
