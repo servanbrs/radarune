@@ -3,6 +3,7 @@ import "server-only";
 import { prisma } from "@/server/prisma/prisma";
 import { env } from "@/lib/env";
 import { assertAdminPermission } from "@/features/admin/server/admin-context";
+import { verifyEmailTransport } from "@/features/email/server/email-settings.service";
 
 import type { FinanceActorContext } from "@/features/finance/server/services/finance-access.service";
 import type {
@@ -151,21 +152,38 @@ export class SystemHealthService {
         : "WEBHOOK_ENCRYPTION_KEY yapılandırılmamış.",
     });
 
-    const mailCheck = await runMeasuredCheck({
-      checkKey: "mail",
-      title: "E-posta Servisi",
-      status: "NOT_CONFIGURED",
-      message:
-        "E-posta provider bağlantı testi henüz yapılandırılmamış.",
-    });
+    const mailCheck = await runMeasuredCheck(
+      {
+        checkKey: "mail",
+        title: "E-posta Servisi",
+        status: "PASS",
+        message: "SMTP bağlantı testi başarılı.",
+      },
+      async () => {
+        await verifyEmailTransport(actor.organizationId);
+      },
+    );
 
-    const queueCheck = await runMeasuredCheck({
+    const queueStartedAt = Date.now();
+    const [pendingJobs, staleJobs] = await Promise.all([
+      prisma.distributionJob.count({
+        where: { organizationId: actor.organizationId, status: { in: ["PENDING", "QUEUED", "RETRY_SCHEDULED"] } },
+      }),
+      prisma.distributionJob.count({
+        where: { organizationId: actor.organizationId, status: "PROCESSING", lockedAt: { lt: new Date(Date.now() - 10 * 60 * 1000) } },
+      }),
+    ]);
+    const queueCheck: InternalHealthCheck = {
       checkKey: "queue",
-      title: "Queue Worker",
-      status: "WARNING",
-      message:
-        "Queue worker durumu için runtime heartbeat kontrolü eklenmelidir.",
-    });
+      title: "Distribution Queue",
+      status: staleJobs > 0 ? "FAIL" : pendingJobs > 0 ? "WARNING" : "PASS",
+      message: staleJobs > 0
+        ? `${staleJobs} job 10 dakikadan uzun süredir kilitli.`
+        : pendingJobs > 0
+          ? `${pendingJobs} job worker tarafından bekleniyor.`
+          : "Bekleyen veya kilitli job bulunmuyor.",
+      durationMs: Date.now() - queueStartedAt,
+    };
 
     const checks: InternalHealthCheck[] = [
       databaseCheck,
