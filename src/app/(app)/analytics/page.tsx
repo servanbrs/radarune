@@ -60,14 +60,15 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
   return (
     <main className="page-shell">
       <div className="flex w-full flex-col gap-6">
-        <section className="panel p-6 md:p-8">
+        <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#0a1715] p-6 text-white shadow-[0_24px_90px_rgba(4,15,13,0.18)] md:p-8">
+          <div className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full bg-emerald-400/20 blur-3xl" />
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-3">
-              <p className="text-xs uppercase tracking-[0.24em] text-muted">
+              <p className="relative text-xs uppercase tracking-[0.24em] text-emerald-300">
                 Analytics paneli
               </p>
-              <h1 className="text-3xl font-semibold">Dinlenme, gelir ve erişim</h1>
-              <p className="max-w-3xl text-sm leading-7 text-muted">
+              <h1 className="relative text-3xl font-semibold">Dinlenme, gelir ve erişim</h1>
+              <p className="relative max-w-3xl text-sm leading-7 text-white/55">
                 Artist, label and admin görünümünü aynı finans omurgası üzerinden
                 çalıştıran performans ekranı.
               </p>

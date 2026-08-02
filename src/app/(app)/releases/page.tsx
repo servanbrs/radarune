@@ -16,17 +16,19 @@ export default async function ReleasesPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-6 py-10 md:px-10">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#0a1715] p-6 text-white shadow-[0_24px_90px_rgba(4,15,13,0.18)] md:p-8">
+        <div className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full bg-emerald-400/20 blur-3xl" />
         <div>
-          <p className="text-xs font-semibold uppercase text-muted">Yayın yönetimi</p>
+          <p className="relative text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300">Creator workspace / Katalog</p>
           <h1 className="mt-2 text-3xl font-semibold">Yayınlar</h1>
+          <p className="relative mt-2 max-w-xl text-sm leading-6 text-white/55">Katalogunu hazırla, doğrula ve dağıtım sürecini tek bir akışta takip et.</p>
         </div>
-        <Button>
+        <Button className="relative mt-5 md:absolute md:right-8 md:top-8">
           <Link href="/releases/new">Yeni yayın</Link>
         </Button>
       </div>
 
-      <section className="overflow-hidden rounded-3xl border border-line bg-surface">
+      <section className="overflow-hidden rounded-3xl border border-line bg-surface shadow-sm">
         <div className="grid gap-3 border-b border-line px-5 py-4 text-xs font-semibold uppercase text-muted md:grid-cols-[1.4fr_0.7fr_0.8fr_0.8fr_0.8fr]">
           <span>Yayın</span>
           <span>Tür</span>
