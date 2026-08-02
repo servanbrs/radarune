@@ -56,6 +56,7 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
             <Link className="hover:text-white" href="/">Ana Sayfa</Link>
             <Link className="hover:text-white" href="#discover">Keşfet</Link>
             <Link className="hover:text-white" href="/lists">Listeler</Link>
+            <Link className="hover:text-white" href="/hype">Hype</Link>
           </nav>
           <div className="flex items-center gap-3">
             <Link className="hidden text-sm font-medium text-white/65 hover:text-white sm:inline" href="/sign-in">Giriş yap</Link>

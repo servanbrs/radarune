@@ -3,7 +3,7 @@ import { AuthShell } from "@/features/authentication/components/auth-shell";
 import { SignInForm } from "@/features/authentication/components/sign-in-form";
 import { safeRedirectPath } from "@/features/authentication/lib/safe-redirect";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
-import { env } from "@/lib/env";
+import { getSocialProviderAvailability } from "@/features/authentication/server/social-provider-configuration.service";
 
 export default async function SignInPage({
   searchParams,
@@ -19,6 +19,7 @@ export default async function SignInPage({
   if (session) {
     redirect(nextPath);
   }
+  const socialProviders = await getSocialProviderAvailability();
 
   return (
     <AuthShell
@@ -30,7 +31,8 @@ export default async function SignInPage({
       title="Giriş yap"
     >
       <SignInForm
-        googleEnabled={Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET)}
+        googleEnabled={socialProviders.google}
+        facebookEnabled={socialProviders.facebook}
         nextPath={nextPath}
       />
     </AuthShell>

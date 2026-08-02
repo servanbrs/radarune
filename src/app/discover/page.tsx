@@ -48,16 +48,16 @@ export default async function DiscoverPage() {
             </span>
           </div>
 
-          <h1 className="mx-auto mt-5 max-w-4xl text-balance text-[2.45rem] font-semibold leading-[0.98] tracking-[-0.06em] text-[#101817] sm:text-5xl lg:text-6xl xl:text-7xl">
-            Bugünün bilinmeyenleri.
+          <h1 className="mx-auto mt-5 max-w-4xl text-balance text-[2.45rem] font-black leading-[0.98] tracking-[-0.06em] text-[#101817] sm:text-5xl lg:text-6xl xl:text-7xl">
+            Sinyali yakala.
             <span className="block bg-gradient-to-r from-emerald-600 via-[#101817] to-blue-600 bg-clip-text text-transparent">
-              Yarının yıldızları.
+              Yeni sesi büyüt.
             </span>
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-sm leading-7 text-[#52605d] sm:text-base">
-            Yeni şarkıları dinle, kaydır, oy ver ve yükselmesini istediğin
-            sanatçıları toplulukla birlikte keşfet.
+            Radarune’ın AI-uyumlu sinyal katmanı; tazelik, topluluk ilgisi ve
+            sanatçı ivmesini tek bir keşif akışında görünür kılar.
           </p>
 
           <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
@@ -73,6 +73,12 @@ export default async function DiscoverPage() {
               Beğen →
             </span>
           </div>
+        </section>
+
+        <section className="relative mx-auto mb-7 grid max-w-6xl gap-4 overflow-hidden rounded-[2rem] bg-[#101817] p-5 text-white shadow-[0_24px_70px_rgba(15,23,42,0.18)] sm:p-7 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div aria-hidden className="pointer-events-none absolute -right-16 -top-24 size-64 rounded-full bg-emerald-400/20 blur-3xl" />
+          <div className="relative"><p className="text-[10px] font-black uppercase tracking-[0.24em] text-emerald-300">AI-ready discovery layer</p><h2 className="mt-2 text-2xl font-black tracking-[-0.04em] sm:text-3xl">Her kartın arkasında okunabilir bir sinyal var.</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-white/55">Radarune Score, oy ivmesi ve içerik tazeliği; gelecekteki kişisel öneri modelleri için şeffaf ve denetlenebilir veri katmanı oluşturur.</p></div>
+          <div className="relative flex flex-wrap gap-2 lg:max-w-xs lg:justify-end"><span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-2 text-xs font-bold text-emerald-200">Tazelik</span><span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-2 text-xs font-bold text-white/70">Topluluk oyu</span><span className="rounded-full border border-orange-300/20 bg-orange-300/10 px-3 py-2 text-xs font-bold text-orange-200">İvme</span></div>
         </section>
 
         <section className="relative mx-auto mb-8 grid max-w-5xl grid-cols-3 gap-2 px-4 sm:gap-3 sm:px-6"><div className="rounded-2xl border border-black/[0.07] bg-white/75 p-3 text-center shadow-sm backdrop-blur-xl sm:p-4"><p className="text-xl font-semibold text-[#101817] sm:text-2xl">{discoverStats.radarune}</p><p className="mt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#7a8783] sm:text-xs">Radarune yayını</p></div><div className="rounded-2xl border border-black/[0.07] bg-white/75 p-3 text-center shadow-sm backdrop-blur-xl sm:p-4"><p className="text-xl font-semibold text-[#101817] sm:text-2xl">{discoverStats.artists}</p><p className="mt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#7a8783] sm:text-xs">Sanatçı</p></div><div className="rounded-2xl border border-black/[0.07] bg-white/75 p-3 text-center shadow-sm backdrop-blur-xl sm:p-4"><p className="text-xl font-semibold text-[#101817] sm:text-2xl">{discoverStats.external}</p><p className="mt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#7a8783] sm:text-xs">Dış kaynak</p></div></section>

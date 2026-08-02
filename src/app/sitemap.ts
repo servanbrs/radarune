@@ -40,6 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: seoUrl("/"), lastModified: new Date(), changeFrequency: "daily", priority: 1 },
     { url: seoUrl("/discover"), lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
     { url: seoUrl("/lists"), lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
+    { url: seoUrl("/hype"), lastModified: new Date(), changeFrequency: "hourly", priority: 0.85 },
     { url: seoUrl("/about"), lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
     { url: seoUrl("/contact"), lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
     { url: seoUrl("/privacy"), lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },

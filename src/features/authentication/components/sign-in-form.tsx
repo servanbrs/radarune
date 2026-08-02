@@ -16,9 +16,11 @@ import {
 } from "@/features/authentication/schemas/auth-form.schema";
 
 export function SignInForm({
+  facebookEnabled,
   googleEnabled,
   nextPath,
 }: {
+  facebookEnabled: boolean;
   googleEnabled: boolean;
   nextPath: string;
 }) {
@@ -136,6 +138,12 @@ export function SignInForm({
           variant="secondary"
         >
           Google ile devam et
+        </Button>
+      ) : null}
+
+      {facebookEnabled ? (
+        <Button className="w-full" onClick={() => void authClient.signIn.social({ provider: "facebook", callbackURL: nextPath })} type="button" variant="secondary">
+          Facebook ile devam et
         </Button>
       ) : null}
 

@@ -30,6 +30,10 @@ const navigation = [
     href: "/lists",
     label: "Listeler",
   },
+  {
+    href: "/hype",
+    label: "Hype",
+  },
 ];
 
 function isActiveRoute(pathname: string, href: string) {

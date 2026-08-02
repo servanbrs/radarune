@@ -14,7 +14,7 @@ import {
   signUpFormSchema,
 } from "@/features/authentication/schemas/auth-form.schema";
 
-export function SignUpForm({ googleEnabled }: { googleEnabled: boolean }) {
+export function SignUpForm({ facebookEnabled, googleEnabled }: { facebookEnabled: boolean; googleEnabled: boolean }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [rootError, setRootError] = useState<string | null>(null);
@@ -168,6 +168,12 @@ export function SignUpForm({ googleEnabled }: { googleEnabled: boolean }) {
           variant="secondary"
         >
           Google ile kayıt ol
+        </Button>
+      ) : null}
+
+      {facebookEnabled ? (
+        <Button className="w-full" onClick={() => void authClient.signIn.social({ provider: "facebook", callbackURL: "/dashboard" })} type="button" variant="secondary">
+          Facebook ile kayıt ol
         </Button>
       ) : null}
 

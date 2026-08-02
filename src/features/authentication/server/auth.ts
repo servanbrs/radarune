@@ -11,6 +11,14 @@ import {
   sendSecurityCodeEmail,
   sendTemplatedEmail,
 } from "@/features/email/server/email-settings.service";
+import { getSocialProviderCredentials } from "@/features/authentication/server/social-provider-configuration.service";
+
+async function socialAuthConfig(provider: "GOOGLE_OAUTH" | "FACEBOOK_OAUTH") {
+  const credentials = await getSocialProviderCredentials(provider);
+  return credentials?.clientId && credentials.clientSecret
+    ? { clientId: credentials.clientId, clientSecret: credentials.clientSecret }
+    : { enabled: false, clientId: "disabled", clientSecret: "disabled" };
+}
 
 const trustedOrigins = [
   env.BETTER_AUTH_URL,
@@ -60,7 +68,8 @@ async function sendAuthEmail(input: {
   });
 }
 
-export const auth = betterAuth({
+export function createAuth() {
+  return betterAuth({
   appName: "Radarune",
   baseURL: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
@@ -83,16 +92,10 @@ export const auth = betterAuth({
     },
   },
 
-  ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
-    ? {
-        socialProviders: {
-          google: {
-            clientId: env.GOOGLE_CLIENT_ID,
-            clientSecret: env.GOOGLE_CLIENT_SECRET,
-          },
-        },
-      }
-    : {}),
+  socialProviders: {
+    google: () => socialAuthConfig("GOOGLE_OAUTH"),
+    facebook: () => socialAuthConfig("FACEBOOK_OAUTH"),
+  },
 
   user: {
     modelName: "User",
@@ -216,4 +219,7 @@ export const auth = betterAuth({
   experimental: {
     joins: true,
   },
-});
+  });
+}
+
+export const auth = createAuth();

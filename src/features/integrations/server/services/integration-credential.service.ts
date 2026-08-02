@@ -8,19 +8,25 @@ import type { FinanceActorContext } from "@/features/finance/server/services/fin
 import { env } from "@/lib/env";
 
 const schema = z.object({
-  provider: z.enum(["YOUTUBE", "SPOTIFY"]),
+  provider: z.enum(["YOUTUBE", "SPOTIFY", "GOOGLE_OAUTH", "FACEBOOK_OAUTH"]),
   credentials: z.record(z.string(), z.string().trim().min(1)),
 });
 
 const CREDENTIAL_KEY_MISMATCH_MESSAGE =
   "Credential kaydı çözülemedi. Sunucudaki BILLING_ENCRYPTION_KEY (veya DISTRIBUTION_ENCRYPTION_KEY/ENCRYPTION_KEY) eski kayıt oluşturulurken kullanılan anahtarla aynı olmalı; anahtar değiştiyse credential’ı yeniden kaydedin.";
 
-type IntegrationProvider = "YOUTUBE" | "SPOTIFY";
+type IntegrationProvider = "YOUTUBE" | "SPOTIFY" | "GOOGLE_OAUTH" | "FACEBOOK_OAUTH";
 
 function environmentCredentials(provider: IntegrationProvider): Record<string, string> | null {
   if (provider === "YOUTUBE" && env.YOUTUBE_API_KEY) return { apiKey: env.YOUTUBE_API_KEY };
   if (provider === "SPOTIFY" && env.SPOTIFY_CLIENT_ID && env.SPOTIFY_CLIENT_SECRET) {
     return { clientId: env.SPOTIFY_CLIENT_ID, clientSecret: env.SPOTIFY_CLIENT_SECRET };
+  }
+  if (provider === "GOOGLE_OAUTH" && env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
+    return { clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET };
+  }
+  if (provider === "FACEBOOK_OAUTH" && env.FACEBOOK_CLIENT_ID && env.FACEBOOK_CLIENT_SECRET) {
+    return { clientId: env.FACEBOOK_CLIENT_ID, clientSecret: env.FACEBOOK_CLIENT_SECRET };
   }
   return null;
 }
@@ -78,6 +84,42 @@ export class IntegrationCredentialService {
       }).catch(() => undefined);
       return environmentCredentials(provider);
     }
+  }
+
+  async listSocial(actor: FinanceActorContext) {
+    assertAdminPermission(actor, "integrations.spotify.view");
+    const providers: ("GOOGLE_OAUTH" | "FACEBOOK_OAUTH")[] = ["GOOGLE_OAUTH", "FACEBOOK_OAUTH"];
+    let rows: Array<{ provider: "GOOGLE_OAUTH" | "FACEBOOK_OAUTH"; active: boolean; lastTestedAt: Date | null; lastTestError: string | null; credentialsEncrypted: string }> = [];
+    try {
+      rows = await prisma.integrationCredential.findMany({
+        where: { organizationId: actor.organizationId, provider: { in: providers } },
+        select: { provider: true, active: true, lastTestedAt: true, lastTestError: true, credentialsEncrypted: true },
+      }) as typeof rows;
+    } catch {
+      // The page can still show env-backed status while an older DB is migrated.
+    }
+    return providers.map((provider) => {
+      const row = rows.find((item) => item.provider === provider);
+      const environment = environmentCredentials(provider);
+      return { provider, active: row?.active ?? Boolean(environment), hasCredentials: Boolean(row?.credentialsEncrypted || environment), lastTestedAt: row?.lastTestedAt ?? null, lastTestError: row?.lastTestError ?? null };
+    });
+  }
+
+  async upsertSocial(actor: FinanceActorContext, provider: "GOOGLE_OAUTH" | "FACEBOOK_OAUTH", credentials: { clientId: string; clientSecret?: string }) {
+    assertAdminPermission(actor, "integrations.spotify.view");
+    const current = await prisma.integrationCredential.findUnique({ where: { organizationId_provider: { organizationId: actor.organizationId, provider } }, select: { credentialsEncrypted: true } });
+    let clientSecret = credentials.clientSecret?.trim();
+    if (!clientSecret && current?.credentialsEncrypted) {
+      try { clientSecret = (JSON.parse(decryptBillingSecret(current.credentialsEncrypted)) as { clientSecret?: string }).clientSecret; } catch { clientSecret = undefined; }
+    }
+    if (!credentials.clientId.trim() || !clientSecret) throw new Error("Client ID ve Client Secret zorunludur.");
+    const row = await prisma.integrationCredential.upsert({
+      where: { organizationId_provider: { organizationId: actor.organizationId, provider } },
+      update: { credentialsEncrypted: encryptBillingSecret(JSON.stringify({ clientId: credentials.clientId.trim(), clientSecret })), active: true, lastTestError: null },
+      create: { organizationId: actor.organizationId, provider, credentialsEncrypted: encryptBillingSecret(JSON.stringify({ clientId: credentials.clientId.trim(), clientSecret })) },
+    });
+    await auditLogService.create({ organizationId: actor.organizationId, actorUserId: actor.userId, action: "SOCIAL_AUTH_PROVIDER_UPDATED", entityType: "IntegrationCredential", entityId: row.id, metadata: { provider } });
+    return { provider, active: true, hasCredentials: true };
   }
 }
 
