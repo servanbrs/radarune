@@ -76,7 +76,7 @@ export default async function AppLayout({
 
   return (
     <div className="app-shell flex min-h-screen min-w-0 flex-col">
-      <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#081311]/95 text-white shadow-[0_12px_50px_rgba(4,15,13,0.18)] backdrop-blur-2xl">
+      <header data-radarune-app-header="dark" className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#081311]/95 text-white shadow-[0_12px_50px_rgba(4,15,13,0.18)] backdrop-blur-2xl">
         <div className="relative mx-auto flex min-h-[72px] w-full max-w-[1600px] items-center gap-4 px-4 sm:px-6 lg:px-8">
           <Link className="min-w-0 shrink-0" href="/dashboard">
             <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-emerald-300">
@@ -161,14 +161,14 @@ export default async function AppLayout({
         </div>
       </header>
 
-      <div className="hidden border-b border-white/[0.06] bg-[#0d1d1a] text-white/65 lg:block">
+      <div data-radarune-studio-nav="dark" className="hidden border-b border-white/[0.06] bg-[#0d1d1a] text-white/65 lg:block">
         <div className="mx-auto flex min-h-11 w-full max-w-[1600px] items-center gap-1 overflow-x-auto px-4 sm:px-6 lg:px-8">
           <span className="mr-3 shrink-0 text-[10px] font-bold uppercase tracking-[0.22em] text-emerald-300/80">Creator workspace</span>
           {[...creatorNavigation, { href: "/releases", label: "Yayınlar" }, { href: "/artist-profile", label: "Sanatçı profili" }].filter((item, index, items) => items.findIndex((candidate) => candidate.href === item.href) === index).map((item) => <Link className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold transition hover:bg-white/10 hover:text-white" href={item.href} key={item.href}>{item.label}</Link>)}
           <span className="ml-auto shrink-0 text-[10px] font-medium text-white/35">Radarune Studio</span>
         </div>
       </div>
-      <div className="overflow-x-auto border-b border-white/[0.06] bg-[#0d1d1a] text-white/65 lg:hidden">
+      <div data-radarune-studio-nav="dark" className="overflow-x-auto border-b border-white/[0.06] bg-[#0d1d1a] text-white/65 lg:hidden">
         <div className="flex min-h-10 min-w-max items-center gap-1 px-3">
           {[...creatorNavigation, { href: "/releases", label: "Yayınlar" }, { href: "/artist-profile", label: "Sanatçı profili" }, { href: "/discover", label: "Keşfet" }].filter((item, index, items) => items.findIndex((candidate) => candidate.href === item.href) === index).map((item) => <Link className="rounded-lg px-3 py-1.5 text-[11px] font-semibold transition hover:bg-white/10 hover:text-white" href={item.href} key={item.href}>{item.label}</Link>)}
         </div>

@@ -118,6 +118,42 @@ body:has(main[data-admin-theme="dark"]) header a,
 body:has(main[data-admin-theme="dark"]) header button { color: #c7d8d4; }
 body:has(main[data-admin-theme="dark"]) header .bg-surface { background-color: #111d20 !important; }
 header details.group:hover > div { display: grid; }
+
+/* The creator shell is intentionally dark even when the public theme toggle is
+   in light mode. This keeps navigation readable and gives every workspace a
+   stable brand anchor. */
+[data-radarune-app-header="dark"] {
+  background: linear-gradient(110deg, #071513 0%, #0b201c 52%, #101b19 100%) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #f4fffb !important;
+}
+[data-radarune-app-header="dark"] a,
+[data-radarune-app-header="dark"] button { color: rgba(244, 255, 251, 0.72) !important; }
+[data-radarune-app-header="dark"] a:hover,
+[data-radarune-app-header="dark"] button:hover { color: #f4fffb !important; }
+[data-radarune-app-header="dark"] a:first-child,
+[data-radarune-app-header="dark"] nav a { color: #f4fffb !important; }
+[data-radarune-app-header="dark"] input { color: #f4fffb !important; }
+[data-radarune-app-header="dark"] input::placeholder { color: rgba(244, 255, 251, 0.4) !important; }
+[data-radarune-studio-nav="dark"] {
+  background: #0b201c !important;
+  color: rgba(244, 255, 251, 0.68) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+[data-radarune-studio-nav="dark"] a { color: rgba(244, 255, 251, 0.68) !important; }
+[data-radarune-studio-nav="dark"] a:hover { color: #f4fffb !important; background: rgba(255,255,255,.08) !important; }
+.dashboard-page {
+  background:
+    radial-gradient(circle at 10% 0%, rgba(67, 197, 167, 0.12), transparent 26%),
+    radial-gradient(circle at 90% 10%, rgba(239, 184, 72, 0.12), transparent 24%),
+    #f3eee6;
+}
+.dashboard-page > div { width: 100%; }
+.dashboard-page .panel {
+  background: rgba(255, 251, 246, 0.94) !important;
+  border-color: rgba(19, 19, 19, 0.08) !important;
+  box-shadow: 0 18px 60px rgba(55, 43, 27, 0.08) !important;
+}
 main[data-admin-theme="dark"] .panel { background-color: #111d20 !important; border-color: #26383a !important; color: #eef7f5; }
 main[data-admin-theme="dark"] article.panel { background-color: #111d20 !important; border-color: #26383a !important; }
 main[data-admin-theme="dark"] .text-muted { color: #9aada9 !important; }

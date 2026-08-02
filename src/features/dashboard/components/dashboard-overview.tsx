@@ -410,7 +410,7 @@ export function DashboardOverview({
   ];
 
   return (
-    <main className="page-shell">
+    <main className="dashboard-page page-shell">
       <div className="flex w-full min-w-0 flex-col gap-6">
         <section className="relative overflow-hidden rounded-[2rem] border border-black/10 bg-foreground text-white shadow-[0_24px_100px_rgba(19,19,19,0.18)]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(15,118,110,0.5),transparent_38%),radial-gradient(circle_at_85%_20%,rgba(239,184,72,0.22),transparent_35%)]" />
