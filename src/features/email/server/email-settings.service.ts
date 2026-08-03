@@ -245,7 +245,33 @@ function isCompleteSmtpConfiguration(settings: EmailSettings) {
 export async function getEmailSettings(
   organizationId?: string,
 ): Promise<EmailSettings> {
-  const settings = await loadOrganizationSettings(organizationId);
+  let settings = await loadOrganizationSettings(organizationId);
+
+  // Local sign-up/OTP flows may run before a user belongs to an organization.
+  // Reuse an already configured organization SMTP profile only in development;
+  // production remains strictly tenant-scoped.
+  if (
+    process.env.NODE_ENV !== "production" &&
+    !organizationId &&
+    !isCompleteSmtpConfiguration(settings)
+  ) {
+    const configuredHost = await prisma.adminSetting.findFirst({
+      where: {
+        key: "SMTP_HOST",
+        organizationId: { not: null },
+      },
+      orderBy: { updatedAt: "desc" },
+      select: { organizationId: true, value: true },
+    });
+
+    if (
+      configuredHost?.organizationId &&
+      typeof configuredHost.value === "string" &&
+      configuredHost.value.trim()
+    ) {
+      settings = await loadOrganizationSettings(configuredHost.organizationId);
+    }
+  }
 
   if (isCompleteSmtpConfiguration(settings)) {
     return settings;
