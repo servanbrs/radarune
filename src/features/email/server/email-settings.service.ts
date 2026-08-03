@@ -252,7 +252,6 @@ export async function getEmailSettings(
   // production remains strictly tenant-scoped.
   if (
     process.env.NODE_ENV !== "production" &&
-    !organizationId &&
     !isCompleteSmtpConfiguration(settings)
   ) {
     const configuredHost = await prisma.adminSetting.findFirst({
