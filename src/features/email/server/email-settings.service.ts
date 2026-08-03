@@ -247,11 +247,11 @@ export async function getEmailSettings(
 ): Promise<EmailSettings> {
   let settings = await loadOrganizationSettings(organizationId);
 
-  // Local sign-up/OTP flows may run before a user belongs to an organization.
-  // Reuse an already configured organization SMTP profile only in development;
-  // production remains strictly tenant-scoped.
+  // Sign-up/OTP flows may run before a user belongs to an organization, or the
+  // personal organization may not have its own SMTP profile yet. Reuse the
+  // configured platform SMTP profile only when the requested profile is
+  // incomplete; a complete organization-specific profile always wins.
   if (
-    process.env.NODE_ENV !== "production" &&
     !isCompleteSmtpConfiguration(settings)
   ) {
     const configuredHost = await prisma.adminSetting.findFirst({
