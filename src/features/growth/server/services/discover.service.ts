@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { Prisma } from "@/generated/prisma/client";
 import { discoverEventSchema } from "@/features/growth/schemas/growth.schema";
 import { recommendationService } from "@/features/growth/server/services/recommendation.service";
@@ -570,3 +571,15 @@ export class DiscoverService {
 }
 
 export const discoverService = new DiscoverService();
+
+export const getCachedPublicDiscoverFeed = unstable_cache(
+  async (tenantOrganizationId?: string) => discoverService.getFeed(undefined, tenantOrganizationId),
+  ["radarune-public-discover-feed"],
+  { revalidate: 30 },
+);
+
+export const getCachedPublicCandidates = unstable_cache(
+  async () => discoverService.getPublicCandidates(),
+  ["radarune-public-discover-candidates"],
+  { revalidate: 30 },
+);

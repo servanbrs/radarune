@@ -48,7 +48,8 @@ export function NotificationBell() {
 
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [markingRead, setMarkingRead] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -94,23 +95,23 @@ export function NotificationBell() {
     } finally {
       setLoading(false);
       setRefreshing(false);
+      setLoaded(true);
     }
   }, []);
 
   useEffect(() => {
-    const initialRequest = window.setTimeout(() => {
-      void loadNotifications();
-    }, 0);
-
+    if (!open) return;
+    const initialRequest = !loaded && !loading
+      ? window.setTimeout(() => void loadNotifications(), 0)
+      : undefined;
     const interval = window.setInterval(() => {
       void loadNotifications(true);
     }, 60_000);
-
     return () => {
-      window.clearTimeout(initialRequest);
+      if (initialRequest) window.clearTimeout(initialRequest);
       window.clearInterval(interval);
     };
-  }, [loadNotifications]);
+  }, [loadNotifications, loaded, loading, open]);
 
   useEffect(() => {
     function closeOnOutsideClick(event: MouseEvent) {

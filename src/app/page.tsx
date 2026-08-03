@@ -6,7 +6,7 @@ import { tenantContextService } from "@/features/platform/server/services/tenant
 import { siteBuilderService } from "@/features/platform/server/services/site-builder.service";
 import { RadaruneLandingPage } from "@/features/platform/components/radarune-landing-page";
 import { MobileBottomNav } from "@/features/platform/components/mobile-bottom-nav";
-import { discoverService } from "@/features/growth/server/services/discover.service";
+import { getCachedPublicCandidates } from "@/features/growth/server/services/discover.service";
 import { prisma } from "@/server/prisma/prisma";
 
 function renderValue(value: string | null | undefined) {
@@ -19,7 +19,12 @@ export default async function HomePage() {
   if (!session) {
     const tenant = await tenantContextService.resolveFromRequest();
     if (!tenant) {
-      const discoverReleases = await discoverService.getPublicCandidates();
+      let discoverReleases: Awaited<ReturnType<typeof getCachedPublicCandidates>> = [];
+      try {
+        discoverReleases = await getCachedPublicCandidates();
+      } catch {
+        // Public landing remains usable while a remote development DB recovers.
+      }
       return <RadaruneLandingPage discoverReleases={discoverReleases} />;
     }
     const page = await siteBuilderService.getHomepage(tenant.id);

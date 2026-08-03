@@ -14,6 +14,23 @@ type DashboardOrganizationContext = Awaited<
 >;
 type DashboardSession = NonNullable<Awaited<ReturnType<typeof getSession>>>;
 
+const getDashboardContext = cache(async (): Promise<{
+  organization: DashboardOrganizationContext;
+  session: DashboardSession;
+  user: DashboardUser;
+}> => {
+  const session = await getSession();
+
+  if (!session) redirect("/sign-in");
+
+  const dashboardUser = await userAuthRepository.findDashboardUserById(session.user.id);
+  if (!dashboardUser) redirect("/sign-in");
+  if (!dashboardUser.emailVerified) redirect(`/verify-email?email=${encodeURIComponent(dashboardUser.email)}`);
+
+  const organization = await organizationService.ensurePersonalOrganizationContext(dashboardUser.id, dashboardUser.name);
+  return { organization, session, user: dashboardUser };
+});
+
 const getSession = cache(async () => {
   return auth.api.getSession({
     headers: await headers(),
@@ -40,32 +57,7 @@ class AuthSessionService {
     session: DashboardSession;
     user: DashboardUser;
   }> {
-    const session = await this.getRequiredSession();
-    const dashboardUser = await userAuthRepository.findDashboardUserById(
-      session.user.id,
-    );
-
-    if (!dashboardUser) {
-      redirect("/sign-in");
-    }
-
-    if (!dashboardUser.emailVerified) {
-      redirect(
-        `/verify-email?email=${encodeURIComponent(dashboardUser.email)}`,
-      );
-    }
-
-    const organization =
-      await organizationService.ensurePersonalOrganizationContext(
-        dashboardUser.id,
-        dashboardUser.name,
-      );
-
-    return {
-      organization,
-      session,
-      user: dashboardUser,
-    };
+    return getDashboardContext();
   }
 }
 

@@ -13,6 +13,7 @@ export class TenantContextService {
   async resolveFromRequest() {
     const headerList = await headers();
     const host = normalizeHost(headerList.get("x-forwarded-host") ?? headerList.get("host"));
+    if (!host && process.env.NODE_ENV !== "production") return null;
     if (host) {
       const byHost = await tenantRepository.findByHost(host);
       if (byHost) return byHost;

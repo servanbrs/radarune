@@ -6,7 +6,7 @@ import { authSessionService } from "@/features/authentication/server/services/au
 import { DiscoverFeedClient } from "@/features/growth/components/discover-feed-client";
 import { GlobalPlaylistVoteCard } from "@/features/growth/components/global-playlist-vote-card";
 import { PublicGrowthShell } from "@/features/growth/components/public-shell";
-import { discoverService } from "@/features/growth/server/services/discover.service";
+import { discoverService, getCachedPublicDiscoverFeed, type DiscoverFeedItem } from "@/features/growth/server/services/discover.service";
 import { globalPlaylistService } from "@/features/growth/server/services/global-playlist.service";
 import { tenantContextService } from "@/features/platform/server/services/tenant-context.service";
 
@@ -26,9 +26,21 @@ export default async function DiscoverPage() {
       })
     : undefined;
 
-  const tenant = await tenantContextService.resolveFromRequest();
-  const feed = await discoverService.getFeed(actor, tenant?.id);
-  const weeklyPlaylists = tenant ? await globalPlaylistService.listForDiscover(tenant.id) : [];
+  const tenant = dashboard?.organization.organization ?? await tenantContextService.resolveFromRequest();
+  let feed: DiscoverFeedItem[] = [];
+  try {
+    feed = actor
+      ? await discoverService.getFeed(actor, tenant?.id)
+      : await getCachedPublicDiscoverFeed(tenant?.id);
+  } catch {
+    // Render the empty state instead of taking the public discovery page down.
+  }
+  let weeklyPlaylists: Awaited<ReturnType<typeof globalPlaylistService.listForDiscover>> = [];
+  try {
+    weeklyPlaylists = tenant ? await globalPlaylistService.listForDiscover(tenant.id) : [];
+  } catch {
+    // Playlist data is additive; discovery remains usable without it.
+  }
   const currentUser = session ? { name: session.user.name, username: "username" in session.user && typeof session.user.username === "string" ? session.user.username : null } : null;
 
   return (

@@ -14,6 +14,15 @@ const booleanSetting = (value: unknown) => {
 };
 
 export async function generateMetadata(): Promise<Metadata> {
+  // Local development must not spend a remote-hosting DB connection on four
+  // SEO setting queries for every route compilation/request. Production keeps
+  // the admin-managed metadata path below.
+  if (process.env.NODE_ENV !== "production") {
+    return {
+      title: "Radarune | Müzik operasyon platformu",
+      description: "Sanatçılar ve label ekipleri için release, dağıtım, royalty ve keşif operasyonları.",
+    };
+  }
   const tenant = await tenantContextService.resolveFromRequest();
   const organizationId = tenant?.id;
   const [title, description, verification, indexing] = await Promise.all([
