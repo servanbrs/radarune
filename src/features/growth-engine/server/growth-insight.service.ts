@@ -68,11 +68,11 @@ export class GrowthInsightService {
     if (!value || typeof value !== "object") return null;
     const candidate = value as { summary?: unknown; actions?: unknown };
     if (typeof candidate.summary !== "string" || !Array.isArray(candidate.actions)) return null;
-    const actions = candidate.actions.flatMap((item) => {
+    const actions: GrowthAction[] = candidate.actions.flatMap((item) => {
       if (!item || typeof item !== "object") return [];
       const action = item as Record<string, unknown>;
       if (["title", "channel", "priority", "reason", "nextStep"].some((key) => typeof action[key] !== "string")) return [];
-      const priority = action.priority === "Yüksek" || action.priority === "Orta" || action.priority === "Düşük" ? action.priority : "Orta";
+      const priority: GrowthAction["priority"] = action.priority === "Yüksek" || action.priority === "Orta" || action.priority === "Düşük" ? action.priority : "Orta";
       return [{ title: String(action.title).slice(0, 160), channel: String(action.channel).slice(0, 80), priority, reason: String(action.reason).slice(0, 500), nextStep: String(action.nextStep).slice(0, 500) }];
     }).slice(0, 5);
     return { summary: candidate.summary.slice(0, 800), actions };

@@ -24,6 +24,7 @@ import {
   WalletCards,
   type LucideIcon,
 } from "lucide-react";
+import { releasePublicPath } from "@/features/releases/lib/release-url";
 
 type DashboardData = {
   stats: {
@@ -703,7 +704,7 @@ export function DashboardOverview({
                 data.recentReleases.map((release) => (
                   <Link
                     className="group flex min-w-0 items-center gap-4 px-5 py-4 transition hover:bg-surface-strong/40 md:px-6"
-                    href={`/releases/${release.id}`}
+                    href={releasePublicPath(release.title, release.id)}
                     key={release.id}
                   >
                     <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-accent/10 text-accent">

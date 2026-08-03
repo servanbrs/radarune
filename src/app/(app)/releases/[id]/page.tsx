@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { ReleaseStatusBadge } from "@/features/releases/components/release-status-badge";
@@ -11,6 +11,7 @@ import { releaseIntelligenceService } from "@/features/intelligence/server/servi
 import { DiscoverCommentForm } from "@/features/growth/components/discover-comment-form";
 import { DiscoverLikeButton } from "@/features/growth/components/discover-like-button";
 import { ReleaseTrackRow } from "@/features/releases/components/release-track-row";
+import { releaseIdTokenFromSlug, releasePublicPath } from "@/features/releases/lib/release-url";
 import { prisma } from "@/server/prisma/prisma";
 
 const deliveryStatusLabels: Record<string, string> = {
@@ -38,9 +39,17 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
     systemRole: user.systemRole,
     userId: user.id,
   };
+  if (!id.includes("-") && id.startsWith("cms")) {
+    const legacyRelease = await prisma.release.findFirst({ where: { id, organizationId: organization.organization.id }, select: { id: true, title: true } });
+    if (legacyRelease) permanentRedirect(releasePublicPath(legacyRelease.title, legacyRelease.id));
+  }
+  const token = releaseIdTokenFromSlug(id);
+  const resolvedId = token
+    ? (await prisma.release.findFirst({ where: { id: { startsWith: token }, organizationId: organization.organization.id }, select: { id: true } }))?.id
+    : id;
   const release = await releaseService.getRelease(
     actor,
-    id,
+    resolvedId ?? id,
   );
   const deliveries = release
     ? await releaseDeliveryRepository.listByRelease(

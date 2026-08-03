@@ -4,6 +4,7 @@ import { authSessionService } from "@/features/authentication/server/services/au
 import { ReleaseStatusBadge } from "@/features/releases/components/release-status-badge";
 import { releaseService } from "@/features/releases/server/services/release.service";
 import { releaseTypeLabels } from "@/features/releases/constants/release.constants";
+import { releasePublicPath } from "@/features/releases/lib/release-url";
 
 export default async function ReleasesPage() {
   const { organization, user } = await authSessionService.getDashboardContext();
@@ -38,7 +39,7 @@ export default async function ReleasesPage() {
         </div>
         <div className="divide-y divide-line">
           {releases.map((release) => (
-            <Link className="grid gap-3 px-5 py-4 text-sm hover:bg-white md:grid-cols-[1.4fr_0.7fr_0.8fr_0.8fr_0.8fr]" href={`/releases/${release.id}`} key={release.id}>
+            <Link className="grid gap-3 px-5 py-4 text-sm hover:bg-white md:grid-cols-[1.4fr_0.7fr_0.8fr_0.8fr_0.8fr]" href={releasePublicPath(release.title, release.id)} key={release.id}>
               <div>
                 <p className="font-semibold">{release.title}</p>
                 <p className="mt-1 text-xs text-muted">

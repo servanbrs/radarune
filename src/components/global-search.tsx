@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { releasePublicPath } from "@/features/releases/lib/release-url";
 
 type Result = {
   artists: Array<{ id: string; name: string; slug: string }>;
@@ -125,7 +126,7 @@ export function GlobalSearch() {
               {result?.releases.map((item) => (
                 <Link
                   className="rounded-xl px-3 py-2 text-sm text-white/85 hover:bg-white/10"
-                  href={`/releases/${item.id}`}
+                  href={releasePublicPath(item.title, item.id)}
                   key={`r-${item.id}`}
                   onClick={() => setOpen(false)}
                 >
@@ -139,7 +140,7 @@ export function GlobalSearch() {
               {result?.tracks.map((item) => (
                 <Link
                   className="rounded-xl px-3 py-2 text-sm text-white/85 hover:bg-white/10"
-                  href={`/releases/${item.release.id}`}
+                  href={releasePublicPath(item.release.title, item.release.id)}
                   key={`t-${item.id}`}
                   onClick={() => setOpen(false)}
                 >

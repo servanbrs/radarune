@@ -30,6 +30,7 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return [
+      { source: "/release/:slug", destination: "/releases/:slug" },
       { source: "/sitemaps/static.xml", destination: "/sitemaps/static" },
       { source: "/sitemaps/artists.xml", destination: "/sitemaps/artists" },
       { source: "/sitemaps/smart-links.xml", destination: "/sitemaps/smart-links" },
