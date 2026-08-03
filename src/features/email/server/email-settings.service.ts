@@ -571,8 +571,6 @@ export async function sendTemplatedEmail(input: {
 }) {
   const settings = await getEmailSettings(input.organizationId);
 
-  const transporter = createEmailTransport(settings);
-
   const message = renderEmailTemplate({
     settings,
     template: input.template,
@@ -582,6 +580,17 @@ export async function sendTemplatedEmail(input: {
       ...(input.url ? { url: input.url } : {}),
     },
   });
+
+  if (process.env.NODE_ENV !== "production" && !isCompleteSmtpConfiguration(settings)) {
+    console.info("[RADARUNE_DEV_EMAIL] SMTP ayarı yok; e-posta local konsola yönlendirildi.", {
+      to: input.to,
+      subject: message.subject,
+      text: message.text,
+    });
+    return;
+  }
+
+  const transporter = createEmailTransport(settings);
 
   await transporter.sendMail({
     from: {
@@ -604,8 +613,6 @@ export async function sendSecurityCodeEmail(input: {
 }) {
   const settings = await getEmailSettings(input.organizationId);
 
-  const transporter = createEmailTransport(settings);
-
   const template: EmailTemplateName =
     input.type === "email-verification"
       ? "verification"
@@ -622,6 +629,24 @@ export async function sendSecurityCodeEmail(input: {
       code: input.code,
     },
   });
+
+  if (process.env.NODE_ENV !== "production" && !isCompleteSmtpConfiguration(settings)) {
+    console.info("[RADARUNE_DEV_EMAIL] SMTP ayarı yok; güvenlik kodu local konsola yönlendirildi.", {
+      email: input.email.replace(/(^.).*(@.*$)/, "$1***$2"),
+      code: input.code,
+      type: input.type,
+      subject: message.subject,
+    });
+    return {
+      messageId: `dev-${Date.now()}`,
+      accepted: [input.email],
+      rejected: [],
+      pending: [],
+      response: "Local development email fallback",
+    };
+  }
+
+  const transporter = createEmailTransport(settings);
 
   const delivery = await transporter.sendMail({
     from: {
