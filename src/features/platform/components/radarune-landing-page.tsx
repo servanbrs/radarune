@@ -5,6 +5,7 @@ import { StructuredData } from "@/features/seo/components/structured-data";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { QuickSignUpForm } from "@/features/authentication/components/quick-sign-up-form";
+import { MobileBottomNav } from "@/features/platform/components/mobile-bottom-nav";
 
 const capabilities = [
   {
@@ -31,7 +32,7 @@ const workflowSteps = ["Hazırla", "Doğrula", "Dağıt", "Ölç"] as const;
 
 export function RadaruneLandingPage({ discoverReleases = [] }: { discoverReleases?: PublicDiscoverCandidate[] }) {
   return (
-    <main className="landing-shell min-h-screen overflow-hidden bg-[#090b0f] text-white">
+    <main className="landing-shell min-h-screen overflow-hidden bg-[#090b0f] pb-20 text-white lg:pb-0">
       <StructuredData
         data={{
           "@context": "https://schema.org",
@@ -46,19 +47,19 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
       <div className="landing-aurora landing-aurora-one pointer-events-none absolute inset-x-0 top-0 h-[38rem]" />
       <div className="landing-aurora landing-aurora-two pointer-events-none absolute right-[-10rem] top-[22rem] h-[30rem] w-[30rem]" />
 
-      <header className="relative z-10 border-b border-white/10 px-5 py-5 md:px-10">
+      <header className="relative z-10 border-b border-white/10 px-5 py-4 md:px-10 md:py-5">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-6">
           <Link className="flex items-center gap-3" href="/" aria-label="Radarune ana sayfa">
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#efb848] text-sm font-bold text-[#090b0f]">R</span>
             <span className="text-sm font-semibold tracking-[0.24em]">RADARUNE</span>
           </Link>
-          <nav className="flex items-center gap-3 text-xs text-white/60 sm:gap-8 sm:text-sm" aria-label="Ana navigasyon">
+          <nav className="hidden items-center gap-3 text-xs text-white/60 sm:gap-8 sm:text-sm lg:flex" aria-label="Ana navigasyon">
             <Link className="hover:text-white" href="/">Ana Sayfa</Link>
-            <Link className="hover:text-white" href="#discover">Keşfet</Link>
+            <Link className="hover:text-white" href="/discover">Keşfet</Link>
             <Link className="hover:text-white" href="/lists">Listeler</Link>
             <Link className="hover:text-white" href="/hype">Hype</Link>
           </nav>
-          <div className="flex items-center gap-3">
+          <div className="hidden items-center gap-3 lg:flex">
             <Link className="hidden text-sm font-medium text-white/65 hover:text-white sm:inline" href="/sign-in">Giriş yap</Link>
             <ThemeToggle />
             <Link className="inline-flex items-center gap-2 rounded-full bg-[#efb848] px-4 py-2.5 text-sm font-semibold text-[#090b0f] hover:bg-[#ffd46f]" href="/sign-up">
@@ -223,6 +224,8 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
         <nav className="grid content-start gap-3" aria-label="Footer bağlantıları"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">Radarune</p><Link className="hover:text-white" href="/about">Hakkımızda</Link><Link className="hover:text-white" href="/contact">İletişim</Link><Link className="hover:text-white" href="/terms">Kullanım koşulları</Link></nav>
         <div className="grid content-start gap-3"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">Tercihler</p><label className="flex items-center justify-between gap-3">Dil <LanguageSwitcher locale="tr-TR" /></label></div>
       </footer>
+
+      <MobileBottomNav homeHref="/" profileHref="/sign-in?next=%2F" profileLabel="Giriş" />
     </main>
   );
 }

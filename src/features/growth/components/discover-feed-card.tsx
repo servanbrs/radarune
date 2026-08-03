@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { DiscoverCommentForm } from "@/features/growth/components/discover-comment-form";
+import { DiscoverArtistFollowButton } from "@/features/growth/components/discover-artist-follow-button";
 import type { DiscoverFeedItem } from "@/features/growth/server/services/discover.service";
 
 type DiscoverFeedCardProps = {
@@ -375,7 +376,7 @@ export function DiscoverFeedCard({
         </div>
       </article>
 
-      {artistHref ? <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-black/[0.07] bg-white/85 px-4 py-3 shadow-sm backdrop-blur-xl"><div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#8b9693]">Sanatçı kanalı</p><p className="mt-1 truncate text-sm font-semibold text-[#101817]">{item.artistName}</p></div><Link className="shrink-0 rounded-xl bg-[#101817] px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700" href={artistHref}>Profili aç →</Link></div> : null}
+      {artistHref ? <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-black/[0.07] bg-white/85 px-4 py-3 shadow-sm backdrop-blur-xl"><div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#8b9693]">Sanatçı kanalı</p><Link className="mt-1 block truncate text-sm font-semibold text-[#101817] hover:text-emerald-700" href={artistHref}>{item.artistName}</Link></div><div className="flex shrink-0 items-center gap-2"><Link className="rounded-xl bg-[#101817] px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700" href={artistHref}>Profili aç →</Link>{item.artist?.id ? <DiscoverArtistFollowButton artistId={item.artist.id} initialFollowing={item.isFollowing ?? false} isAuthenticated={isAuthenticated} /> : null}</div></div> : null}
 
       <section className="mt-5 overflow-hidden rounded-[26px] border border-black/[0.07] bg-white/90 shadow-[0_20px_60px_rgba(15,23,42,0.1)] backdrop-blur-xl">
         <div className="flex items-center justify-between border-b border-black/[0.06] px-5 py-4 sm:px-6">

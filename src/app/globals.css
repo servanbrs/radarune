@@ -117,6 +117,12 @@ body:has(main[data-admin-theme="dark"]) header {
 body:has(main[data-admin-theme="dark"]) header a,
 body:has(main[data-admin-theme="dark"]) header button { color: #c7d8d4; }
 body:has(main[data-admin-theme="dark"]) header .bg-surface { background-color: #111d20 !important; }
+body:has(main[data-admin-theme="dark"]) [data-radarune-app-footer] {
+  background: #0a1715 !important;
+  border-color: rgba(255,255,255,.08) !important;
+  color: rgba(238,247,245,.55) !important;
+}
+body:has(main[data-admin-theme="dark"]) [data-radarune-app-footer] a:hover { color: #eef7f5 !important; }
 header details.group:hover > div { display: grid; }
 
 /* The creator shell is intentionally dark even when the public theme toggle is
@@ -188,6 +194,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-heading), sans-serif;
+  overflow-x: hidden;
   transition: background-color 420ms ease, color 420ms ease;
 }
 

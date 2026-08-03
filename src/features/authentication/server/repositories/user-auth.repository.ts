@@ -11,6 +11,7 @@ export class UserAuthRepository {
         id: true,
         name: true,
         email: true,
+        username: true,
         emailVerified: true,
         systemRole: true,
         accountStatus: true,

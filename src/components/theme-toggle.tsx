@@ -3,7 +3,7 @@
 import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export function ThemeToggle() {
+export function ThemeToggle({ dark: darkVariant = false }: { dark?: boolean } = {}) {
   const [dark, setDark] = useState(() => {
     if (typeof window === "undefined") return false;
 
@@ -20,7 +20,7 @@ export function ThemeToggle() {
       type="button"
       aria-label={dark ? "Açık temaya geç" : "Koyu temaya geç"}
       onClick={() => setDark((current) => !current)}
-      className="inline-flex size-10 items-center justify-center rounded-full border border-line bg-surface text-foreground transition hover:bg-surface-strong"
+      className={darkVariant ? "inline-flex size-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white/15" : "inline-flex size-10 items-center justify-center rounded-full border border-line bg-surface text-foreground transition hover:bg-surface-strong"}
     >
       {dark ? (
         <Sun className="size-4" aria-hidden="true" />

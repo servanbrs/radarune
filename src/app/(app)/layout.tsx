@@ -5,13 +5,13 @@ import {
   canAccessAdmin,
   toAdminActor,
 } from "@/features/admin/server/admin-context";
-import { SignOutButton } from "@/features/authentication/components/sign-out-button";
 import { UserMenu } from "@/features/authentication/components/user-menu";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { creatorAccessService } from "@/features/authorization/server/creator-access.service";
 import { GlobalSearch } from "@/components/global-search";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
+import { MobileBottomNav } from "@/features/platform/components/mobile-bottom-nav";
 
 type NavigationItem = {
   href: string;
@@ -51,28 +51,6 @@ export default async function AppLayout({
     { href: "/discover", label: tr("Keşfet", "Discover", "Entdecken") },
     { href: "/lists", label: tr("Listeler", "Lists", "Listen") },
   ];
-
-  const creatorNavigation: NavigationItem[] = [];
-
-  if (creatorAccess.canUseGrowthTools) {
-    creatorNavigation.push(
-      {
-        href: "/smart-links",
-        label: "Smart Link",
-      },
-      {
-        href: "/presaves",
-        label: "Pre-save",
-      },
-    );
-  }
-
-  if (creatorAccess.canViewAnalytics) {
-    creatorNavigation.push({
-      href: "/analytics",
-      label: "Analiz",
-    });
-  }
 
   return (
     <div className="app-shell flex min-h-screen min-w-0 flex-col">
@@ -116,67 +94,12 @@ export default async function AppLayout({
             />
           </div>
 
-          <details className="group relative ml-auto lg:hidden">
-            <summary className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-xl border border-white/10 bg-white/[0.08] text-lg text-white [&::-webkit-details-marker]:hidden">
-              ☰
-            </summary>
-
-            <div className="absolute right-0 top-12 z-50 w-[min(340px,calc(100vw-2rem))] rounded-3xl border border-white/10 bg-[#10201d] p-3 text-white shadow-2xl">
-              <div className="border-b border-white/10 px-3 pb-3">
-                <p className="truncate font-semibold text-white">{user.name}</p>
-
-                <p className="mt-1 truncate text-xs text-white/50">{user.email}</p>
-              </div>
-
-              <div className="mt-3 px-1">
-                <GlobalSearch />
-              </div>
-
-              <nav className="mt-3 grid max-h-[60vh] gap-1 overflow-y-auto">
-                {[...primaryNavigation, ...creatorNavigation].map((item) => (
-                  <Link
-                    className="rounded-xl px-3 py-3 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
-                    href={item.href}
-                    key={item.href}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-
-                {adminAccess ? (
-                  <Link
-                    className="rounded-xl bg-emerald-300 px-3 py-3 text-sm font-semibold text-[#08201a]"
-                    href="/admin"
-                  >
-                    Yönetim Paneli
-                  </Link>
-                ) : null}
-              </nav>
-
-              <div className="mt-3 border-t border-line pt-3">
-                <SignOutButton />
-              </div>
-            </div>
-          </details>
         </div>
       </header>
 
-      <div data-radarune-studio-nav="dark" className="hidden border-b border-white/[0.06] bg-[#0d1d1a] text-white/65 lg:block">
-        <div className="mx-auto flex min-h-11 w-full max-w-[1600px] items-center gap-1 overflow-x-auto px-4 sm:px-6 lg:px-8">
-          <span className="mr-3 shrink-0 text-[10px] font-bold uppercase tracking-[0.22em] text-emerald-300/80">Creator workspace</span>
-          {[...creatorNavigation, { href: "/releases", label: "Yayınlar" }, { href: "/artist-profile", label: "Sanatçı profili" }].filter((item, index, items) => items.findIndex((candidate) => candidate.href === item.href) === index).map((item) => <Link className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold transition hover:bg-white/10 hover:text-white" href={item.href} key={item.href}>{item.label}</Link>)}
-          <span className="ml-auto shrink-0 text-[10px] font-medium text-white/35">Radarune Studio</span>
-        </div>
-      </div>
-      <div data-radarune-studio-nav="dark" className="overflow-x-auto border-b border-white/[0.06] bg-[#0d1d1a] text-white/65 lg:hidden">
-        <div className="flex min-h-10 min-w-max items-center gap-1 px-3">
-          {[...creatorNavigation, { href: "/releases", label: "Yayınlar" }, { href: "/artist-profile", label: "Sanatçı profili" }, { href: "/discover", label: "Keşfet" }].filter((item, index, items) => items.findIndex((candidate) => candidate.href === item.href) === index).map((item) => <Link className="rounded-lg px-3 py-1.5 text-[11px] font-semibold transition hover:bg-white/10 hover:text-white" href={item.href} key={item.href}>{item.label}</Link>)}
-        </div>
-      </div>
+      <div className="flex min-w-0 flex-1 flex-col pb-24 lg:pb-0">{children}</div>
 
-      <div className="flex min-w-0 flex-1 flex-col">{children}</div>
-
-      <footer className="border-t border-line/70 bg-surface px-4 py-8 text-sm text-muted sm:px-6 lg:px-8">
+      <footer data-radarune-app-footer className="border-t border-line/70 bg-surface px-4 pb-28 pt-8 text-sm text-muted sm:px-6 lg:px-8 lg:pb-8">
         <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="font-semibold text-foreground">Radarune</p>
@@ -196,6 +119,7 @@ export default async function AppLayout({
           </nav>
         </div>
       </footer>
+      <MobileBottomNav homeHref="/dashboard" profileHref="/mobile-profile" profileLabel="Profil" />
     </div>
   );
 }

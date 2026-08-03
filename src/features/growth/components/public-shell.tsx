@@ -8,6 +8,7 @@ import { useState } from "react";
 
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { PublicUserMenu } from "@/features/growth/components/public-user-menu";
+import { MobileBottomNav } from "@/features/platform/components/mobile-bottom-nav";
 
 type PublicGrowthShellProps = {
   children: ReactNode;
@@ -75,7 +76,7 @@ export function PublicGrowthShell({
             RADARUNE
           </Link>
 
-          <div className="flex min-w-0 justify-center">
+          <div className="hidden min-w-0 justify-center lg:flex">
             <div className="flex w-full max-w-[860px] items-center rounded-full border border-white/10 bg-white/[0.06] px-1.5 py-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.18)] sm:px-2">
               <nav
                 aria-label="Ana menü"
@@ -125,7 +126,7 @@ export function PublicGrowthShell({
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center justify-end gap-1.5 sm:gap-2">
+          <div className="hidden shrink-0 items-center justify-end gap-1.5 sm:gap-2 lg:flex">
             {currentUser ? (
               <>
                 <NotificationBell />
@@ -145,33 +146,12 @@ export function PublicGrowthShell({
           </div>
         </div>
 
-        <nav
-          aria-label="Mobil ana menü"
-          className="flex items-center justify-center gap-1 border-t border-white/10 px-3 py-2 lg:hidden"
-        >
-          {navigation.map((item) => {
-            const active = isActiveRoute(pathname, item.href);
-
-            return (
-              <Link
-                className={
-                  active
-                    ? "rounded-full bg-emerald-300/15 px-4 py-2 text-xs font-semibold text-emerald-200"
-                    : "rounded-full px-4 py-2 text-xs font-semibold text-white/60 transition hover:bg-white/10"
-                }
-                href={item.href}
-                key={item.href}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
       </header>
 
       <div className="mx-auto w-full max-w-[1500px] px-3 py-6 sm:px-5 sm:py-8 lg:px-7">
         {children}
       </div>
+      <MobileBottomNav homeHref="/" profileHref={currentUser ? "/mobile-profile" : `/sign-in?next=${encodeURIComponent(pathname || "/")}`} profileLabel={currentUser ? "Profil" : "Giriş"} />
     </main>
   );
 }

@@ -36,10 +36,10 @@ export function UserMenu({ name, email, adminAccess, artistAccess, locale = "tr-
           </Link>
         </nav>
         <div className="flex items-center justify-between border-t border-white/10 pt-2">
-          <LanguageSwitcher locale={locale} />
+          <LanguageSwitcher dark locale={locale} />
           <div className="flex items-center gap-2">
             <span className="text-xs text-white/45">Tema</span>
-            <ThemeToggle />
+            <ThemeToggle dark />
           </div>
         </div>
         <div className="border-t border-line pt-2 [&_button]:w-full [&_button]:border-danger/40 [&_button]:bg-danger/10 [&_button]:text-danger [&_button]:hover:bg-danger/20">

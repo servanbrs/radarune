@@ -28,6 +28,15 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      { source: "/sitemaps/static.xml", destination: "/sitemaps/static" },
+      { source: "/sitemaps/artists.xml", destination: "/sitemaps/artists" },
+      { source: "/sitemaps/smart-links.xml", destination: "/sitemaps/smart-links" },
+      { source: "/sitemaps/playlists.xml", destination: "/sitemaps/playlists" },
+      { source: "/sitemaps/presaves.xml", destination: "/sitemaps/presaves" },
+    ];
+  },
   images: {
     remotePatterns: [
       {

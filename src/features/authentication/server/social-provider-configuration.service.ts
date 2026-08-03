@@ -13,22 +13,26 @@ function environmentCredentials(provider: SocialProvider) {
 }
 
 export async function getSocialProviderCredentials(provider: SocialProvider) {
-  const organization = await prisma.organization.findFirst({ where: { tenantStatus: "ACTIVE" }, orderBy: { createdAt: "asc" }, select: { id: true } });
-  if (organization) {
-    try {
-      const row = await prisma.integrationCredential.findUnique({ where: { organizationId_provider: { organizationId: organization.id, provider } }, select: { active: true, credentialsEncrypted: true } });
-      if (row?.active) {
-        try {
-          const parsed = JSON.parse(decryptBillingSecret(row.credentialsEncrypted)) as { clientId?: string; clientSecret?: string };
-          if (parsed.clientId && parsed.clientSecret) return parsed;
-        } catch {
-          // Fall back to environment credentials without exposing the ciphertext.
+  try {
+    const organization = await prisma.organization.findFirst({ where: { tenantStatus: "ACTIVE" }, orderBy: { createdAt: "asc" }, select: { id: true } });
+    if (organization) {
+      try {
+        const row = await prisma.integrationCredential.findUnique({ where: { organizationId_provider: { organizationId: organization.id, provider } }, select: { active: true, credentialsEncrypted: true } });
+        if (row?.active) {
+          try {
+            const parsed = JSON.parse(decryptBillingSecret(row.credentialsEncrypted)) as { clientId?: string; clientSecret?: string };
+            if (parsed.clientId && parsed.clientSecret) return parsed;
+          } catch {
+            // Fall back to environment credentials without exposing the ciphertext.
+          }
         }
+      } catch {
+        // Older deployments may not have applied the social credential migration yet.
       }
-    } catch {
-      // Older deployments may not have applied the social credential migration yet.
-      // The auth surface remains usable with environment fallback or email login.
     }
+  } catch {
+    // A temporarily unavailable database must not break the sign-in page's
+    // provider discovery. Actual authentication will still require the DB.
   }
   return environmentCredentials(provider);
 }

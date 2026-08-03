@@ -83,6 +83,7 @@ export const adminNavigationGroups: AdminNavGroup[] = [
     items: [
       { href: "/admin/social/playlists", label: "Global playlistler", icon: ListMusic },
       { href: "/admin/social", label: "Sosyal moderasyon", icon: Globe2 },
+      { href: "/admin/growth", label: "AI büyüme merkezi", icon: Megaphone },
       { href: "/admin/intelligence", label: "Yapay zekâ yönetimi", icon: Bot },
       { href: "/admin/site-builder", label: "Site builder", icon: SlidersHorizontal },
     ],

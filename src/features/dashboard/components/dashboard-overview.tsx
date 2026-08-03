@@ -6,6 +6,7 @@ import {
   ArrowRight,
   BadgeCheck,
   BarChart3,
+  Building2,
   CalendarDays,
   Disc3,
   Download,
@@ -19,6 +20,7 @@ import {
   Sparkles,
   Share2,
   Users,
+  UserPlus,
   WalletCards,
   type LucideIcon,
 } from "lucide-react";
@@ -435,6 +437,38 @@ export function DashboardOverview({
     },
   ];
 
+  const isOrganizationRole = ["ORGANIZER", "LABEL", "LABEL_MANAGER"].includes(role);
+  const isAdminRole = ["ADMIN", "SUPER_ADMIN"].includes(role);
+  const workspaceActions = role === "ARTIST"
+    ? [
+        { description: "Kanal görünümünü, kapak ve sosyal bağlantılarını düzenle.", href: "/artist-profile/edit", icon: Music2, title: "Sanatçı profilim" },
+        { description: "Yeni yayınını ve katalog akışını hazırla.", href: "/releases/new", icon: Disc3, title: "Yayın hazırla" },
+        { description: "Spotify, Apple Music ve sosyal linklerini tek sayfada topla.", href: "/smart-links/new", icon: Share2, title: "Smart Link oluştur" },
+        { description: "Dinlenme, ülke, şehir ve gelir performansını incele.", href: "/analytics", icon: BarChart3, title: "Sanatçı analizleri" },
+      ]
+    : isOrganizationRole
+      ? [
+          { description: "Bağlı sanatçı kanallarını ve doğrulama durumlarını yönet.", href: "/artists", icon: Users, title: "Sanatçıları yönet" },
+          { description: "Şirket/label katalog yapısını düzenle.", href: "/labels", icon: Building2, title: "Label ve organizasyon" },
+          { description: "Sanatçı kataloğu için yeni dağıtım hazırlığı başlat.", href: "/releases/new", icon: Disc3, title: "Dağıtım hazırlığı" },
+          { description: "Ekip için paylaşılabilir, SEO uyumlu linkler oluştur.", href: "/smart-links/new", icon: Share2, title: "Smart Link oluştur" },
+        ]
+      : [
+          { description: "Kendi kanalın ve yayın araçların için başvuru yap.", href: "/become?type=artist", icon: Music2, title: "Sanatçı ol" },
+          { description: "Label, menajerlik veya organizasyon hesabı için başvur.", href: "/become?type=organization", icon: Building2, title: "Organizasyon başvurusu" },
+          { description: "Ücretsiz Smart Link ve yayın araçlarını açmak için creator erişimi iste.", href: "/become", icon: Share2, title: "Creator araçlarını aç" },
+          { description: "Radarune topluluğuna yeni üyeler davet et.", href: "/settings", icon: UserPlus, title: "Üyeleri davet et" },
+        ];
+
+  if (isAdminRole) {
+    workspaceActions.push({
+      description: "Admin yetkinle ekip üyelerini ve erişimlerini oluştur.",
+      href: "/admin/users/new",
+      icon: UserPlus,
+      title: "Üye oluştur",
+    });
+  }
+
   return (
     <main className="dashboard-page page-shell">
       <div className="flex w-full min-w-0 flex-col gap-6">
@@ -519,6 +553,26 @@ export function DashboardOverview({
                   : "Dağıtım sistemleri çalışıyor"}
               </span>
             </div>
+          </div>
+        </section>
+
+        <section className="rounded-[2rem] border border-emerald-900/15 bg-[#10201d] p-5 text-white shadow-[0_20px_70px_rgba(8,35,28,0.14)] md:p-6">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-emerald-300">Çalışma alanı</p>
+              <h2 className="mt-2 text-xl font-semibold">{role === "ARTIST" ? "Sanatçı araçları" : isOrganizationRole ? "Label ve organizasyon araçları" : "Radarune Creator"}</h2>
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-white/50">{role === "ARTIST" ? "Kanalını, yayınlarını, Smart Link’lerini ve analizlerini tek alandan yönet." : isOrganizationRole ? "Sanatçı, ekip, katalog ve dağıtım operasyonunu tek çalışma alanında topla." : "Sanatçı veya organizasyon başvurunu tamamla; yayın, Smart Link ve ekip araçlarını aç."}</p>
+            </div>
+            <span className="rounded-full border border-emerald-300/15 bg-emerald-300/[0.08] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-200">{role === "USER" ? "Başvuru gerekli" : "Aktif çalışma alanı"}</span>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {workspaceActions.map(({ description, href, icon: Icon, title }) => (
+              <Link className="group rounded-2xl border border-white/10 bg-white/[0.05] p-4 transition hover:-translate-y-0.5 hover:border-emerald-300/30 hover:bg-white/[0.08]" href={href} key={title}>
+                <span className="flex size-10 items-center justify-center rounded-xl bg-emerald-300/10 text-emerald-300"><Icon className="size-5" /></span>
+                <h3 className="mt-4 text-sm font-semibold text-white">{title}<ArrowRight className="ml-1 inline size-3.5 text-emerald-300 transition group-hover:translate-x-0.5" /></h3>
+                <p className="mt-2 text-xs leading-5 text-white/45">{description}</p>
+              </Link>
+            ))}
           </div>
         </section>
 

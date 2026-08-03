@@ -5,6 +5,7 @@ import { authSessionService } from "@/features/authentication/server/services/au
 import { tenantContextService } from "@/features/platform/server/services/tenant-context.service";
 import { siteBuilderService } from "@/features/platform/server/services/site-builder.service";
 import { RadaruneLandingPage } from "@/features/platform/components/radarune-landing-page";
+import { MobileBottomNav } from "@/features/platform/components/mobile-bottom-nav";
 import { discoverService } from "@/features/growth/server/services/discover.service";
 import { prisma } from "@/server/prisma/prisma";
 
@@ -36,14 +37,14 @@ export default async function HomePage() {
       "--danger": theme?.errorColor,
     } as CSSProperties;
     return (
-      <main className="min-h-screen bg-background text-foreground" style={themeStyle}>
-        <header className="border-b border-line/70 bg-surface/80 px-6 py-5 backdrop-blur md:px-10">
+      <main className="min-h-screen bg-background pb-20 text-foreground lg:pb-0" style={themeStyle}>
+        <header className="border-b border-line/70 bg-surface/80 px-6 py-4 backdrop-blur md:px-10 md:py-5">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               {tenant.tenantBranding?.logoUrl ? /* Tenant-owned URLs cannot be statically configured for next/image. */ <img alt={tenant.name} className="h-9 w-9 rounded-xl object-cover" src={tenant.tenantBranding.logoUrl} /> : null}
               <span className="font-semibold">{tenant.tenantBranding?.brandName ?? tenant.name}</span>
             </div>
-            <a className="rounded-full border border-line px-4 py-2 text-sm font-semibold" href="/sign-in">Giriş yap</a>
+            <a className="hidden rounded-full border border-line px-4 py-2 text-sm font-semibold lg:inline-flex" href="/sign-in">Giriş yap</a>
           </div>
         </header>
         <div className="mx-auto grid max-w-7xl gap-8 px-6 py-16 md:px-10">
@@ -58,6 +59,7 @@ export default async function HomePage() {
           ))}
           {sections.length === 0 ? <section className="panel p-10"><h1 className="text-3xl font-semibold">{tenant.name}</h1><p className="mt-3 text-muted">Bu tenant için yayınlanmış ana sayfa içeriği bulunmuyor.</p></section> : null}
         </div>
+        <MobileBottomNav homeHref="/" profileHref="/sign-in?next=%2F" profileLabel="Giriş" />
       </main>
     );
   }

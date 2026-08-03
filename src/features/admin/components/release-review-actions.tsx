@@ -10,20 +10,24 @@ export function ReleaseReviewActions({ releaseId, status }: { releaseId: string;
   const canReview = ["PENDING_REVIEW", "REVISION_REQUESTED", "DRAFT"].includes(status);
   const canQueue = status === "APPROVED";
 
-  async function run(action: "APPROVE" | "REJECT" | "QUEUE_DISTRIBUTION") {
+  async function run(action: "APPROVE" | "REJECT" | "REQUEST_REVISION" | "QUEUE_DISTRIBUTION") {
     setPending(true);
     setMessage(null);
-    const reason = action === "REJECT" ? window.prompt("Ret gerekçesi") ?? "" : undefined;
-    if (action === "REJECT" && !(reason ?? "").trim()) { setPending(false); return; }
-    const response = await fetch(`/api/admin/releases/${releaseId}/action`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action, ...(reason ? { reason } : {}), revisionItems: [] }) });
+    const needsReason = action === "REJECT" || action === "REQUEST_REVISION";
+    const reason = needsReason ? window.prompt(action === "REJECT" ? "Ret gerekçesi" : "Revizyon açıklaması") ?? "" : undefined;
+    if (needsReason && !(reason ?? "").trim()) { setPending(false); return; }
+    const body = action === "REQUEST_REVISION"
+      ? { action, reason, revisionItems: [{ category: "OTHER", fieldPath: "release", message: reason, severity: "ERROR" }] }
+      : { action, ...(reason ? { reason } : {}), revisionItems: [] };
+    const response = await fetch(`/api/admin/releases/${releaseId}/action`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
     const payload = await response.json().catch(() => null);
     setPending(false);
     if (!response.ok) { setMessage(payload?.error?.includes("distribution.enabled") ? "Dağıtım özelliği sanatçı planında kapalı. Admin veya moderatör operasyon yetkisiyle bu kısıt aşılabilir; sanatçı hesabı için Faturalandırma bölümünden dağıtım özelliğini içeren planı etkinleştirin." : payload?.error ?? "İşlem başarısız."); return; }
-    setMessage(action === "QUEUE_DISTRIBUTION" ? "Dağıtım kuyruğuna alındı." : "İşlem tamamlandı.");
+    setMessage(action === "QUEUE_DISTRIBUTION" ? "Dağıtım kuyruğuna alındı." : action === "REQUEST_REVISION" ? "Revizyon isteği kullanıcıya bildirildi." : "İşlem tamamlandı.");
     router.refresh();
   }
 
-  return <section className="panel border-line bg-surface p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">İnceleme işlemleri</p><p className="mt-1 text-sm text-muted">Ses, kapak ve metadata kontrolünden sonra yayını yönetin.</p></div><div className="flex flex-wrap gap-2">{canReview ? <><button className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground disabled:opacity-50" disabled={pending} onClick={() => void run("APPROVE")}>Onayla</button><button className="rounded-full border border-danger px-4 py-2 text-sm font-semibold text-danger disabled:opacity-50" disabled={pending} onClick={() => void run("REJECT")}>Reddet</button></> : null}{canQueue ? <button className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background disabled:opacity-50" disabled={pending} onClick={() => void run("QUEUE_DISTRIBUTION")}>Dağıtıma al</button> : null}</div></div>{message ? <p className="mt-3 rounded-xl border border-line bg-surface-strong p-3 text-sm" role="status">{message}</p> : null}</section>;
+  return <section className="panel border-line bg-surface p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">İnceleme işlemleri</p><p className="mt-1 text-sm text-muted">Ses, kapak ve yayın bilgilerini kontrol ederek kullanıcıya net geri bildirim verin.</p></div><div className="flex flex-wrap gap-2">{canReview ? <><button className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground disabled:opacity-50" disabled={pending} onClick={() => void run("APPROVE")}>Onayla</button>{status !== "DRAFT" ? <button className="rounded-full border border-orange-400 px-4 py-2 text-sm font-semibold text-orange-600 disabled:opacity-50" disabled={pending} onClick={() => void run("REQUEST_REVISION")}>Revizyon iste</button> : null}<button className="rounded-full border border-danger px-4 py-2 text-sm font-semibold text-danger disabled:opacity-50" disabled={pending} onClick={() => void run("REJECT")}>Reddet</button></> : null}{canQueue ? <button className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background disabled:opacity-50" disabled={pending} onClick={() => void run("QUEUE_DISTRIBUTION")}>Dağıtıma al</button> : null}</div></div>{message ? <p className="mt-3 rounded-xl border border-line bg-surface-strong p-3 text-sm" role="status">{message}</p> : null}</section>;
 }
 
 export function ReleasePreview({ artworkUploadId, artworkUpload, audioUploadId, audioUpload, uploads = [] }: { artworkUploadId: string | null; artworkUpload?: { id: string; fileName: string; mimeType: string } | null; audioUploadId: string | null; audioUpload?: { id: string; fileName: string; mimeType: string } | null; uploads?: Array<{ id: string; fileName: string; mimeType: string; kind?: string }> }) {

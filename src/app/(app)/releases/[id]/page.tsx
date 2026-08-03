@@ -10,7 +10,18 @@ import { releaseDeliveryRepository } from "@/features/distribution-hub/server/re
 import { releaseIntelligenceService } from "@/features/intelligence/server/services/release-intelligence.service";
 import { DiscoverCommentForm } from "@/features/growth/components/discover-comment-form";
 import { DiscoverLikeButton } from "@/features/growth/components/discover-like-button";
+import { ReleaseTrackRow } from "@/features/releases/components/release-track-row";
 import { prisma } from "@/server/prisma/prisma";
+
+const deliveryStatusLabels: Record<string, string> = {
+  ACCEPTED: "Kabul edildi",
+  QUEUED: "Sıraya alındı",
+  PROCESSING: "İşleniyor",
+  DISTRIBUTED: "Dağıtıldı",
+  LIVE: "Yayında",
+  FAILED: "Başarısız",
+  CANCELLED: "İptal edildi",
+};
 
 type ReleaseDetailPageProps = {
   params: Promise<{
@@ -53,7 +64,7 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
   const artworkUpload = release.uploads.find((upload) => upload.id === release.artworkUploadId);
 
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-6 py-10 md:px-10">
+    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-7 sm:px-6 md:px-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase text-muted">Yayın detayı</p>
@@ -65,18 +76,24 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
         </div>
         {["DRAFT", "REVISION_REQUESTED"].includes(release.status) ? (
           <Button variant="secondary">
-            <Link href={`/releases/${release.id}/edit`}>Düzenle</Link>
+            <Link href={`/releases/${release.id}/edit`}>
+              {release.status === "DRAFT" ? "Yayını düzenle" : "Revizyon gönder"}
+            </Link>
           </Button>
-        ) : null}
+        ) : (
+          <Button variant="secondary">
+            <Link href={`/contact?subject=${encodeURIComponent(`${release.title} yayını için destek`)}`}>Destek ekibine yaz</Link>
+          </Button>
+        )}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <section className="rounded-3xl border border-line bg-surface p-6 lg:row-span-2">
+        <section className="rounded-3xl border border-line bg-surface p-5 lg:row-span-2">
           <h2 className="text-xl font-semibold">Kapak görseli</h2>
-          {artworkUpload ? <img alt={`${release.title} kapak görseli`} className="mt-5 aspect-square w-full max-w-md rounded-3xl object-cover" src={`/api/storage/private/${artworkUpload.id}`} /> : <div className="mt-5 grid aspect-square w-full max-w-md place-items-center rounded-3xl border border-dashed border-line bg-surface-strong text-center text-sm text-muted">Henüz kapak yüklenmedi.<br />Yayın düzenleme ekranından kapak ekleyin.</div>}
+          {artworkUpload ? <img alt={`${release.title} kapak görseli`} className="mx-auto mt-5 aspect-square w-full max-w-[240px] rounded-2xl object-cover shadow-sm" src={`/api/storage/private/${artworkUpload.id}`} /> : <div className="mx-auto mt-5 grid aspect-square w-full max-w-[240px] place-items-center rounded-2xl border border-dashed border-line bg-surface-strong text-center text-sm text-muted">Henüz kapak yüklenmedi.<br />Yayın düzenleme ekranından kapak ekleyin.</div>}
         </section>
         <section className="rounded-3xl border border-line bg-surface p-6">
-          <h2 className="text-xl font-semibold">Metadata</h2>
+          <h2 className="text-xl font-semibold">Yayın bilgileri</h2>
           <dl className="mt-5 grid gap-4 text-sm md:grid-cols-2">
             <DetailItem label="Birincil dil" value={release.primaryLanguage} />
             <DetailItem label="Tür" value={release.primaryGenre} />
@@ -105,14 +122,9 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
           </div>
           <div className="flex items-center gap-3 text-sm text-muted"><span>{engagement[0]} oy</span><span>{engagement[1]} yorum</span><DiscoverLikeButton releaseId={release.id} /></div>
         </div>
-        <div className="mt-5 divide-y divide-line rounded-2xl border border-line bg-white">
+        <div className="mt-5 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface-strong">
           {release.tracks.map((track) => (
-            <article className="grid gap-3 px-5 py-4 text-sm md:grid-cols-[0.2fr_1fr_0.8fr_0.8fr]" key={track.id}>
-              <span>{track.trackNumber}</span>
-              <div><span className="font-semibold">{track.title}</span>{track.audioUploadId ? <audio className="mt-2 h-9 w-full max-w-md" controls preload="metadata" src={`/api/storage/private/${track.audioUploadId}`} /> : <p className="mt-1 text-xs text-muted">Ses dosyası henüz yüklenmedi.</p>}</div>
-              <span>{track.artists.map((artist) => artist.artist.name).join(", ")}</span>
-              <span>{track.isrc ?? "ISRC sağlayıcıdan"}</span>
-            </article>
+            <ReleaseTrackRow audioUploadId={track.audioUploadId} artists={track.artists.map((artist) => artist.artist.name).join(", ")} isrc={track.isrc} key={track.id} number={track.trackNumber} title={track.title} />
           ))}
         </div>
         <DiscoverCommentForm releaseId={release.id} isAuthenticated />
@@ -120,11 +132,11 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
 
       <section className="rounded-3xl border border-line bg-surface p-6">
         <h2 className="text-xl font-semibold">Dağıtım durumu</h2>
-        <div className="mt-5 divide-y divide-line rounded-2xl border border-line bg-white">
+        <div className="mt-5 divide-y divide-line rounded-2xl border border-line bg-surface-strong">
           {deliveries.map((delivery) => (
             <article className="grid gap-3 px-5 py-4 text-sm md:grid-cols-[0.6fr_1fr]" key={delivery.id}>
-              <span className="font-semibold">{delivery.status}</span>
-              <span>{delivery.failureReason ?? delivery.externalReleaseId ?? "Radarune dağıtım işlemi devam ediyor"}</span>
+              <span className="font-semibold">{deliveryStatusLabels[delivery.status] ?? "İşlem durumu güncelleniyor"}</span>
+              <span>{delivery.failureReason ?? (delivery.externalReleaseId ? "Dağıtım kaydı oluşturuldu" : "Radarune dağıtım işlemi devam ediyor")}</span>
             </article>
           ))}
           {deliveries.length === 0 ? (
@@ -139,7 +151,7 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
             <p className="text-xs font-semibold uppercase text-muted">Radarune zekâ</p>
             <h2 className="mt-2 text-xl font-semibold">Yayın hazırlık skoru</h2>
           </div>
-          <span className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold">
+          <span className="rounded-full border border-line bg-surface-strong px-4 py-2 text-sm font-semibold">
             Skor: {intelligence?.readiness?.score ?? "Henüz hesaplanmadı"}
           </span>
         </div>
@@ -149,7 +161,7 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
           <DetailItem label="Son analiz" value={intelligence?.readiness?.createdAt.toLocaleString("tr-TR") ?? "Yok"} />
         </div>
         <p className="mt-4 text-sm leading-7 text-muted">
-          Deterministic validation ve readiness hesaplaması provider bağımsızdır. Harici AI provider yapılandırılmadan metadata önerisi veya vision analizi üretilmez.
+          Yayın doğrulaması ve hazırlık hesabı dağıtım sağlayıcısından bağımsızdır. Harici yapay zekâ bağlantısı kurulmadan metadata önerisi veya görsel analizi üretilmez.
         </p>
       </section>
 

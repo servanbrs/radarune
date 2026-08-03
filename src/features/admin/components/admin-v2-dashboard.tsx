@@ -83,7 +83,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
   );
 
   return (
-    <main className="min-h-screen bg-[#f3f5f4] text-[#101817]">
+    <main className="min-h-screen bg-[#0d1c1a] text-[#eef7f5]">
       <div className="mx-auto w-full max-w-[1680px] px-4 py-6 sm:px-6 lg:px-8">
         <section className="relative overflow-hidden rounded-[32px] bg-[#101817] px-6 py-8 text-white shadow-[0_28px_90px_rgba(15,23,42,0.2)] sm:px-9 lg:px-11">
           <div className="pointer-events-none absolute -right-24 -top-36 size-[430px] rounded-full bg-emerald-400/20 blur-[100px]" />
@@ -159,7 +159,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
         </section>
 
         <section className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(420px,.8fr)]">
-          <article className="rounded-[28px] border border-black/[0.06] bg-white p-5 shadow-[0_18px_55px_rgba(15,23,42,0.07)] sm:p-6">
+          <article className="rounded-[28px] border border-white/[0.08] bg-[#122421] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.2)] sm:p-6">
             <SectionHeading
               eyebrow="Kullanıcı analizi"
               title="Son 30 gün yeni kullanıcılar"
@@ -190,16 +190,15 @@ export function AdminV2Dashboard({ dashboard }: Props) {
               })}
             </div>
 
-            <div className="mt-4 flex items-center justify-between text-xs text-[#8b9693]">
+            <div className="mt-4 flex items-center justify-between text-xs text-white/45">
               <span>{dashboard.charts.dailyUsers[0]?.label}</span>
 
               <span>Bugün</span>
             </div>
           </article>
 
-          <article className="overflow-hidden rounded-[28px] border border-black/[0.06] bg-[#101817] p-5 text-white shadow-[0_20px_65px_rgba(15,23,42,0.18)] sm:p-6">
+          <article className="overflow-hidden rounded-[28px] border border-white/[0.08] bg-[#101817] p-5 text-white shadow-[0_20px_65px_rgba(0,0,0,0.25)] sm:p-6">
             <SectionHeading
-              dark
               eyebrow="Global dağılım"
               title="Ülke bazlı müzik aktivitesi"
               icon={Globe2}
@@ -248,7 +247,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
             href="/admin/distribution/jobs"
           />
 
-          <article className="rounded-[28px] border border-black/[0.06] bg-white p-5 shadow-[0_18px_55px_rgba(15,23,42,0.07)] sm:p-6">
+          <article className="rounded-[28px] border border-white/[0.08] bg-[#122421] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.2)] sm:p-6">
             <SectionHeading
               eyebrow="Canlı kayıt"
               title="Son yönetim aktiviteleri"
@@ -258,17 +257,17 @@ export function AdminV2Dashboard({ dashboard }: Props) {
             <div className="mt-5 space-y-3">
               {dashboard.recentActivities.map((activity) => (
                 <div
-                  className="flex items-start gap-3 rounded-2xl bg-[#f7f9f8] p-3.5"
+                  className="flex items-start gap-3 rounded-2xl border border-white/[0.06] bg-[#182d29] p-3.5"
                   key={activity.id}
                 >
                   <span className="mt-1.5 size-2 shrink-0 rounded-full bg-emerald-500" />
 
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold">
+                    <p className="truncate text-sm font-semibold text-white">
                       {activity.action}
                     </p>
 
-                    <p className="mt-1 truncate text-xs text-[#8b9693]">
+                    <p className="mt-1 truncate text-xs text-white/45">
                       {activity.actor} · {activity.entityType}
                     </p>
                   </div>
@@ -283,7 +282,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
               ))}
 
               {!dashboard.recentActivities.length ? (
-                <p className="rounded-2xl bg-[#f7f9f8] p-4 text-sm text-[#65706e]">
+                <p className="rounded-2xl border border-white/[0.06] bg-[#182d29] p-4 text-sm text-white/55">
                   Henüz yönetim aktivitesi bulunmuyor.
                 </p>
               ) : null}
@@ -307,7 +306,7 @@ function MetricCard({
   hint: string;
 }) {
   return (
-    <article className="rounded-[24px] border border-black/[0.06] bg-white p-5 shadow-[0_14px_42px_rgba(15,23,42,0.06)]">
+    <article className="rounded-[24px] border border-white/[0.08] bg-[#122421] p-5 shadow-[0_14px_42px_rgba(0,0,0,0.18)]">
       <div className="flex items-center justify-between">
         <div className="flex size-11 items-center justify-center rounded-2xl bg-[#101817] text-white">
           <Icon className="size-5" />
@@ -320,9 +319,9 @@ function MetricCard({
         {formatNumber(value)}
       </p>
 
-      <p className="mt-1 text-sm font-semibold">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-white">{label}</p>
 
-      <p className="mt-2 text-xs text-[#8b9693]">{hint}</p>
+      <p className="mt-2 text-xs text-white/45">{hint}</p>
     </article>
   );
 }
@@ -331,34 +330,30 @@ function SectionHeading({
   eyebrow,
   title,
   icon: Icon,
-  dark = false,
 }: {
   eyebrow: string;
   title: string;
   icon: typeof Users;
-  dark?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <div>
         <p
           className={`text-[11px] font-bold uppercase tracking-[0.18em] ${
-            dark ? "text-emerald-300" : "text-emerald-700"
+            "text-emerald-300"
           }`}
         >
           {eyebrow}
         </p>
 
-        <h2 className="mt-2 text-xl font-semibold tracking-[-0.035em]">
+        <h2 className="mt-2 text-xl font-semibold tracking-[-0.035em] text-white">
           {title}
         </h2>
       </div>
 
       <div
         className={`flex size-11 items-center justify-center rounded-2xl ${
-          dark
-            ? "bg-white/10 text-emerald-300"
-            : "bg-emerald-500/10 text-emerald-700"
+          "bg-emerald-300/10 text-emerald-300"
         }`}
       >
         <Icon className="size-5" />
@@ -438,7 +433,7 @@ function StatusPanel({
   const max = Math.max(1, ...items.map((item) => item.value));
 
   return (
-    <article className="rounded-[28px] border border-black/[0.06] bg-white p-5 shadow-[0_18px_55px_rgba(15,23,42,0.07)] sm:p-6">
+    <article className="rounded-[28px] border border-white/[0.08] bg-[#122421] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.2)] sm:p-6">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-700">
@@ -460,14 +455,14 @@ function StatusPanel({
         {items.slice(0, 6).map((item) => (
           <div key={item.name}>
             <div className="flex items-center justify-between gap-3 text-xs">
-              <span className="truncate font-semibold text-[#52605d]">
+              <span className="truncate font-semibold text-white/70">
                 {statusLabels[item.name] ?? item.name}
               </span>
 
-              <span className="text-[#8b9693]">{formatNumber(item.value)}</span>
+              <span className="text-white/45">{formatNumber(item.value)}</span>
             </div>
 
-            <div className="mt-2 h-2 overflow-hidden rounded-full bg-black/[0.05]">
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/[0.08]">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-emerald-600 to-emerald-300"
                 style={{
@@ -479,7 +474,7 @@ function StatusPanel({
         ))}
 
         {!items.length ? (
-          <p className="rounded-2xl bg-[#f7f9f8] p-4 text-sm text-[#65706e]">
+          <p className="rounded-2xl border border-white/[0.06] bg-[#182d29] p-4 text-sm text-white/55">
             Henüz veri bulunmuyor.
           </p>
         ) : null}

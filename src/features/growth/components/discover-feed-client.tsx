@@ -28,17 +28,6 @@ type DiscoverFeedClientProps = {
   isAuthenticated?: boolean;
 };
 
-function stableSortKey(value: string) {
-  let hash = 2166136261;
-
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-
-  return hash >>> 0;
-}
-
 function artworkUrl(item: DiscoverFeedItem | null) {
   if (!item) return null;
 
@@ -61,12 +50,6 @@ export function DiscoverFeedClient({
 
   const [inlinePlayingId, setInlinePlayingId] = useState<string | null>(null);
 
-  const [randomOrder] = useState(() =>
-    [...feed]
-      .sort((left, right) => stableSortKey(left.id) - stableSortKey(right.id))
-      .map((item) => item.id),
-  );
-
   const [drag, setDrag] = useState({
     x: 0,
     y: 0,
@@ -78,13 +61,9 @@ export function DiscoverFeedClient({
 
   const visibleFeed = useMemo(() => {
     if (sortMode === "recommended") {
-      const rank = new Map(randomOrder.map((id, index) => [id, index]));
-
-      return [...feed].sort(
-        (left, right) =>
-          (rank.get(left.id) ?? Number.MAX_SAFE_INTEGER) -
-          (rank.get(right.id) ?? Number.MAX_SAFE_INTEGER),
-      );
+      // The server has weighted-randomized this request by votes and
+      // freshness. Keep that order so every visit feels different.
+      return feed;
     }
 
     return [...feed].sort(
@@ -92,7 +71,7 @@ export function DiscoverFeedClient({
         (right.likeCount ?? 0) - (left.likeCount ?? 0) ||
         right.score - left.score,
     );
-  }, [feed, randomOrder, sortMode]);
+  }, [feed, sortMode]);
 
   const activeItem = visibleFeed[activeIndex] ?? null;
 
@@ -315,11 +294,11 @@ export function DiscoverFeedClient({
       <div className="relative mb-6 flex flex-col items-center justify-between gap-4 px-1 sm:mb-8 lg:flex-row">
         <div>
           <p className="text-center text-[11px] font-bold uppercase tracking-[0.28em] text-emerald-700 lg:text-left">
-            Sana özel akış
+            Keşif akışı
           </p>
 
           <p className="mt-2 text-center text-sm text-[#65706e] lg:text-left">
-            {activeIndex + 1} / {visibleFeed.length} içerik
+            Oy ve tazeliğe göre karışan yeni içerikler
           </p>
         </div>
 
@@ -337,7 +316,7 @@ export function DiscoverFeedClient({
             }}
             type="button"
           >
-            Sana özel
+            Keşif
           </button>
 
           <button

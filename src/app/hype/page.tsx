@@ -3,13 +3,15 @@ import { ArrowUpRight, Flame, Sparkles, TrendingUp } from "lucide-react";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { PublicGrowthShell } from "@/features/growth/components/public-shell";
 import { discoverService } from "@/features/growth/server/services/discover.service";
+import { tenantContextService } from "@/features/platform/server/services/tenant-context.service";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Hype | Radarune", description: "Radarune topluluğunda ivme kazanan yeni şarkılar ve sanatçılar." };
 
 export default async function HypePage() {
   const session = await authSessionService.getOptionalSession();
-  const feed = (await discoverService.getFeed()).sort((a, b) => (b.likeCount ?? 0) - (a.likeCount ?? 0) || b.score - a.score).slice(0, 12);
+  const tenant = await tenantContextService.resolveFromRequest();
+  const feed = (await discoverService.getFeed(undefined, tenant?.id)).sort((a, b) => (b.likeCount ?? 0) - (a.likeCount ?? 0) || b.score - a.score).slice(0, 12);
   const artists = new Set(feed.map((item) => item.artist?.id).filter(Boolean)).size;
   const currentUser = session ? { name: session.user.name, username: "username" in session.user && typeof session.user.username === "string" ? session.user.username : null } : null;
   return <PublicGrowthShell currentUser={currentUser}>

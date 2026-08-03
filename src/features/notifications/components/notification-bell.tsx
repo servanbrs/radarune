@@ -182,7 +182,7 @@ export function NotificationBell() {
       <button
         aria-expanded={open}
         aria-label="Bildirimler"
-        className="relative inline-flex size-10 items-center justify-center rounded-full border border-black/5 bg-white text-black/65 shadow-sm transition hover:border-black/10 hover:bg-black/[0.04] hover:text-black"
+        className="relative inline-flex size-10 items-center justify-center rounded-full border border-white/15 bg-[#18332e] text-white shadow-[0_8px_24px_rgba(0,0,0,0.2)] transition hover:border-emerald-300/50 hover:bg-[#23463e] hover:text-emerald-100"
         onClick={() => setOpen((current) => !current)}
         type="button"
       >
@@ -198,15 +198,15 @@ export function NotificationBell() {
       {open ? (
         <section
           aria-label="Bildirim listesi"
-          className="absolute right-0 top-12 z-[100] w-[min(360px,calc(100vw-24px))] overflow-hidden rounded-3xl border border-black/10 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.22)]"
+          className="absolute right-0 top-12 z-[100] w-[min(360px,calc(100vw-24px))] overflow-hidden rounded-3xl border border-white/10 bg-[#10231f] text-white shadow-[0_24px_80px_rgba(0,0,0,0.35)]"
         >
           <header className="flex items-center justify-between border-b border-black/5 px-4 py-4">
             <div>
-              <p className="text-sm font-bold text-black">
+                <p className="text-sm font-bold text-white">
                 Bildirimler
               </p>
 
-              <p className="mt-0.5 text-xs text-black/45">
+              <p className="mt-0.5 text-xs text-white/55">
                 {unread
                   ? `${unread} okunmamış bildirim`
                   : "Yeni bildirim bulunmuyor"}
@@ -216,7 +216,7 @@ export function NotificationBell() {
             <div className="flex items-center gap-1">
               <button
                 aria-label="Bildirimleri yenile"
-                className="inline-flex size-9 items-center justify-center rounded-full text-black/45 transition hover:bg-black/5 hover:text-black"
+                className="inline-flex size-9 items-center justify-center rounded-full text-white/55 transition hover:bg-white/10 hover:text-white"
                 disabled={refreshing}
                 onClick={() => void loadNotifications(true)}
                 type="button"
@@ -230,7 +230,7 @@ export function NotificationBell() {
 
               <button
                 aria-label="Bildirimleri kapat"
-                className="inline-flex size-9 items-center justify-center rounded-full text-black/45 transition hover:bg-black/5 hover:text-black"
+                className="inline-flex size-9 items-center justify-center rounded-full text-white/55 transition hover:bg-white/10 hover:text-white"
                 onClick={() => setOpen(false)}
                 type="button"
               >
@@ -242,7 +242,7 @@ export function NotificationBell() {
           {unread > 0 ? (
             <div className="border-b border-black/5 px-4 py-2">
               <button
-                className="inline-flex items-center gap-2 text-xs font-semibold text-[#087d70] disabled:opacity-50"
+                className="inline-flex items-center gap-2 text-xs font-semibold text-emerald-300 disabled:opacity-50"
                 disabled={markingRead}
                 onClick={() => void markAllRead()}
                 type="button"
@@ -284,7 +284,7 @@ export function NotificationBell() {
                     className={`rounded-2xl px-4 py-3 transition ${
                       item.readAt
                         ? "bg-transparent"
-                        : "bg-[#0b8274]/[0.07]"
+                        : "bg-emerald-300/10"
                     }`}
                     key={item.id}
                   >
@@ -292,21 +292,21 @@ export function NotificationBell() {
                       <span
                         className={`mt-1.5 size-2 shrink-0 rounded-full ${
                           item.readAt
-                            ? "bg-black/15"
-                            : "bg-[#0b8274]"
+                            ? "bg-white/20"
+                            : "bg-emerald-300"
                         }`}
                       />
 
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold leading-5 text-black">
+                        <p className="text-sm font-semibold leading-5 text-white">
                           {item.title}
                         </p>
 
-                        <p className="mt-1 text-xs leading-5 text-black/55">
+                        <p className="mt-1 text-xs leading-5 text-white/65">
                           {item.message}
                         </p>
 
-                        <p className="mt-2 text-[11px] font-medium text-black/35">
+                        <p className="mt-2 text-[11px] font-medium text-white/40">
                           {formatNotificationDate(item.createdAt)}
                         </p>
                       </div>
@@ -320,11 +320,11 @@ export function NotificationBell() {
                   <Bell className="size-5" />
                 </span>
 
-                <p className="mt-3 text-sm font-semibold text-black">
+                <p className="mt-3 text-sm font-semibold text-white">
                   Bildirim yok
                 </p>
 
-                <p className="mt-1 text-xs leading-5 text-black/45">
+                <p className="mt-1 text-xs leading-5 text-white/55">
                   Oylar, yorumlar ve yayın güncellemeleri burada
                   görünecek.
                 </p>

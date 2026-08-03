@@ -38,6 +38,7 @@ export type RadaruneDiscoverItem = {
   trackId: string | null;
   externalMediaId?: null;
   likeCount?: number;
+  isFollowing?: boolean;
   artist: {
     id: string;
     name: string;
@@ -62,6 +63,7 @@ export type ExternalDiscoverItem = {
   trackId: string | null;
   externalMediaId: string;
   likeCount: number;
+  isFollowing?: boolean;
   artist: {
     id: string;
     name: string;
@@ -93,6 +95,40 @@ function freshnessScore(date: Date | null, maximum: number) {
   if (hours <= 24 * 30) return maximum * 0.25;
 
   return 0;
+}
+
+function weightedDiscoverOrder(items: DiscoverFeedItem[]) {
+  return items
+    .map((item) => {
+      const votes = Math.max(0, item.likeCount ?? 0);
+      const freshness = freshnessScore(item.publishedAt, 8);
+      // Weighted sampling keeps every item eligible while giving higher-voted
+      // and fresher items a stronger chance to lead each visit.
+      const weight = 1 + Math.log1p(votes) * 3 + freshness;
+      return { item, key: Math.pow(Math.random(), 1 / weight) };
+    })
+    .sort((left, right) => right.key - left.key)
+    .map(({ item }) => item);
+}
+
+type DiscoverScoringWeights = {
+  vote: number;
+  like: number;
+  completionRate: number;
+};
+
+function parseScoringWeights(value: Prisma.JsonValue | null): DiscoverScoringWeights {
+  const record = value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+  const numberOr = (key: keyof DiscoverScoringWeights, fallback: number) =>
+    typeof record[key] === "number" ? record[key] as number : fallback;
+
+  return {
+    vote: numberOr("vote", 1 / 3),
+    like: numberOr("like", 1 / 3),
+    completionRate: numberOr("completionRate", 1 / 3),
+  };
 }
 
 export class DiscoverService {
@@ -187,7 +223,18 @@ export class DiscoverService {
 );
 }
 
-  async getFeed(actor?: FinanceActorContext): Promise<DiscoverFeedItem[]> {
+  async getFeed(actor?: FinanceActorContext, tenantOrganizationId?: string): Promise<DiscoverFeedItem[]> {
+    const configOrganizationId = actor?.organizationId ?? tenantOrganizationId;
+    const discoverConfig = configOrganizationId
+      ? await prisma.discoverConfig.findUnique({
+          where: { organizationId: configOrganizationId },
+          select: { enabled: true, scoringWeights: true },
+        })
+      : null;
+
+    if (discoverConfig?.enabled === false) return [];
+    const scoringWeights = parseScoringWeights(discoverConfig?.scoringWeights ?? null);
+    const voteMultiplier = 4 + scoringWeights.vote * 12 + scoringWeights.like * 8;
     const seenTrackIds = actor
       ? (
           await prisma.discoverEvent.findMany({
@@ -368,7 +415,7 @@ export class DiscoverService {
         // A distributed release always stays ahead of non-distributed
         // releases. Votes are the ranking signal within each tier.
         const distributionPriority = release.status === "DISTRIBUTED" ? 1_000_000 : 500_000;
-        const voteScore = Math.min(release._count.releaseLikes, 1000) * 8;
+        const voteScore = Math.min(release._count.releaseLikes, 1000) * voteMultiplier;
 
         return {
           sourceType: "RADARUNE",
@@ -392,7 +439,7 @@ export class DiscoverService {
           score:
             distributionPriority +
             voteScore +
-            freshnessScore(publishedAt, 80) +
+            freshnessScore(publishedAt, 80 * (0.5 + scoringWeights.completionRate)) +
             recommendationScore,
         };
       },
@@ -432,7 +479,7 @@ export class DiscoverService {
           artist: source.artist,
           score:
             25 +
-            Math.min(source._count.likes, 100) * 0.8 +
+            Math.min(source._count.likes, 100) * (0.4 + scoringWeights.vote * 0.8 + scoringWeights.like * 0.8) +
             importOrderScore +
             freshnessScore(publishedAt, 35),
         };
@@ -447,9 +494,30 @@ export class DiscoverService {
       ).values(),
     );
 
-    return uniqueItems
-      .sort((left, right) => right.score - left.score)
-      .slice(0, 40);
+    const followingArtistIds = actor
+      ? new Set(
+          (
+            await prisma.follow.findMany({
+              where: {
+                userId: actor.userId,
+                artistId: {
+                  in: uniqueItems.flatMap((item) => (item.artist ? [item.artist.id] : [])),
+                },
+              },
+              select: { artistId: true },
+            })
+          ).map((follow) => follow.artistId),
+        )
+      : null;
+
+    const hydratedItems = uniqueItems.map((item) => ({
+      ...item,
+      ...(item.artist && followingArtistIds
+        ? { isFollowing: followingArtistIds.has(item.artist.id) }
+        : {}),
+    }));
+
+    return weightedDiscoverOrder(hydratedItems).slice(0, 40);
   }
 
   async getCandidates(actor?: FinanceActorContext) {
