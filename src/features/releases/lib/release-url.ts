@@ -12,7 +12,8 @@ export function releaseSlug(title: string, id: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 72);
-  return `${normalized || "yayin"}-${id.slice(0, 8)}`;
+  const publicToken = id.startsWith("cms") ? id.slice(3, 11) : id.slice(0, 8);
+  return `${normalized || "yayin"}-${publicToken}`;
 }
 
 export function releasePublicPath(title: string, id: string) {
@@ -21,5 +22,5 @@ export function releasePublicPath(title: string, id: string) {
 
 export function releaseIdTokenFromSlug(slug: string) {
   const token = slug.split("-").at(-1) ?? "";
-  return /^[a-z0-9]{8,}$/i.test(token) ? token : null;
+  return /^[a-z0-9]{8}$/i.test(token) || /^cms[a-z0-9]{5}$/i.test(token) ? token : null;
 }

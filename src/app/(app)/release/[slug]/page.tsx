@@ -6,7 +6,7 @@ export default async function PublicReleaseSlugPage({ params }: { params: Promis
   const { slug } = await params;
   const token = releaseIdTokenFromSlug(slug);
   if (!token) notFound();
-  const release = await prisma.release.findFirst({ where: { id: { startsWith: token } }, select: { id: true } });
+  const release = await prisma.release.findFirst({ where: { OR: [{ id: { startsWith: token } }, { id: { startsWith: `cms${token}` } }] }, select: { id: true } });
   if (!release) notFound();
   const { default: ReleaseDetailPage } = await import("@/app/(app)/releases/[id]/page");
   return <ReleaseDetailPage params={Promise.resolve({ id: release.id })} />;

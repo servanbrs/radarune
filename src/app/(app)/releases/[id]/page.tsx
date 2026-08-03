@@ -45,7 +45,7 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
   }
   const token = releaseIdTokenFromSlug(id);
   const resolvedId = token
-    ? (await prisma.release.findFirst({ where: { id: { startsWith: token }, organizationId: organization.organization.id }, select: { id: true } }))?.id
+    ? (await prisma.release.findFirst({ where: { organizationId: organization.organization.id, OR: [{ id: { startsWith: token } }, { id: { startsWith: `cms${token}` } }] }, select: { id: true } }))?.id
     : id;
   const release = await releaseService.getRelease(
     actor,
