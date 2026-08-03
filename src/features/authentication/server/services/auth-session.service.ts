@@ -32,9 +32,16 @@ const getDashboardContext = cache(async (): Promise<{
 });
 
 const getSession = cache(async () => {
-  return auth.api.getSession({
-    headers: await headers(),
-  });
+  const requestHeaders = await headers();
+  const cookieHeader = requestHeaders.get("cookie") ?? "";
+
+  // Public pages are also rendered through the shared app layout. Avoid a
+  // remote database round-trip for anonymous visitors; Better Auth cannot
+  // have a session when the session cookie is absent.
+  const hasSessionCookie = /(?:^|;\s*)(?:__Secure-)?better-auth\.session_token=/.test(cookieHeader);
+  if (!hasSessionCookie) return null;
+
+  return auth.api.getSession({ headers: requestHeaders });
 });
 
 class AuthSessionService {
