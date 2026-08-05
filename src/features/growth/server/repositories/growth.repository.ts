@@ -141,6 +141,7 @@ export class GrowthRepository {
     smartLinkId: string;
     visitorHash: string;
     ipHash: string;
+    country?: string;
     userAgent?: string;
     referrer?: string;
     utmSource?: string;
@@ -153,6 +154,7 @@ export class GrowthRepository {
         smartLinkId: input.smartLinkId,
         visitorHash: input.visitorHash,
         ipHash: input.ipHash,
+        country: input.country ?? null,
         device: input.userAgent?.slice(0, 120) ?? null,
         browser: input.userAgent?.slice(0, 120) ?? null,
         referrer: input.referrer ?? null,
@@ -170,6 +172,7 @@ export class GrowthRepository {
     platformId: string;
     visitorHash: string;
     ipHash: string;
+    country?: string;
     userAgent?: string;
     referrer?: string;
     utmSource?: string;
@@ -184,6 +187,7 @@ export class GrowthRepository {
           platformId: input.platformId,
           visitorHash: input.visitorHash,
           ipHash: input.ipHash,
+          country: input.country ?? null,
           device: input.userAgent?.slice(0, 120) ?? null,
           referrer: input.referrer ?? null,
           utmSource: input.utmSource ?? null,

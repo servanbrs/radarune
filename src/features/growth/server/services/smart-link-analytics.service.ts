@@ -7,6 +7,7 @@ export class SmartLinkAnalyticsService {
     organizationId: string;
     smartLinkId: string;
     ip: string;
+    country?: string;
     userAgent?: string;
     referrer?: string;
     utmSource?: string;
@@ -21,6 +22,7 @@ export class SmartLinkAnalyticsService {
       visitorHash,
       ipHash,
       ...(input.userAgent ? { userAgent: input.userAgent } : {}),
+      ...(input.country ? { country: input.country } : {}),
       ...(input.referrer ? { referrer: input.referrer } : {}),
       ...(input.utmSource ? { utmSource: input.utmSource } : {}),
       ...(input.utmMedium ? { utmMedium: input.utmMedium } : {}),
@@ -28,7 +30,7 @@ export class SmartLinkAnalyticsService {
     });
   }
 
-  async recordClick(input: { organizationId: string; smartLinkId: string; platformId: string; ip: string; userAgent?: string; referrer?: string; utmSource?: string; utmMedium?: string; utmCampaign?: string }) {
+  async recordClick(input: { organizationId: string; smartLinkId: string; platformId: string; ip: string; country?: string; userAgent?: string; referrer?: string; utmSource?: string; utmMedium?: string; utmCampaign?: string }) {
     return growthRepository.recordSmartLinkClick({
       organizationId: input.organizationId,
       smartLinkId: input.smartLinkId,
@@ -36,6 +38,7 @@ export class SmartLinkAnalyticsService {
       ipHash: hashPrivacyValue(input.ip),
       visitorHash: hashPrivacyValue(`${input.ip}:${input.userAgent ?? ""}`),
       ...(input.userAgent ? { userAgent: input.userAgent } : {}),
+      ...(input.country ? { country: input.country } : {}),
       ...(input.referrer ? { referrer: input.referrer } : {}),
       ...(input.utmSource ? { utmSource: input.utmSource } : {}),
       ...(input.utmMedium ? { utmMedium: input.utmMedium } : {}),

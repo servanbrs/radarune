@@ -62,6 +62,8 @@ export class AdminV2AnalyticsService {
       playbackToday,
       dailyReleasesRaw,
       countryDistributionRaw,
+      royaltyCountryRaw,
+      liveCountryRaw,
       recentAuditLogs,
       releaseStatusRaw,
       jobStatusRaw,
@@ -207,6 +209,23 @@ export class AdminV2AnalyticsService {
         take: 12,
       }),
 
+      prisma.royaltyLine.groupBy({
+        by: ["countryCode"],
+        where: { organizationId },
+        _sum: { beneficiaryAmountMinor: true },
+      }),
+
+      prisma.smartLinkView.groupBy({
+        by: ["country"],
+        where: {
+          organizationId,
+          country: { not: null },
+          isBot: false,
+          createdAt: { gte: activeThreshold },
+        },
+        _count: { _all: true },
+      }),
+
       prisma.auditLog.findMany({
         where: {
           organizationId,
@@ -256,11 +275,37 @@ export class AdminV2AnalyticsService {
       (user) => user.createdAt >= sevenDaysAgo,
     ).length;
 
-    const countries = countryDistributionRaw.map((country) => ({
-      code: country.countryCode,
-      streams: country._sum.streamCount ?? 0,
-      revenueMinor: Number(country._sum.netRevenueMinor ?? 0n),
-    }));
+    const royaltyByCountry = new Map(
+      royaltyCountryRaw.map((country) => [
+        country.countryCode,
+        Number(country._sum.beneficiaryAmountMinor ?? 0n),
+      ]),
+    );
+    const liveByCountry = new Map(
+      liveCountryRaw
+        .filter((country) => country.country)
+        .map((country) => [country.country!.toUpperCase(), country._count._all]),
+    );
+    const countryCodes = new Set([
+      ...countryDistributionRaw.map((country) => country.countryCode),
+      ...royaltyCountryRaw.map((country) => country.countryCode),
+      ...liveCountryRaw.flatMap((country) =>
+        country.country ? [country.country.toUpperCase()] : [],
+      ),
+    ]);
+    const countries = Array.from(countryCodes)
+      .map((code) => {
+        const store = countryDistributionRaw.find((item) => item.countryCode === code);
+        return {
+          code,
+          streams: store?._sum.streamCount ?? 0,
+          revenueMinor: Number(store?._sum.netRevenueMinor ?? 0n),
+          royaltyMinor: royaltyByCountry.get(code) ?? 0,
+          liveVisitors: liveByCountry.get(code) ?? 0,
+        };
+      })
+      .sort((a, b) => b.streams - a.streams || b.liveVisitors - a.liveVisitors)
+      .slice(0, 20);
 
     return {
       generatedAt: now.toISOString(),

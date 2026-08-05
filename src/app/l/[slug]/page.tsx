@@ -29,10 +29,14 @@ export default async function SmartLinkPublicPage({ params, searchParams }: { pa
   const utmSource = typeof query.utm_source === "string" ? query.utm_source : undefined;
   const utmMedium = typeof query.utm_medium === "string" ? query.utm_medium : undefined;
   const utmCampaign = typeof query.utm_campaign === "string" ? query.utm_campaign : undefined;
+  const country = ["cf-ipcountry", "x-vercel-ip-country", "x-country-code", "x-forwarded-country"]
+    .map((key) => headerList.get(key)?.trim().toUpperCase())
+    .find((value) => value && /^[A-Z]{2}$/.test(value));
   await smartLinkAnalyticsService.recordView({
     organizationId: smartLink.organizationId,
     smartLinkId: smartLink.id,
     ip: headerList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "0.0.0.0",
+    ...(country ? { country } : {}),
     ...(userAgent ? { userAgent } : {}),
     ...(referrer ? { referrer } : {}),
     ...(utmSource ? { utmSource } : {}),

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import type { AdminV2Analytics } from "@/features/admin/server/services/admin-v2-analytics.service";
+import { AdminWorldMap } from "@/features/admin/components/admin-world-map";
 
 type Props = {
   dashboard: AdminV2Analytics;
@@ -71,15 +72,6 @@ export function AdminV2Dashboard({ dashboard }: Props) {
   const maxUsers = Math.max(
     1,
     ...dashboard.charts.dailyUsers.map((item) => item.value),
-  );
-
-  const maxCountryStreams = Math.max(
-    1,
-    ...dashboard.charts.countries.map((item) => item.streams),
-  );
-
-  const visibleCountries = dashboard.charts.countries.filter(
-    (country) => countryCoordinates[country.code],
   );
 
   return (
@@ -204,10 +196,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
               icon={Globe2}
             />
 
-            <WorldMap
-              countries={visibleCountries}
-              maxStreams={maxCountryStreams}
-            />
+            <AdminWorldMap countries={dashboard.charts.countries} />
 
             <div className="mt-5 grid grid-cols-2 gap-2">
               {dashboard.charts.countries.slice(0, 6).map((country) => (
@@ -222,6 +211,16 @@ export function AdminV2Dashboard({ dashboard }: Props) {
                   <p className="mt-1 text-sm font-semibold">
                     {formatNumber(country.streams)} stream
                   </p>
+                  {country.royaltyMinor > 0 ? (
+                    <p className="mt-1 text-xs text-emerald-300">
+                      Royalty: {(country.royaltyMinor / 100).toLocaleString("tr-TR", { style: "currency", currency: "EUR" })}
+                    </p>
+                  ) : null}
+                  {country.liveVisitors > 0 ? (
+                    <p className="mt-1 text-xs text-white/45">
+                      {country.liveVisitors} canlı ziyaretçi
+                    </p>
+                  ) : null}
                 </div>
               ))}
             </div>
@@ -231,6 +230,9 @@ export function AdminV2Dashboard({ dashboard }: Props) {
                 Henüz ülke bazlı royalty/stream verisi bulunmuyor.
               </p>
             ) : null}
+            <p className="mt-4 text-[11px] leading-5 text-white/35">
+              Canlı ziyaretçiler son 15 dakikadaki anonim Smart Link ziyaretleridir. Ham IP adresi saklanmaz.
+            </p>
           </article>
         </section>
 
@@ -358,65 +360,6 @@ function SectionHeading({
       >
         <Icon className="size-5" />
       </div>
-    </div>
-  );
-}
-
-function WorldMap({
-  countries,
-  maxStreams,
-}: {
-  countries: AdminV2Analytics["charts"]["countries"];
-  maxStreams: number;
-}) {
-  return (
-    <div className="relative mt-6 aspect-[2/1] overflow-hidden rounded-[22px] border border-white/10 bg-[#16201e]">
-      <svg
-        aria-label="Dünya aktivite haritası"
-        className="absolute inset-0 size-full"
-        viewBox="0 0 1000 500"
-      >
-        <g fill="#263330" stroke="#394945" strokeWidth="2">
-          <path d="M70 110L160 70L250 95L285 150L245 210L195 200L165 250L105 220L75 165Z" />
-          <path d="M235 250L285 270L315 345L285 445L240 380L215 310Z" />
-          <path d="M410 90L505 65L555 105L540 155L490 170L455 145L420 155L390 125Z" />
-          <path d="M430 175L520 165L565 235L545 350L500 425L450 360L420 260Z" />
-          <path d="M540 90L705 70L845 115L900 180L840 235L750 225L690 285L620 250L570 170Z" />
-          <path d="M755 300L840 285L910 335L890 410L820 425L760 375Z" />
-        </g>
-
-        {countries.map((country) => {
-          const coordinate = countryCoordinates[country.code];
-
-          if (!coordinate) {
-            return null;
-          }
-
-          const radius = 5 + (country.streams / maxStreams) * 13;
-
-          return (
-            <g key={country.code}>
-              <circle
-                cx={coordinate.x * 10}
-                cy={coordinate.y * 5}
-                fill="rgba(52,211,153,.18)"
-                r={radius + 8}
-              />
-
-              <circle
-                cx={coordinate.x * 10}
-                cy={coordinate.y * 5}
-                fill="#34d399"
-                r={radius}
-              />
-
-              <title>
-                {coordinate.name}: {formatNumber(country.streams)} stream
-              </title>
-            </g>
-          );
-        })}
-      </svg>
     </div>
   );
 }
