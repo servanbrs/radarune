@@ -376,7 +376,7 @@ summary.details-marker-hidden::-webkit-details-marker {
 }
 
 @utility page-shell {
-  @apply mx-auto flex min-w-0 w-full max-w-[1600px] flex-1 px-3 py-4 sm:px-5 sm:py-6 lg:px-8 lg:py-8;
+  @apply mx-auto flex min-w-0 w-full max-w-[1600px] flex-1 flex-col px-3 py-4 sm:px-5 sm:py-6 lg:px-8 lg:py-8;
 }
 
 @utility panel {
