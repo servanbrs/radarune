@@ -572,11 +572,11 @@ export class DiscoverService {
 
 export const discoverService = new DiscoverService();
 
-export const getCachedPublicDiscoverFeed = unstable_cache(
-  async (tenantOrganizationId?: string) => discoverService.getFeed(undefined, tenantOrganizationId),
-  ["radarune-public-discover-feed"],
-  { revalidate: 30 },
-);
+// The public feed is intentionally request-scoped. Caching the randomized
+// order makes every visitor see the same first card for the cache window.
+export async function getCachedPublicDiscoverFeed(tenantOrganizationId?: string) {
+  return discoverService.getFeed(undefined, tenantOrganizationId);
+}
 
 export const getCachedPublicCandidates = unstable_cache(
   async () => discoverService.getPublicCandidates(),

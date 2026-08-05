@@ -19,7 +19,6 @@ import type { DiscoverFeedItem } from "@/features/growth/server/services/discove
 
 type DiscoverFeedCardProps = {
   item: DiscoverFeedItem;
-  rank: number;
   onPlay?: (item: DiscoverFeedItem) => void;
   inlinePlaying?: boolean;
   onInlinePlay?: (item: DiscoverFeedItem) => void;

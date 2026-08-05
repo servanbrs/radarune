@@ -386,7 +386,6 @@ export function DiscoverFeedClient({
                 item={activeItem}
                 onInlinePlay={playInline}
                 onPlay={playItem}
-                rank={activeIndex + 1}
               />
             </div>
           ) : (
