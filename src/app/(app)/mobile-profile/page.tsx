@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, ChevronRight, CircleUserRound, LayoutDashboard, LockKeyhole, Music2, Settings, ShieldCheck } from "lucide-react";
+import { BarChart3, ChevronRight, CircleUserRound, LayoutDashboard, Link2, LockKeyhole, Music2, Settings, ShieldCheck } from "lucide-react";
 
 import { canAccessAdmin, toAdminActor } from "@/features/admin/server/admin-context";
 import { SignOutButton } from "@/features/authentication/components/sign-out-button";
@@ -17,6 +17,7 @@ export default async function MobileProfilePage() {
     { href: "/settings", label: "Profil ve hesap ayarları", description: "Ad, kullanıcı adı, dil ve hesap bilgileri", icon: Settings },
     { href: "/settings#security", label: "Güvenlik", description: "Şifre, iki aşamalı doğrulama ve oturumlar", icon: LockKeyhole },
     { href: "/playlists", label: "Playlistlerim", description: "Kaydettiğin ve oluşturduğun listeler", icon: Music2 },
+    { href: "/smart-links", label: "Smart Linkler", description: "Spotify, YouTube ve sosyal bağlantılarını yönet", icon: Link2 },
   ];
   const creatorLinks = [
     { href: "/dashboard", label: "Üretici paneli", description: "Yayınlar, sanatçılar ve çalışma alanı", icon: LayoutDashboard },

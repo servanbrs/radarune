@@ -156,7 +156,7 @@ export default async function BecomePage() {
             </li>
           </ul>
 
-          <ArtistApplicationForm />
+          <Link className="mt-8 inline-flex rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-white" href="/onboarding/organization">Organizasyon çalışma alanı oluştur</Link>
         </article>
       </section>
     </main>

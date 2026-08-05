@@ -133,6 +133,16 @@ export class SocialService {
   async addTrackToPlaylist(actor: FinanceActorContext, playlistId: string, trackId: string) {
     return socialRepository.addTrackToPlaylist(actor.organizationId, actor.userId, playlistId, trackId);
   }
+  async removeTrackFromPlaylist(actor: FinanceActorContext, playlistId: string, trackId: string) {
+    return socialRepository.removeTrackFromPlaylist(actor.userId, playlistId, trackId);
+  }
+  async updatePlaylist(actor: FinanceActorContext, playlistId: string, input: CreatePlaylistInput) {
+    const parsed = createPlaylistSchema.parse(input);
+    return socialRepository.updatePlaylist(actor.userId, playlistId, { name: parsed.name, public: parsed.public, ...(parsed.slug ? { slug: parsed.slug } : {}), ...(parsed.description ? { description: parsed.description } : {}) });
+  }
+  async deletePlaylist(actor: FinanceActorContext, playlistId: string) {
+    return socialRepository.deletePlaylist(actor.userId, playlistId);
+  }
 
   async getPlaylistById(userId: string, id: string) {
     return socialRepository.findPlaylistByIdForViewer(id, userId);

@@ -16,6 +16,12 @@ export class SocialRepository {
     const last = await prisma.playlistTrack.aggregate({ where: { playlistId }, _max: { sortOrder: true } });
     return prisma.playlistTrack.upsert({ where: { playlistId_trackId: { playlistId, trackId } }, update: {}, create: { playlistId, trackId, releaseId: track.releaseId, sortOrder: (last._max.sortOrder ?? -1) + 1 }, select: { id: true } });
   }
+  async removeTrackFromPlaylist(userId: string, playlistId: string, trackId: string) {
+    const playlist = await prisma.playlist.findFirst({ where: { id: playlistId, ownerUserId: userId }, select: { id: true } });
+    if (!playlist) throw new Error("Playlist bulunamadı veya bu playlist size ait değil.");
+    await prisma.playlistTrack.deleteMany({ where: { playlistId, trackId } });
+    return { success: true };
+  }
   async followArtist(organizationId: string, userId: string, artistId: string) {
     return prisma.follow.upsert({
       where: { userId_artistId: { userId, artistId } },
@@ -157,6 +163,24 @@ export class SocialRepository {
         },
       },
     });
+  }
+  async listPlaylistsForViewer(organizationId: string, userId: string) {
+    return prisma.playlist.findMany({
+      where: { organizationId, OR: [{ ownerUserId: userId }, { public: true }] },
+      orderBy: { updatedAt: "desc" },
+      include: { ownerUser: { select: { name: true } }, tracks: { include: { track: true, release: true }, orderBy: { sortOrder: "asc" }, take: 5 } },
+      take: 100,
+    });
+  }
+  async updatePlaylist(userId: string, playlistId: string, input: { name: string; slug?: string; description?: string; public: boolean }) {
+    const playlist = await prisma.playlist.findFirst({ where: { id: playlistId, ownerUserId: userId }, select: { id: true } });
+    if (!playlist) throw new Error("Playlist bulunamadı veya bu playlist size ait değil.");
+    return prisma.playlist.update({ where: { id: playlistId }, data: { name: input.name, slug: input.slug ?? null, description: input.description ?? null, public: input.public }, select: { id: true, slug: true } });
+  }
+  async deletePlaylist(userId: string, playlistId: string) {
+    const deleted = await prisma.playlist.deleteMany({ where: { id: playlistId, ownerUserId: userId } });
+    if (!deleted.count) throw new Error("Playlist bulunamadı veya bu playlist size ait değil.");
+    return { success: true };
   }
 
   async activeStories() {

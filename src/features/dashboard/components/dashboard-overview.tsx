@@ -309,10 +309,12 @@ export function DashboardOverview({
 }: DashboardOverviewProps) {
   const firstName = userName.trim().split(/\s+/)[0] || userName;
 
-  const roleName = role === "ARTIST" ? "Sanatçı hesabı" : ["ORGANIZER", "LABEL", "LABEL_MANAGER"].includes(role) ? "Label / organizatör hesabı" : "Creator hesabı";
-  const roleDescription = role === "ARTIST"
+  const hasArtistWorkspace = role === "ARTIST" || artistsCount > 0;
+  const hasOrganizationWorkspace = ["ORGANIZER", "LABEL", "LABEL_MANAGER"].includes(role) || labelsCount > 0;
+  const roleName = hasArtistWorkspace ? "Sanatçı hesabı" : hasOrganizationWorkspace ? "Label / organizatör hesabı" : "Creator hesabı";
+  const roleDescription = hasArtistWorkspace
     ? "Kendi sanatçı kanalını, yayınlarını ve performansını yönet."
-    : ["ORGANIZER", "LABEL", "LABEL_MANAGER"].includes(role)
+    : hasOrganizationWorkspace
       ? "Bağlı sanatçıları, şirket kataloğunu ve dağıtımı tek merkezden yönet."
       : "Profilini tamamla, sanatçı veya organizatör olarak yayın araçlarını aç.";
 
@@ -438,9 +440,9 @@ export function DashboardOverview({
     },
   ];
 
-  const isOrganizationRole = ["ORGANIZER", "LABEL", "LABEL_MANAGER"].includes(role);
+  const isOrganizationRole = hasOrganizationWorkspace;
   const isAdminRole = ["ADMIN", "SUPER_ADMIN"].includes(role);
-  const workspaceActions = role === "ARTIST"
+  const workspaceActions = hasArtistWorkspace
     ? [
         { description: "Kanal görünümünü, kapak ve sosyal bağlantılarını düzenle.", href: "/artist-profile/edit", icon: Music2, title: "Sanatçı profilim" },
         { description: "Yeni yayınını ve katalog akışını hazırla.", href: "/releases/new", icon: Disc3, title: "Yayın hazırla" },

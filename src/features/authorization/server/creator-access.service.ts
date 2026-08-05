@@ -45,7 +45,7 @@ function getAccess(input: CreatorAccessInput): CreatorAccess {
 
   // Performans verileri yalnızca doğrulanmış sanatçıların ve yöneticilerin
   // kendi kataloglarını görmesi için açılır.
-  const canViewAnalytics = isAdmin || isArtist;
+  const canViewAnalytics = isAdmin || isArtist || isOrganizer;
 
   const canUseGrowthTools =
     isAdmin ||

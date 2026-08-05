@@ -28,9 +28,12 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
     redirect("/dashboard");
   }
 
+  const analyticsPermission = ["ORGANIZER", "LABEL", "LABEL_MANAGER"].includes(String(user.systemRole))
+    ? "analytics:view:label"
+    : "analytics:view:own";
   rbacService.redirectIfMissingEffectivePermission({
     membershipRole: organization.role,
-    permission: "analytics:view:own",
+    permission: analyticsPermission,
     systemRole: user.systemRole,
   });
 
