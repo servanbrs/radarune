@@ -9,7 +9,7 @@ type Platform = {
 };
 
 type SmartLinkFormProps = {
-  artists: Array<{ id: string; name: string }>;
+  artists: Array<{ id: string; name: string; profileImageUrl?: string | null }>;
   initial?: {
     id: string;
     artistId: string;
@@ -72,9 +72,14 @@ export function SmartLinkForm({ artists, initial, redirectTo = "/smart-links" }:
     if (response.ok) window.location.assign(redirectTo); else { setMessage("Smart Link silinemedi."); setBusy(false); }
   }
 
-  return <form className="grid gap-5" onSubmit={submit}>
-    <section className="grid gap-4 rounded-2xl border border-line bg-surface p-5 sm:grid-cols-2">
-      <label className="grid gap-2 text-sm font-semibold sm:col-span-2">Sanatçı<select className="h-11 rounded-xl border border-line bg-background px-3 font-normal" onChange={(event) => setArtistId(event.target.value)} required value={artistId}>{artists.map((artist) => <option key={artist.id} value={artist.id}>{artist.name}</option>)}</select></label>
+  const selectedArtist = artists.find((artist) => artist.id === artistId);
+
+  return <form className="grid gap-6" onSubmit={submit}>
+    <section className="overflow-hidden rounded-[2rem] border border-white/10 bg-[#0a1715] p-5 text-white shadow-[0_24px_80px_rgba(4,15,13,0.18)] sm:p-7">
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-center"><div className="relative grid size-24 shrink-0 place-items-center overflow-hidden rounded-[1.75rem] bg-emerald-300/15 text-3xl font-black text-emerald-200">{selectedArtist?.profileImageUrl ? <img alt={`${selectedArtist.name} profil fotoğrafı`} className="size-full object-cover" src={selectedArtist.profileImageUrl} /> : selectedArtist?.name.slice(0, 1).toUpperCase()}</div><div><p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-300">Smart Link görünümü</p><h2 className="mt-2 text-2xl font-semibold">Sanatçı profilini öne çıkar</h2><p className="mt-2 max-w-xl text-sm leading-6 text-white/55">Smart Link sayfasında sanatçının profil fotoğrafı otomatik kullanılır. Fotoğrafı sanatçı profil ayarlarından değiştirebilirsin.</p></div></div>
+      <label className="mt-6 grid gap-2 text-sm font-semibold text-white">Sanatçı<select className="h-11 rounded-xl border border-white/10 bg-white/[0.08] px-3 font-normal text-white" onChange={(event) => setArtistId(event.target.value)} required value={artistId}>{artists.map((artist) => <option className="text-[#101817]" key={artist.id} value={artist.id}>{artist.name}</option>)}</select></label>
+    </section>
+    <section className="grid gap-4 rounded-[2rem] border border-line bg-surface p-5 sm:grid-cols-2 sm:p-7">
       <label className="grid gap-2 text-sm font-semibold">Başlık<input className="h-11 rounded-xl border border-line bg-background px-3 font-normal" maxLength={160} onChange={(event) => setTitle(event.target.value)} required value={title} /></label>
       <label className="grid gap-2 text-sm font-semibold">Slug<input className="h-11 rounded-xl border border-line bg-background px-3 font-normal" maxLength={80} onChange={(event) => setSlug(event.target.value)} placeholder="sanatci-yeni-sarki" required value={slug} /></label>
       <label className="grid gap-2 text-sm font-semibold sm:col-span-2">Açıklama<textarea className="min-h-24 rounded-xl border border-line bg-background px-3 py-2 font-normal" maxLength={2000} onChange={(event) => setDescription(event.target.value)} value={description} /></label>

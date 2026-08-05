@@ -43,13 +43,10 @@ export default async function SmartLinkPublicPage({ params, searchParams }: { pa
   return (
     <PublicGrowthShell>
       <section className="rounded-[2rem] border border-white/70 bg-white/80 p-8 text-center shadow-xl backdrop-blur">
-        {smartLink.coverImageUrl ? (
-          <div
-            aria-label="Kapak görseli"
-            className="mx-auto h-48 w-48 rounded-3xl bg-cover bg-center shadow-lg"
-            style={{ backgroundImage: `url(${smartLink.coverImageUrl})` }}
-          />
-        ) : null}
+        <div className="mx-auto flex items-center justify-center gap-4">
+          <div aria-label="Sanatçı profil fotoğrafı" className="grid size-20 shrink-0 place-items-center overflow-hidden rounded-full border-4 border-white bg-emerald-100 text-2xl font-black text-emerald-800 shadow-lg">{smartLink.artist.profileImageUrl ? <img alt={`${smartLink.artist.name} profil fotoğrafı`} className="size-full object-cover" src={smartLink.artist.profileImageUrl} /> : smartLink.artist.name.slice(0, 1).toUpperCase()}</div>
+          {smartLink.coverImageUrl ? <div aria-label="Kapak görseli" className="h-40 w-40 rounded-[2rem] bg-cover bg-center shadow-lg" style={{ backgroundImage: `url(${smartLink.coverImageUrl})` }} /> : null}
+        </div>
         <p className="mt-6 text-xs uppercase tracking-[0.24em] text-muted">{smartLink.artist.name}</p>
         <h1 className="mt-3 text-4xl font-semibold">{smartLink.title}</h1>
         {smartLink.description ? <p className="mt-4 text-sm leading-7 text-muted">{smartLink.description}</p> : null}
