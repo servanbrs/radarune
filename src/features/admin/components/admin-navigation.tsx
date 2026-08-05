@@ -48,7 +48,7 @@ export const adminNavigationGroups: AdminNavGroup[] = [
     title: "Kontrol merkezi",
     icon: LayoutDashboard,
     items: [
-      { href: "/admin", label: "V2 genel bakış", icon: LayoutDashboard },
+      { href: "/admin", label: "Genel bakış", icon: LayoutDashboard },
       { href: "/admin/users", label: "Kullanıcılar", icon: Users },
       { href: "/admin/artists", label: "Sanatçılar", icon: Megaphone },
       { href: "/admin/applications", label: "Başvurular", icon: ClipboardCheck },

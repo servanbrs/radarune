@@ -91,7 +91,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
           <div className="relative flex flex-col gap-7 xl:flex-row xl:items-end xl:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-300">
-                Radarune Admin V2
+                Radarune Admin
               </p>
 
               <h1 className="mt-4 text-4xl font-semibold tracking-[-0.055em] sm:text-5xl">
