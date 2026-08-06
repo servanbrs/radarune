@@ -3,6 +3,7 @@ import { authSessionService } from "@/features/authentication/server/services/au
 import { toAdminActor } from "@/features/admin/server/admin-context";
 import { integrationCredentialService } from "@/features/integrations/server/services/integration-credential.service";
 import { saveWhatsappAction } from "@/features/admin/server/actions/whatsapp.actions";
+import { WhatsappTestButton } from "@/features/integrations/components/whatsapp-test-button";
 
 export default async function AdminWhatsappPage() {
   const { organization, user } = await authSessionService.getDashboardContext();
@@ -30,8 +31,10 @@ export default async function AdminWhatsappPage() {
           </div>
           <p className="text-xs leading-5 text-muted">Şablonda iki değişken tanımlayın: <code>{"{{1}}"}</code> yayın adı, <code>{"{{2}}"}</code> yayın bağlantısı.</p>
           <button className="w-fit rounded-xl bg-accent px-5 py-3 font-semibold text-accent-foreground" type="submit">WhatsApp ayarlarını kaydet</button>
+          {config ? <WhatsappTestButton /> : null}
         </form>
       </section>
+      <section className="panel mt-5 p-6"><h2 className="text-lg font-semibold">Bildirim kuralları</h2><div className="mt-4 grid gap-3 text-sm leading-6 text-muted"><p><strong className="text-foreground">Aktif:</strong> Yeni yayın oluşturulduğunda admin alıcılarına “Yeni yayın geldi” mesajı gönderilir. Mesajda yayın adı ve Radarune yayın bağlantısı bulunur.</p><p><strong className="text-foreground">Test:</strong> Test butonu kayıtlı alıcılar listesindeki ilk numaraya “Radarune test mesajı / WhatsApp bağlantısı çalışıyor.” içeriğini yollar.</p><p><strong className="text-foreground">Gönderilmez:</strong> Taslak güncellemeleri, her metadata değişikliği ve kullanıcı etkileşimleri için gereksiz mesaj gönderilmez. İstersen ileride onaylandı, dağıtıma alındı veya hata durumlarını ayrı ayrı açabiliriz.</p></div></section>
     </AdminShell>
   );
 }
