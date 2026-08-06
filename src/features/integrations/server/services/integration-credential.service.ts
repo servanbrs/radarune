@@ -8,14 +8,14 @@ import type { FinanceActorContext } from "@/features/finance/server/services/fin
 import { env } from "@/lib/env";
 
 const schema = z.object({
-  provider: z.enum(["YOUTUBE", "SPOTIFY", "GOOGLE_OAUTH", "FACEBOOK_OAUTH"]),
+  provider: z.enum(["YOUTUBE", "SPOTIFY", "GOOGLE_OAUTH", "FACEBOOK_OAUTH", "WHATSAPP"]),
   credentials: z.record(z.string(), z.string().trim().min(1)),
 });
 
 const CREDENTIAL_KEY_MISMATCH_MESSAGE =
   "Credential kaydı çözülemedi. Sunucudaki BILLING_ENCRYPTION_KEY (veya DISTRIBUTION_ENCRYPTION_KEY/ENCRYPTION_KEY) eski kayıt oluşturulurken kullanılan anahtarla aynı olmalı; anahtar değiştiyse credential’ı yeniden kaydedin.";
 
-type IntegrationProvider = "YOUTUBE" | "SPOTIFY" | "GOOGLE_OAUTH" | "FACEBOOK_OAUTH";
+type IntegrationProvider = "YOUTUBE" | "SPOTIFY" | "GOOGLE_OAUTH" | "FACEBOOK_OAUTH" | "WHATSAPP";
 
 function environmentCredentials(provider: IntegrationProvider): Record<string, string> | null {
   if (provider === "YOUTUBE" && env.YOUTUBE_API_KEY) return { apiKey: env.YOUTUBE_API_KEY };
@@ -120,6 +120,29 @@ export class IntegrationCredentialService {
     });
     await auditLogService.create({ organizationId: actor.organizationId, actorUserId: actor.userId, action: "SOCIAL_AUTH_PROVIDER_UPDATED", entityType: "IntegrationCredential", entityId: row.id, metadata: { provider } });
     return { provider, active: true, hasCredentials: true };
+  }
+
+  async whatsapp(organizationId: string) {
+    const row = await prisma.integrationCredential.findUnique({ where: { organizationId_provider: { organizationId, provider: "WHATSAPP" } } });
+    if (!row?.active) return null;
+    try { return JSON.parse(decryptBillingSecret(row.credentialsEncrypted)) as Record<string, string>; } catch { return null; }
+  }
+
+  async upsertWhatsapp(actor: FinanceActorContext, credentials: Record<string, string>) {
+    assertAdminPermission(actor, "integrations.spotify.view");
+    const current = await prisma.integrationCredential.findUnique({ where: { organizationId_provider: { organizationId: actor.organizationId, provider: "WHATSAPP" } }, select: { credentialsEncrypted: true } });
+    if (!credentials.accessToken?.trim() && current?.credentialsEncrypted) {
+      try { credentials.accessToken = (JSON.parse(decryptBillingSecret(current.credentialsEncrypted)) as { accessToken?: string }).accessToken ?? ""; } catch { /* token yeniden istenir */ }
+    }
+    const required = ["phoneNumberId", "accessToken", "recipients", "templateName", "templateLanguage"];
+    if (required.some((key) => !credentials[key]?.trim())) throw new Error("WhatsApp telefon ID, token, alıcı, şablon adı ve dil alanları zorunludur.");
+    const row = await prisma.integrationCredential.upsert({
+      where: { organizationId_provider: { organizationId: actor.organizationId, provider: "WHATSAPP" } },
+      update: { credentialsEncrypted: encryptBillingSecret(JSON.stringify(credentials)), active: true, lastTestError: null },
+      create: { organizationId: actor.organizationId, provider: "WHATSAPP", credentialsEncrypted: encryptBillingSecret(JSON.stringify(credentials)) },
+    });
+    await auditLogService.create({ organizationId: actor.organizationId, actorUserId: actor.userId, action: "WHATSAPP_INTEGRATION_UPDATED", entityType: "IntegrationCredential", entityId: row.id });
+    return { active: true };
   }
 }
 

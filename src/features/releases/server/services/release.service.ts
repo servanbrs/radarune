@@ -14,6 +14,7 @@ import { releaseRepository } from "@/features/releases/server/repositories/relea
 import { releaseValidatorService } from "@/features/releases/server/services/release-validator.service";
 import { notificationService } from "@/features/admin/server/services/notification.service";
 import { webhookEndpointService } from "@/features/platform/server/services/webhook-endpoint.service";
+import { whatsappNotificationService } from "@/features/integrations/server/services/whatsapp-notification.service";
 
 export class ReleaseService {
   async listReleases(actor: ReleaseActor) {
@@ -83,6 +84,10 @@ export class ReleaseService {
         status: "DRAFT",
       },
     });
+    void whatsappNotificationService.sendRelease(actor.organizationId, {
+      title: parsed.data.title,
+      releaseId: release.id,
+    }).catch((error) => console.error("[RADARUNE_WHATSAPP] Bildirim gönderilemedi:", error));
 
     return {
       success: true as const,

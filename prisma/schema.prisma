@@ -1443,6 +1443,7 @@ enum IntegrationCredentialProvider {
   ANTHROPIC
   GOOGLE_SEARCH_CONSOLE
   OPENROUTER
+  WHATSAPP
 }
 
 model IntegrationCredential {
