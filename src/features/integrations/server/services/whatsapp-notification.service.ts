@@ -8,7 +8,12 @@ export class WhatsAppNotificationService {
       headers: { Authorization: `Bearer ${config.accessToken}`, "Content-Type": "application/json" },
       body: JSON.stringify({ messaging_product: "whatsapp", to, type: "template", template: { name: config.templateName, language: { code: config.templateLanguage }, components: [{ type: "body", parameters: parameters.map((text) => ({ type: "text", text })) }] } }),
     });
-    if (!response.ok) throw new Error(`WhatsApp gönderimi başarısız: ${response.status}`);
+    if (!response.ok) {
+      const body = await response.json().catch(() => null) as { error?: { message?: string; code?: number; error_data?: { details?: string } } } | null;
+      const metaError = body?.error;
+      const detail = [metaError?.message, metaError?.error_data?.details].filter(Boolean).join(" — ");
+      throw new Error(`WhatsApp gönderimi başarısız (${metaError?.code ?? response.status}): ${detail || "Meta API isteği reddetti."}`);
+    }
   }
 
   async sendRelease(organizationId: string, input: { title: string; releaseId: string }) {
