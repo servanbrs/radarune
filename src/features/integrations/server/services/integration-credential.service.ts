@@ -142,6 +142,10 @@ export class IntegrationCredentialService {
     }
     const required = ["phoneNumberId", "accessToken", "recipients", "templateName", "templateLanguage", "verifyToken"];
     if (required.some((key) => !credentials[key]?.trim())) throw new Error("WhatsApp telefon ID, token, alıcı, şablon adı ve dil alanları zorunludur.");
+    const verifyToken = credentials.verifyToken?.trim();
+    if (!verifyToken || !/^[\x20-\x7E]+$/.test(verifyToken)) {
+      throw new Error("Meta doğrulama belirteci yalnızca İngilizce harf, rakam ve temel sembollerden oluşmalıdır.");
+    }
     const row = await prisma.integrationCredential.upsert({
       where: { organizationId_provider: { organizationId: actor.organizationId, provider: "WHATSAPP" } },
       update: { credentialsEncrypted: encryptBillingSecret(JSON.stringify(credentials)), active: true, lastTestError: null },

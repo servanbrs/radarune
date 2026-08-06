@@ -171,7 +171,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
           />
         </section>
 
-        <section className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(420px,.8fr)]">
+        <section className="mt-5 grid gap-5 xl:grid-cols-[minmax(320px,.72fr)_minmax(0,1.28fr)]">
           <article className="rounded-[28px] border border-white/[0.08] bg-[#122421] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.2)] sm:p-6">
             <SectionHeading
               eyebrow="Kullanıcı analizi"
@@ -179,7 +179,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
               icon={Users}
             />
 
-            <div className="mt-8 flex h-[280px] items-end gap-1.5 sm:gap-2">
+            <div className="mt-8 flex h-[180px] items-end gap-1.5 sm:gap-2">
               {dashboard.charts.dailyUsers.map((item) => {
                 const height = Math.max(4, (item.value / maxUsers) * 100);
 
