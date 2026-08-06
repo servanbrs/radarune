@@ -12,6 +12,8 @@ import {
 import { releaseAccessService, type ReleaseActor } from "@/features/releases/server/services/release-access.service";
 import { releaseRepository } from "@/features/releases/server/repositories/release.repository";
 import { releaseValidatorService } from "@/features/releases/server/services/release-validator.service";
+import { notificationService } from "@/features/admin/server/services/notification.service";
+import { webhookEndpointService } from "@/features/platform/server/services/webhook-endpoint.service";
 
 export class ReleaseService {
   async listReleases(actor: ReleaseActor) {
@@ -58,6 +60,27 @@ export class ReleaseService {
       metadata: {
         title: parsed.data.title,
         type: parsed.data.type,
+      },
+    });
+
+    const releaseMessage = `Yeni yayın alındı: “${parsed.data.title}”. Admin incelemesi bekliyor.`;
+    await notificationService.notifyOrganizationAdmins({
+      organizationId: actor.organizationId,
+      type: "RELEASE_CREATED",
+      title: "Yeni yayın geldi",
+      message: releaseMessage,
+      entityType: "Release",
+      entityId: release.id,
+    });
+    await webhookEndpointService.createDelivery({
+      organizationId: actor.organizationId,
+      eventType: "release.created",
+      payload: {
+        type: "release.created",
+        releaseId: release.id,
+        title: parsed.data.title,
+        message: releaseMessage,
+        status: "DRAFT",
       },
     });
 

@@ -5,6 +5,7 @@ import type { FormEvent } from "react";
 
 const eventOptions: Array<[string, string]> = [
   ["release.published", "Yayın yayına alındığında"],
+  ["release.created", "Yeni yayın geldiğinde"],
   ["release.updated", "Yayın güncellendiğinde"],
   ["distribution.updated", "Dağıtım durumu değiştiğinde"],
   ["smart_link.created", "Smart Link oluşturulduğunda"],
