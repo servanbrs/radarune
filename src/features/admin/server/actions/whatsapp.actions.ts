@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { authSessionService } from "@/features/authentication/server/auth-session.service";
+import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { toAdminActor } from "@/features/admin/server/admin-context";
 import { integrationCredentialService } from "@/features/integrations/server/services/integration-credential.service";
 
