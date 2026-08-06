@@ -83,9 +83,12 @@ async function runMeasuredCheck(
       durationMs: Date.now() - startedAt,
     };
   } catch (error) {
-    const detail = error instanceof Error
+    const rawDetail = error instanceof Error
       ? error.message.replace(/(password|passwd|pwd)=([^&\s]+)/gi, "$1=***").slice(0, 180)
       : "Bilinmeyen hata.";
+    const detail = /authentication failed|invalid login/i.test(rawDetail)
+      ? "SMTP kullanıcı adı veya parola reddedildi. Sunucu, port, TLS modu ve SMTP hesabının gönderim iznini kontrol edin."
+      : rawDetail;
     return {
       ...input,
       status: "FAIL",

@@ -52,7 +52,7 @@ export class GrowthInsightService {
     const metrics = await this.getMetrics(actor.organizationId);
     const provider = aiProviderRegistry.get("OPENAI");
     const result = await provider.analyzeText({
-      text: `Radarune için gerçek kullanıcı kazanım planı üret. Sahte kullanıcı, sahte etkileşim, otomatik sosyal paylaşım veya izinsiz reklam yok. Yalnızca adminin onaylayacağı SEO, referral, presave, sanatçı onboarding, içerik ve e-posta görevleri öner. Türkçe JSON döndür: {summary:string,actions:Array<{title:string,channel:string,priority:"Yüksek"|"Orta"|"Düşük",reason:string,nextStep:string}>}. En fazla 5 görev. Veriler: ${JSON.stringify(metrics)}`,
+      text: `Radarune için gerçek kullanıcı kazanım planı üret. Sahte kullanıcı, sahte etkileşim veya izinsiz reklam yok. Smart Link dönüşümünü artırmak için başlık, açıklama ve çağrı butonu testleri öner. Ayrıca admin onaylı Facebook, Instagram ve X duyuru akışı için paylaşım metni ve UTM planı üret; gerçek otomatik paylaşım için bağlı platform hesabı veya webhook gerektiğini belirt. Yalnızca adminin onaylayacağı SEO, referral, presave, sanatçı onboarding, içerik ve e-posta görevleri öner. Türkçe JSON döndür: {summary:string,actions:Array<{title:string,channel:string,priority:"Yüksek"|"Orta"|"Düşük",reason:string,nextStep:string}>}. En fazla 5 görev. Veriler: ${JSON.stringify(metrics)}`,
     });
 
     const parsed = result.success ? this.normalize(result.data.structuredResult) : null;
@@ -86,7 +86,9 @@ export class GrowthInsightService {
 
   private fallbackActions(metrics: GrowthMetrics): GrowthAction[] {
     const actions: GrowthAction[] = [
+      { title: "Smart Link dönüşümünü iyileştir", channel: "Smart Link + CRO", priority: "Yüksek", reason: "Görüntülenme ile platform tıklaması arasındaki fark yüksekse ilk ekrandaki mesaj ve çağrı butonları güçlendirilmelidir.", nextStep: "Başlıkta sanatçı ve şarkı vaadini netleştir; ‘Şimdi dinle’ butonunu ilk ekrana taşı; Spotify ve YouTube tıklamalarını UTM ile karşılaştır." },
       { title: "Haftalık Hype paylaşım paketi hazırla", channel: "Hype + sosyal paylaşım", priority: "Yüksek", reason: "Topluluk oylaması keşif için doğal içerik üretir.", nextStep: "Admin panelinde haftanın ilk 5 yayınını seç, paylaşım kartını oluştur ve admin onayına gönder." },
+      { title: "Yayın duyuru otomasyonunu bağla", channel: "Facebook · Instagram · X", priority: "Orta", reason: "Yayınlandığında tek bir duyuru metni ve kısa Radarune bağlantısı üretilebilir; sosyal hesap izinleri olmadan doğrudan paylaşım yapılamaz.", nextStep: "Admin > Webhook endpoint’leri bölümünden release.published olayını Make, n8n veya kendi yayın sunucuna bağla; platform tokenlarını orada yetkilendir." },
       { title: "Sanatçı onboarding çağrısı yayınla", channel: "SEO + sanatçı profili", priority: "Orta", reason: "Yeni sanatçı profilleri hem içerik hem arama görünürlüğü oluşturur.", nextStep: "Doğrulanmış sanatçı başvuru sayfasına Smart Link ve profil örnekleri ekle." },
       { title: "Referral kampanyası kuralını tanımla", channel: "Referral", priority: "Orta", reason: "Gerçek kullanıcı davetini ölçmek için doğrulanmış hesap ve aktiflik şartı gerekir.", nextStep: "Ödülü hemen vermeden e-posta doğrulama, 7 gün aktiflik ve bir gerçek etkileşim şartlarını admin ayarına ekle." },
     ];
