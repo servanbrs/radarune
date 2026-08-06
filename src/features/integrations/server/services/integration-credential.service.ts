@@ -128,13 +128,19 @@ export class IntegrationCredentialService {
     try { return JSON.parse(decryptBillingSecret(row.credentialsEncrypted)) as Record<string, string>; } catch { return null; }
   }
 
+  async whatsappWebhookConfig() {
+    const row = await prisma.integrationCredential.findFirst({ where: { provider: "WHATSAPP", active: true }, orderBy: { updatedAt: "desc" } });
+    if (!row) return null;
+    try { return JSON.parse(decryptBillingSecret(row.credentialsEncrypted)) as Record<string, string>; } catch { return null; }
+  }
+
   async upsertWhatsapp(actor: FinanceActorContext, credentials: Record<string, string>) {
     assertAdminPermission(actor, "integrations.spotify.view");
     const current = await prisma.integrationCredential.findUnique({ where: { organizationId_provider: { organizationId: actor.organizationId, provider: "WHATSAPP" } }, select: { credentialsEncrypted: true } });
     if (!credentials.accessToken?.trim() && current?.credentialsEncrypted) {
       try { credentials.accessToken = (JSON.parse(decryptBillingSecret(current.credentialsEncrypted)) as { accessToken?: string }).accessToken ?? ""; } catch { /* token yeniden istenir */ }
     }
-    const required = ["phoneNumberId", "accessToken", "recipients", "templateName", "templateLanguage"];
+    const required = ["phoneNumberId", "accessToken", "recipients", "templateName", "templateLanguage", "verifyToken"];
     if (required.some((key) => !credentials[key]?.trim())) throw new Error("WhatsApp telefon ID, token, alıcı, şablon adı ve dil alanları zorunludur.");
     const row = await prisma.integrationCredential.upsert({
       where: { organizationId_provider: { organizationId: actor.organizationId, provider: "WHATSAPP" } },

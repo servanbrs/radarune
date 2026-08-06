@@ -15,6 +15,7 @@ export async function saveWhatsappAction(formData: FormData) {
     recipients: String(formData.get("recipients") ?? ""),
     templateName: String(formData.get("templateName") ?? ""),
     templateLanguage: String(formData.get("templateLanguage") ?? "tr"),
+    verifyToken: String(formData.get("verifyToken") ?? ""),
   });
   revalidatePath("/admin/integrations/whatsapp");
 }
