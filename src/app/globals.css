@@ -123,6 +123,17 @@ body:has(main[data-admin-theme="dark"]) [data-radarune-app-footer] {
   color: rgba(238,247,245,.55) !important;
 }
 body:has(main[data-admin-theme="dark"]) [data-radarune-app-footer] a:hover { color: #eef7f5 !important; }
+body:has(main[data-admin-theme="dark"]) [data-radarune-app-footer] select {
+  background: #111d20 !important;
+  border-color: #38504d !important;
+  color: #eef7f5 !important;
+  color-scheme: dark;
+}
+body:has(main[data-admin-theme="dark"]) [data-radarune-app-footer] select:focus {
+  border-color: #44c7ad !important;
+  outline: 2px solid rgba(68, 199, 173, .3);
+  outline-offset: 1px;
+}
 header details.group:hover > div { display: grid; }
 
 /* The creator shell is intentionally dark even when the public theme toggle is

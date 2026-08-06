@@ -68,6 +68,27 @@ function formatNumber(value: number) {
   return new Intl.NumberFormat("tr-TR").format(value);
 }
 
+const activityActionLabels: Record<string, string> = {
+  ADMIN_SETTING_UPDATED: "Yönetici ayarı güncellendi",
+  RELEASE_CREATED: "Yayın oluşturuldu",
+  RELEASE_UPDATED: "Yayın güncellendi",
+  RELEASE_APPROVED: "Yayın onaylandı",
+  RELEASE_REJECTED: "Yayın reddedildi",
+  DISTRIBUTION_JOB_CREATED: "Dağıtım işi oluşturuldu",
+  DISTRIBUTION_JOB_UPDATED: "Dağıtım işi güncellendi",
+  USER_CREATED: "Kullanıcı oluşturuldu",
+  USER_UPDATED: "Kullanıcı güncellendi",
+};
+
+const activityEntityLabels: Record<string, string> = {
+  AdminSetting: "Yönetici ayarı",
+  Release: "Yayın",
+  DistributionJob: "Dağıtım işi",
+  User: "Kullanıcı",
+  Artist: "Sanatçı",
+  Organization: "Organizasyon",
+};
+
 export function AdminV2Dashboard({ dashboard }: Props) {
   const maxUsers = Math.max(
     1,
@@ -75,7 +96,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
   );
 
   return (
-    <main className="min-h-screen bg-[#0d1c1a] text-[#eef7f5]">
+    <main data-admin-theme="dark" className="min-h-screen bg-[#0d1c1a] text-[#eef7f5]">
       <div className="mx-auto w-full max-w-[1680px] px-4 py-6 sm:px-6 lg:px-8">
         <section className="relative overflow-hidden rounded-[32px] bg-[#101817] px-6 py-8 text-white shadow-[0_28px_90px_rgba(15,23,42,0.2)] sm:px-9 lg:px-11">
           <div className="pointer-events-none absolute -right-24 -top-36 size-[430px] rounded-full bg-emerald-400/20 blur-[100px]" />
@@ -266,11 +287,11 @@ export function AdminV2Dashboard({ dashboard }: Props) {
 
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-white">
-                      {activity.action}
+                      {activityActionLabels[activity.action] ?? activity.action.replaceAll("_", " ")}
                     </p>
 
                     <p className="mt-1 truncate text-xs text-white/45">
-                      {activity.actor} · {activity.entityType}
+                      {activity.actor} · {activityEntityLabels[activity.entityType] ?? activity.entityType}
                     </p>
                   </div>
 
