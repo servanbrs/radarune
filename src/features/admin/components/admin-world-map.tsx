@@ -44,7 +44,7 @@ export function AdminWorldMap({ countries }: Props) {
     <div className="relative mt-6 overflow-hidden rounded-[22px] border border-white/10 bg-[#101b19]">
       <svg aria-label="Gerçek dünya ülke aktivite haritası" className="block h-auto w-full" viewBox="0 0 1000 500" role="img">
         <path d={path({ type: "Sphere" }) ?? undefined} fill="#132320" stroke="#39504b" strokeWidth="2" />
-        {geography.features.map((country) => {
+        {geography.features.map((country, index) => {
           const code = isoNumeric[String(country.id ?? "")];
           const activity = code ? data.get(code) : undefined;
           const intensity = activity
@@ -52,7 +52,7 @@ export function AdminWorldMap({ countries }: Props) {
             : 0;
           return (
             <path
-              key={String(country.id)}
+              key={`country-${String(country.id ?? "unknown")}-${index}`}
               d={path(country) ?? undefined}
               fill={activity ? `rgba(52, 211, 153, ${intensity})` : "#263633"}
               stroke="#405650"
