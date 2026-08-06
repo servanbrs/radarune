@@ -17,6 +17,7 @@ import {
   LifeBuoy,
   ListMusic,
   Megaphone,
+  MessageCircle,
   Network,
   PlugZap,
   Radio,
@@ -100,6 +101,7 @@ export const adminNavigationGroups: AdminNavGroup[] = [
       { href: "/admin/integrations/spotify", label: "Spotify", icon: Activity },
       { href: "/admin/storage", label: "Dosya depolama", icon: HardDrive },
       { href: "/admin/webhooks", label: "Webhooks", icon: Webhook },
+      { href: "/admin/integrations/whatsapp", label: "WhatsApp bildirimleri", icon: MessageCircle },
     ],
   },
   {
