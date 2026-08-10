@@ -13,6 +13,12 @@ const booleanSetting = (value: unknown) => {
   return undefined;
 };
 
+const versionedIconUrl = (url: string | null | undefined, updatedAt: Date | null | undefined) => {
+  if (!url) return undefined;
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}v=${updatedAt?.getTime() ?? Date.now()}`;
+};
+
 export async function generateMetadata(): Promise<Metadata> {
   let tenant: Awaited<ReturnType<typeof tenantContextService.resolveFromRequest>> = null;
   try {
@@ -24,10 +30,11 @@ export async function generateMetadata(): Promise<Metadata> {
   // Local development skips the SEO setting queries, but still reads branding
   // so an admin-uploaded favicon is visible in the local browser as well.
   if (process.env.NODE_ENV !== "production") {
+    const faviconUrl = versionedIconUrl(tenant?.tenantBranding?.faviconUrl, tenant?.tenantBranding?.updatedAt);
     return {
       title: "Radarune | Müzik operasyon platformu",
       description: "Sanatçılar ve label ekipleri için release, dağıtım, royalty ve keşif operasyonları.",
-      ...(tenant?.tenantBranding?.faviconUrl ? { icons: { icon: tenant.tenantBranding.faviconUrl, shortcut: tenant.tenantBranding.faviconUrl, apple: tenant.tenantBranding.faviconUrl } } : {}),
+      ...(faviconUrl ? { icons: { icon: faviconUrl, shortcut: faviconUrl, apple: faviconUrl } } : {}),
     };
   }
   const organizationId = tenant?.id;
@@ -76,7 +83,7 @@ export async function generateMetadata(): Promise<Metadata> {
     // Keep the build and public pages available while the database recovers.
   }
 
-  const faviconUrl = tenant?.tenantBranding?.faviconUrl ?? undefined;
+  const faviconUrl = versionedIconUrl(tenant?.tenantBranding?.faviconUrl, tenant?.tenantBranding?.updatedAt);
   return {
     title: titleValue,
     description: descriptionValue,

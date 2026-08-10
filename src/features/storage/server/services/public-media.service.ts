@@ -10,7 +10,7 @@ const faviconTypes = new Set(["image/png", "image/x-icon", "image/vnd.microsoft.
 export type PublicMediaKind = "PROFILE" | "COVER" | "LOGO" | "FAVICON";
 
 export class PublicMediaService {
-  async upload(input: { file: File; organizationId: string; ownerId: string; kind: PublicMediaKind; entityId?: string }) {
+  async upload(input: { file: File; organizationId: string; ownerId: string; kind: PublicMediaKind; entityId?: string; publicBaseUrl?: string }) {
     const maxBytes = input.kind === "FAVICON" ? 2 * 1024 * 1024 : 10 * 1024 * 1024;
     const allowed = input.kind === "FAVICON" ? faviconTypes : profileImageTypes;
     if (!allowed.has(input.file.type)) throw new Error(input.kind === "FAVICON" ? "Favicon PNG veya ICO formatında olmalıdır." : "Görsel JPG, PNG veya WebP formatında olmalıdır.");
@@ -26,11 +26,11 @@ export class PublicMediaService {
     const scope = input.kind === "FAVICON" || input.kind === "LOGO" ? "branding" : "artists";
     const key = `public/${scope}/${input.organizationId}/${input.entityId ?? input.ownerId}/${input.kind.toLowerCase()}-${randomUUID()}.${extension}`;
     await storageService.getAdapter().upload({ key, contentType: input.file.type, body });
-    return { key, url: this.urlFor(key) };
+    return { key, url: this.urlFor(key, input.publicBaseUrl) };
   }
 
-  urlFor(key: string) {
-    const base = env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
+  urlFor(key: string, publicBaseUrl?: string) {
+    const base = (publicBaseUrl ?? env.NEXT_PUBLIC_APP_URL).replace(/\/$/, "");
     return `${base}/api/media/${key.split("/").map(encodeURIComponent).join("/")}`;
   }
 }

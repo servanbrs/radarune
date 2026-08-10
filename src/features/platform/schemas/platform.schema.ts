@@ -9,6 +9,19 @@ const safeUrlSchema = z
     return protocol === "https:" || protocol === "http:";
   }, "Yalnızca HTTP veya HTTPS URL kullanılabilir.");
 
+// Empty HTML inputs are submitted as "". Treat them as an omitted optional
+// branding value so saving only a favicon does not fail validation.
+const nullableText = (max: number) =>
+  z
+    .union([z.string().trim().max(max), z.null()])
+    .optional()
+    .transform((value) => value === "" ? null : value);
+
+const nullableUrl = z
+  .union([safeUrlSchema, z.literal(""), z.null()])
+  .optional()
+  .transform((value) => value === "" ? null : value);
+
 export const themeConfigSchema = z.object({
   primaryColor: hexColorSchema,
   secondaryColor: hexColorSchema,
@@ -44,15 +57,24 @@ export const themeUpdateSchema = themeConfigSchema.partial();
 
 export const brandingUpdateSchema = z.object({
   brandName: z.string().trim().min(2).max(120),
-  legalName: z.string().trim().max(160).nullable().optional(),
-  logoUrl: safeUrlSchema.nullable().optional(),
-  faviconUrl: safeUrlSchema.nullable().optional(),
-  supportEmail: z.email().nullable().optional(),
-  socialLinks: z.record(z.string().max(30), safeUrlSchema).optional(),
-  seoDefaults: z.object({
-    title: z.string().trim().max(160).optional(),
-    description: z.string().trim().max(320).optional(),
-  }).optional(),
+  legalName: nullableText(160),
+  logoUrl: nullableUrl,
+  faviconUrl: nullableUrl,
+  supportEmail: z
+    .union([z.email(), z.literal(""), z.null()])
+    .optional()
+    .transform((value) => value === "" ? null : value),
+  socialLinks: z
+    .union([z.record(z.string().max(30), safeUrlSchema), z.null()])
+    .optional()
+    .transform((value) => value === null ? undefined : value),
+  seoDefaults: z
+    .union([z.object({
+      title: z.string().trim().max(160).optional(),
+      description: z.string().trim().max(320).optional(),
+    }), z.null()])
+    .optional()
+    .transform((value) => value === null ? undefined : value),
 });
 
 const domainSchema = z.string().trim().toLowerCase().refine((value) => {
