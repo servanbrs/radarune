@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   const challenge = url.searchParams.get("hub.challenge");
   const config = await integrationCredentialService.whatsappWebhookConfig();
   if (mode === "subscribe" && token && challenge && config?.verifyToken && token === config.verifyToken) {
-    return new Response(challenge, { status: 200, headers: { "content-type": "text/plain" } });
+    return new Response(challenge, { status: 200, headers: { "content-type": "text/plain; charset=utf-8" } });
   }
   return NextResponse.json({ error: "WhatsApp webhook doğrulaması başarısız." }, { status: 403 });
 }

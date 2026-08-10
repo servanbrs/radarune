@@ -58,6 +58,21 @@ export function DiscoverFeedClient({
   const dragStart = useRef<number | null>(null);
 
   const dragStartY = useRef<number | null>(null);
+  const randomizedOnEntry = useRef(false);
+
+  useEffect(() => {
+    if (randomizedOnEntry.current || feed.length < 2) return;
+    randomizedOnEntry.current = true;
+
+    const previousId = window.sessionStorage.getItem("radarune:last-discover-item");
+    const candidates = feed
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => item.id !== previousId);
+    const selected = candidates[Math.floor(Math.random() * candidates.length)] ?? candidates[0];
+    if (!selected) return;
+    setActiveIndex(selected.index);
+    window.sessionStorage.setItem("radarune:last-discover-item", selected.item.id);
+  }, [feed]);
 
   const visibleFeed = useMemo(() => {
     if (sortMode === "recommended") {

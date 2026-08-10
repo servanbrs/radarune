@@ -1,7 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronDown, KeyRound, Settings, UserRound } from "lucide-react";
+import {
+  ChartNoAxesCombined,
+  ChevronDown,
+  KeyRound,
+  LayoutDashboard,
+  ShieldCheck,
+  ShieldHalf,
+  UserRound,
+} from "lucide-react";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SignOutButton } from "@/features/authentication/components/sign-out-button";
@@ -22,8 +30,8 @@ export function UserMenu({ name, email, adminAccess, artistAccess, locale = "tr-
           <p className="mt-1 truncate text-xs text-white/50">{email}</p>
         </div>
         <nav className="grid gap-1 py-2">
-          {adminAccess ? <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/admin"><Settings className="h-4 w-4" /> Yönetim paneli</Link> : null}
-          {adminAccess ? <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/admin/moderation"><Settings className="h-4 w-4" /> Moderatör paneli</Link> : null}
+          {adminAccess ? <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/admin"><LayoutDashboard className="h-4 w-4 text-emerald-300" /> Yönetim paneli</Link> : null}
+          {adminAccess ? <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/admin/moderation"><ShieldHalf className="h-4 w-4 text-amber-300" /> Moderatör paneli</Link> : null}
           {artistAccess ? <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/artist-profile"><UserRound className="h-4 w-4" /> Sanatçı paneli</Link> : null}
           <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/settings">
             <UserRound className="h-4 w-4" /> Profil ayarları
@@ -32,7 +40,7 @@ export function UserMenu({ name, email, adminAccess, artistAccess, locale = "tr-
             <KeyRound className="h-4 w-4" /> Şifre değiştir
           </Link>
           <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/analytics">
-            <Settings className="h-4 w-4" /> Analizler
+            <ChartNoAxesCombined className="h-4 w-4 text-sky-300" /> Analizler
           </Link>
         </nav>
         <div className="flex items-center justify-between border-t border-white/10 pt-2">

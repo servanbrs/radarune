@@ -66,7 +66,7 @@ export function PublicGrowthShell({
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_12%_8%,rgba(99,238,187,0.2),transparent_28%),radial-gradient(circle_at_88%_18%,rgba(116,143,255,0.2),transparent_30%),linear-gradient(180deg,#f8fffc_0%,#f6f9ff_55%,#f4f7f6_100%)] pb-32 text-foreground">
+    <main className="min-h-screen w-full max-w-full overflow-x-hidden bg-[radial-gradient(circle_at_12%_8%,rgba(99,238,187,0.2),transparent_28%),radial-gradient(circle_at_88%_18%,rgba(116,143,255,0.2),transparent_30%),linear-gradient(180deg,#f8fffc_0%,#f6f9ff_55%,#f4f7f6_100%)] pb-32 text-foreground">
       <header className="sticky top-0 z-50 border-b border-white/10 bg-[#081311]/95 text-white shadow-[0_12px_50px_rgba(4,15,13,0.2)] backdrop-blur-2xl">
         <div className="mx-auto grid min-h-[72px] w-full max-w-[1600px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-3 sm:min-h-[76px] sm:gap-4 sm:px-5 lg:px-8">
           <Link
@@ -148,9 +148,37 @@ export function PublicGrowthShell({
 
       </header>
 
-      <div className="mx-auto w-full max-w-[1500px] px-3 py-6 sm:px-5 sm:py-8 lg:px-7">
+      <div className="mx-auto min-w-0 w-full max-w-[1500px] px-3 py-6 sm:px-5 sm:py-8 lg:px-7">
         {children}
       </div>
+
+      <footer className="border-t border-black/[0.07] bg-white/75 px-4 pb-28 pt-10 text-sm text-[#65706e] backdrop-blur-xl sm:px-6 lg:pb-10">
+        <div className="mx-auto flex min-w-0 max-w-[1500px] flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-bold text-[#101817]">Radarune</p>
+            <p className="mt-1">Müziğin radarı · Yayın ve keşif platformu</p>
+          </div>
+
+          <nav
+            aria-label="Alt menü"
+            className="flex flex-wrap gap-x-5 gap-y-2 font-medium"
+          >
+            <Link className="transition hover:text-[#087d70]" href="/about">
+              Hakkımızda
+            </Link>
+            <Link className="transition hover:text-[#087d70]" href="/contact">
+              İletişim
+            </Link>
+            <Link className="transition hover:text-[#087d70]" href="/terms">
+              Kullanım koşulları
+            </Link>
+            <Link className="transition hover:text-[#087d70]" href="/privacy">
+              Gizlilik
+            </Link>
+          </nav>
+        </div>
+      </footer>
+
       <MobileBottomNav homeHref="/" profileHref={currentUser ? "/mobile-profile" : `/sign-in?next=${encodeURIComponent(pathname || "/")}`} profileLabel={currentUser ? "Profil" : "Giriş"} />
     </main>
   );

@@ -23,7 +23,7 @@ export class SocialService {
   async followArtist(actor: FinanceActorContext, artistId: string) {
     const parsed = followArtistSchema.parse({ artistId });
     const artist = await prisma.artist.findFirst({
-      where: { id: parsed.artistId, organizationId: actor.organizationId },
+      where: { id: parsed.artistId },
       select: { id: true, ownerUserId: true, organizationId: true },
     });
     if (!artist) {

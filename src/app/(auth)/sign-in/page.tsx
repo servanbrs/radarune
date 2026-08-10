@@ -1,9 +1,25 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { AuthShell } from "@/features/authentication/components/auth-shell";
 import { SignInForm } from "@/features/authentication/components/sign-in-form";
 import { safeRedirectPath } from "@/features/authentication/lib/safe-redirect";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { getSocialProviderAvailability } from "@/features/authentication/server/social-provider-configuration.service";
+
+export const metadata: Metadata = {
+  title: "Giriş yap, aramıza katıl | Radarune",
+  description:
+    "Radarune hesabınıza giriş yapın; yeni müzikleri keşfedin, sanatçıları takip edin ve yayın operasyonunuzu yönetin.",
+  alternates: { canonical: "/sign-in" },
+  openGraph: {
+    title: "Giriş yap, aramıza katıl | Radarune",
+    description:
+      "Radarune topluluğuna katılın, müziği keşfedin ve yayın operasyonunuzu tek merkezden yönetin.",
+    url: "/sign-in",
+    type: "website",
+  },
+  robots: { index: true, follow: true },
+};
 
 export default async function SignInPage({
   searchParams,

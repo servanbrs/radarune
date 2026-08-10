@@ -1,7 +1,15 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowUpRight, Database, Eye, FileText, LockKeyhole, Mail, ShieldCheck, UserRound } from "lucide-react";
 import { PublicHeader } from "@/components/public-header";
 import { PublicFooter } from "@/components/public-footer";
+
+export const metadata: Metadata = {
+  title: "Gizlilik politikası | Radarune",
+  description: "Radarune’nin kişisel verileri, çerezleri, güvenlik yaklaşımı ve kullanıcı hakları hakkında gizlilik politikası.",
+  alternates: { canonical: "/privacy" },
+  openGraph: { title: "Gizlilik politikası | Radarune", description: "Radarune gizlilik politikası ve veri güvenliği yaklaşımı.", url: "/privacy", type: "article" },
+};
 
 const contents = [
   ["veriler", "Topladığımız veriler"],

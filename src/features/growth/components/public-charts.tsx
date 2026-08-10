@@ -45,7 +45,7 @@ function ChartTrackCard({
   }
 
   return (
-    <article className="group relative w-[260px] shrink-0 snap-start overflow-hidden rounded-[1.6rem] border border-black/[0.07] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_55px_rgba(15,23,42,0.15)] sm:w-[290px]">
+    <article className="group relative w-[260px] max-w-[calc(100vw-3rem)] shrink-0 snap-start overflow-hidden rounded-[1.6rem] border border-black/[0.07] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_55px_rgba(15,23,42,0.15)] sm:w-[290px]">
       <div className="block">
         <div className="relative aspect-video overflow-hidden bg-[#dfe8e7]">
           {isEmbed && embedUrl ? <iframe allow="autoplay; encrypted-media; picture-in-picture" className="absolute inset-0 size-full" src={`${embedUrl}${embedUrl.includes("?") ? "&" : "?"}autoplay=${playing ? "1" : "0"}&playsinline=1&rel=0`} title={item.title} /> : null}

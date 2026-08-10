@@ -66,7 +66,7 @@ export default async function AppLayout({
             </p>
           </Link>
 
-          <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 lg:flex">
+          <nav className="ml-auto hidden items-center gap-1 lg:flex">
             {primaryNavigation.map((item) => (
               <Link
                 className="whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium text-white/60 transition hover:bg-white/10 hover:text-white"
@@ -78,8 +78,8 @@ export default async function AppLayout({
             ))}
           </nav>
 
-          <div className="ml-auto hidden min-w-0 items-center justify-end gap-3 lg:flex">
-            <div className="w-[260px] xl:w-[340px]">
+          <div className="hidden min-w-0 items-center justify-end gap-3 lg:flex">
+            <div className="w-[220px] xl:w-[320px]">
               <GlobalSearch />
             </div>
 

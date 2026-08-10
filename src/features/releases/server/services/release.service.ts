@@ -14,7 +14,7 @@ import { releaseRepository } from "@/features/releases/server/repositories/relea
 import { releaseValidatorService } from "@/features/releases/server/services/release-validator.service";
 import { notificationService } from "@/features/admin/server/services/notification.service";
 import { webhookEndpointService } from "@/features/platform/server/services/webhook-endpoint.service";
-import { whatsappNotificationService } from "@/features/integrations/server/services/whatsapp-notification.service";
+import { sendTemplatedEmail } from "@/features/email/server/email-settings.service";
 
 export class ReleaseService {
   async listReleases(actor: ReleaseActor) {
@@ -84,10 +84,32 @@ export class ReleaseService {
         status: "DRAFT",
       },
     });
-    void whatsappNotificationService.sendRelease(actor.organizationId, {
-      title: parsed.data.title,
-      releaseId: release.id,
-    }).catch((error) => console.error("[RADARUNE_WHATSAPP] Bildirim gönderilemedi:", error));
+    const adminRecipients = await prisma.user.findMany({
+      where: {
+        systemRole: { in: ["ADMIN", "SUPER_ADMIN"] },
+        accountStatus: "ACTIVE",
+        memberships: { some: { organizationId: actor.organizationId } },
+      },
+      select: { email: true },
+    });
+    const releaseTitle = parsed.data.title.replace(/[\r\n]+/g, " ").trim();
+    const releaseUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://radarune.com"}/release/${release.id}`;
+    void Promise.allSettled(
+      adminRecipients.map((recipient) =>
+        sendTemplatedEmail({
+          organizationId: actor.organizationId,
+          to: recipient.email,
+          template: "release",
+          title: releaseTitle,
+          url: releaseUrl,
+        }),
+      ),
+    ).then((results) => {
+      const failed = results.filter((result) => result.status === "rejected");
+      if (failed.length > 0) {
+        console.error("[RADARUNE_EMAIL] Yayın bildirimi gönderilemedi:", failed.length);
+      }
+    });
 
     return {
       success: true as const,

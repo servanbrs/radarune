@@ -33,7 +33,7 @@ export type EmailSettings = {
 };
 
 export type EmailTemplateName =
-  "verification" | "welcome" | "passwordReset" | "signIn";
+  "verification" | "welcome" | "passwordReset" | "signIn" | "release";
 
 type TemplateVariables = {
   name?: string;
@@ -41,6 +41,7 @@ type TemplateVariables = {
   url?: string;
   code?: string;
   platform?: string;
+  title?: string;
   year?: string;
 };
 
@@ -325,6 +326,7 @@ function replaceVariables(value: string, variables: TemplateVariables) {
     "{{url}}": variables.url ?? "",
     "{{code}}": variables.code ?? "",
     "{{platform}}": variables.platform ?? "Radarune",
+    "{{title}}": variables.title ?? "",
     "{{year}}": variables.year ?? String(new Date().getFullYear()),
   };
 
@@ -373,6 +375,16 @@ function templateData(settings: EmailSettings, template: EmailTemplateName) {
         eyebrow: "İki adımlı doğrulama",
         title: "Giriş güvenlik kodunuz",
         buttonLabel: "",
+      };
+
+    case "release":
+      return {
+        subject: "Yeni yayın geldi · {{title}}",
+        body:
+          "Radarune'e yeni bir yayın gönderildi: {{title}}. Yayını incelemek ve sonraki işlemi yapmak için aşağıdaki bağlantıyı açın.",
+        eyebrow: "Yeni yayın bildirimi",
+        title: "Yeni yayın incelemede",
+        buttonLabel: "Yayını incele",
       };
   }
 }
@@ -590,9 +602,10 @@ export async function verifyEmailTransport(organizationId?: string) {
 export async function sendTemplatedEmail(input: {
   organizationId?: string;
   to: string;
-  template: "verification" | "welcome" | "passwordReset";
+  template: "verification" | "welcome" | "passwordReset" | "release";
   name?: string;
   url?: string;
+  title?: string;
 }) {
   const settings = await getEmailSettings(input.organizationId);
 
@@ -603,6 +616,7 @@ export async function sendTemplatedEmail(input: {
       ...(input.name ? { name: input.name } : {}),
       email: input.to,
       ...(input.url ? { url: input.url } : {}),
+      ...(input.title ? { title: input.title } : {}),
     },
   });
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import {
   ArrowDown,
   Globe2,
@@ -15,10 +16,12 @@ import { prisma } from "@/server/prisma/prisma";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Müzik Listeleri | Radarune",
   description:
-    "YouTube Türkiye trendleri, global müzik gündemi ve Radarune topluluğunun yükselen şarkıları.",
+      "YouTube Türkiye trendleri, global müzik gündemi ve Radarune topluluğunun yükselen şarkıları.",
+  alternates: { canonical: "/lists" },
+  openGraph: { title: "Müzik Listeleri | Radarune", description: "Türkiye, global ve Radarune topluluğunun yükselen müzik listelerini keşfet.", url: "/lists", type: "website" },
 };
 
 const quickLinks = [
@@ -117,7 +120,7 @@ export default async function ListsPage() {
 
   return (
     <PublicGrowthShell currentUser={currentUser}>
-      <div className="space-y-6">
+      <div className="min-w-0 space-y-6">
         <section className="relative overflow-hidden rounded-[2.4rem] bg-[#071612] px-6 py-10 text-white shadow-[0_30px_100px_rgba(4,24,20,0.25)] sm:px-10 sm:py-14 lg:px-14 lg:py-16">
           <div className="pointer-events-none absolute -right-28 -top-36 size-[420px] rounded-full bg-[#18d7aa]/20 blur-[90px]" />
           <div className="pointer-events-none absolute -bottom-48 left-[25%] size-[390px] rounded-full bg-blue-400/10 blur-[100px]" />
@@ -128,7 +131,7 @@ export default async function ListsPage() {
                 RADARUNE / CHARTS
               </p>
 
-              <h1 className="mt-5 max-w-4xl text-5xl font-black tracking-[-0.055em] sm:text-6xl lg:text-8xl">
+              <h1 className="mt-5 max-w-4xl break-words text-4xl font-black tracking-[-0.055em] sm:text-6xl lg:text-8xl">
                 Müziğin nabzı
                 <span className="block text-[#54e7c2]">
                   burada atıyor.

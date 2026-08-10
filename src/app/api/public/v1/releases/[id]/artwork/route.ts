@@ -9,10 +9,11 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
       where: { id, status: { in: ["APPROVED", "DISTRIBUTED", "LIVE"] } },
       select: {
         artworkUploadId: true,
-        uploads: { where: { status: "READY", kind: "ARTWORK" }, select: { id: true, storageKey: true, mimeType: true, byteSize: true } },
+        uploads: { select: { id: true, storageKey: true, mimeType: true, byteSize: true, kind: true, status: true } },
       },
     });
-    const upload = release?.uploads.find((item) => item.id === release.artworkUploadId) ?? release?.uploads[0];
+    const upload = release?.uploads.find((item) => item.id === release.artworkUploadId && item.kind === "ARTWORK")
+      ?? release?.uploads.find((item) => item.status === "READY" && item.kind === "ARTWORK");
     if (!upload) return Response.json({ error: "Kapak görseli bulunamadı." }, { status: 404 });
     const size = Number(upload.byteSize);
     if (!Number.isSafeInteger(size) || size <= 0) return Response.json({ error: "Kapak boyutu geçersiz." }, { status: 422 });

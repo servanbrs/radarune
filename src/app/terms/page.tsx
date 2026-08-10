@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { PublicHeader } from "@/components/public-header";
 import { PublicFooter } from "@/components/public-footer";
 import {
@@ -9,6 +10,13 @@ import {
   LockKeyhole,
   ShieldCheck,
 } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Kullanım koşulları | Radarune",
+  description: "Radarune platformunun hesap, içerik, dağıtım, topluluk ve ödeme kullanım koşulları.",
+  alternates: { canonical: "/terms" },
+  openGraph: { title: "Kullanım koşulları | Radarune", description: "Radarune kullanım koşulları.", url: "/terms", type: "article" },
+};
 
 const sections = [
   { id: "kapsam", label: "Kapsam ve kabul" },

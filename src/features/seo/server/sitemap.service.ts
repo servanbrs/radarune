@@ -31,6 +31,8 @@ const staticEntryDefinitions: Array<[
   ["/contact", "monthly", 0.5],
   ["/privacy", "yearly", 0.3],
   ["/terms", "yearly", 0.3],
+  ["/sign-in", "monthly", 0.4],
+  ["/sign-up", "monthly", 0.5],
   ["/product", "monthly", 0.8],
 ];
 

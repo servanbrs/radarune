@@ -518,7 +518,7 @@ export class DiscoverService {
         : {}),
     }));
 
-    return weightedDiscoverOrder(hydratedItems).slice(0, 40);
+    return weightedDiscoverOrder(hydratedItems).slice(0, 100);
   }
 
   async getCandidates(actor?: FinanceActorContext) {

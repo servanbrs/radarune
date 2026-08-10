@@ -1,8 +1,24 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { AuthShell } from "@/features/authentication/components/auth-shell";
 import { SignUpForm } from "@/features/authentication/components/sign-up-form";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { getSocialProviderAvailability } from "@/features/authentication/server/social-provider-configuration.service";
+
+export const metadata: Metadata = {
+  title: "Aramıza katıl | Radarune",
+  description:
+    "Radarune’de ücretsiz hesap oluşturun; yeni müzikleri keşfedin, sanatçıları takip edin ve kendi yayınınızı hazırlayın.",
+  alternates: { canonical: "/sign-up" },
+  openGraph: {
+    title: "Aramıza katıl | Radarune",
+    description:
+      "Radarune topluluğuna ücretsiz katılın ve müziğinizi daha görünür hale getirin.",
+    url: "/sign-up",
+    type: "website",
+  },
+  robots: { index: true, follow: true },
+};
 
 export default async function SignUpPage() {
   const session = await authSessionService.getOptionalSession();

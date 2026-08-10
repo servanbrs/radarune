@@ -11,6 +11,15 @@ export class ArtistProfileService {
     return prisma.artist.findFirst({ where: { id: artistId, organizationId }, include: { teamMembers: { select: { userId: true, role: true } } } });
   }
 
+  async assertEditable(input: { organizationId: string; userId: string; systemRole: string; artistId: string }) {
+    const artist = await prisma.artist.findFirst({ where: { id: input.artistId, organizationId: input.organizationId }, include: { teamMembers: { where: { userId: input.userId }, select: { role: true } } } });
+    if (!artist) throw new Error("Sanatçı bulunamadı.");
+    const isPlatformAdmin = input.systemRole === "ADMIN" || input.systemRole === "SUPER_ADMIN";
+    const isOwner = artist.ownerUserId === input.userId;
+    const teamRole = artist.teamMembers[0]?.role;
+    if (!isPlatformAdmin && !isOwner && (!teamRole || !editableTeamRoles.has(teamRole))) throw new Error("Bu sanatçı profilini düzenleme yetkiniz yok.");
+  }
+
   async update(input: { organizationId: string; userId: string; systemRole: string; artistId: string; data: unknown }) {
     const parsed = artistProfileUpdateSchema.parse(input.data);
     return prisma.$transaction(async (client) => {

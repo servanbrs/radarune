@@ -1,6 +1,21 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { PublicHeader } from "@/components/public-header";
 import { PublicFooter } from "@/components/public-footer";
+
+export const metadata: Metadata = {
+  title: "Hakkımızda | Radarune müzik operasyon platformu",
+  description:
+    "Radarune; bağımsız sanatçıların ve label ekiplerinin katalog, hak, dağıtım, gelir ve keşif operasyonlarını yönettiği müzik platformudur.",
+  alternates: { canonical: "/about" },
+  openGraph: {
+    title: "Hakkımızda | Radarune",
+    description:
+      "Radarune’nin bağımsız sanatçılar ve label ekipleri için geliştirdiği müzik operasyon platformunu tanıyın.",
+    url: "/about",
+    type: "website",
+  },
+};
 
 export default function AboutPage() {
   return (

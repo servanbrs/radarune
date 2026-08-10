@@ -14,16 +14,22 @@ const booleanSetting = (value: unknown) => {
 };
 
 export async function generateMetadata(): Promise<Metadata> {
-  // Local development must not spend a remote-hosting DB connection on four
-  // SEO setting queries for every route compilation/request. Production keeps
-  // the admin-managed metadata path below.
+  let tenant: Awaited<ReturnType<typeof tenantContextService.resolveFromRequest>> = null;
+  try {
+    tenant = await tenantContextService.resolveFromRequest();
+  } catch {
+    // Metadata must never take the site down when the database is unavailable.
+  }
+
+  // Local development skips the SEO setting queries, but still reads branding
+  // so an admin-uploaded favicon is visible in the local browser as well.
   if (process.env.NODE_ENV !== "production") {
     return {
       title: "Radarune | Müzik operasyon platformu",
       description: "Sanatçılar ve label ekipleri için release, dağıtım, royalty ve keşif operasyonları.",
+      ...(tenant?.tenantBranding?.faviconUrl ? { icons: { icon: tenant.tenantBranding.faviconUrl, shortcut: tenant.tenantBranding.faviconUrl, apple: tenant.tenantBranding.faviconUrl } } : {}),
     };
   }
-  const tenant = await tenantContextService.resolveFromRequest();
   const organizationId = tenant?.id;
   const [title, description, verification, indexing] = await Promise.all([
     configurationResolver.resolve({
@@ -53,10 +59,12 @@ export async function generateMetadata(): Promise<Metadata> {
   ]);
 
   const verificationValue = verification.value;
+  const faviconUrl = tenant?.tenantBranding?.faviconUrl ?? undefined;
   return {
     title: title.value,
     description: description.value,
     ...(verificationValue ? { verification: { google: verificationValue } } : {}),
+    ...(faviconUrl ? { icons: { icon: faviconUrl, shortcut: faviconUrl, apple: faviconUrl } } : {}),
     robots: indexing.value ? undefined : { index: false, follow: false },
   };
 }

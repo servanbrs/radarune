@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import type { CSSProperties } from "react";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { tenantContextService } from "@/features/platform/server/services/tenant-context.service";
@@ -8,6 +9,13 @@ import { RadaruneLandingPage } from "@/features/platform/components/radarune-lan
 import { MobileBottomNav } from "@/features/platform/components/mobile-bottom-nav";
 import { getCachedPublicCandidates } from "@/features/growth/server/services/discover.service";
 import { prisma } from "@/server/prisma/prisma";
+
+export const metadata: Metadata = {
+  title: "Radarune | Müziğini keşfet",
+  description: "Yeni şarkıları keşfet, sanatçıları takip et ve müziğini Radarune topluluğuyla buluştur.",
+  alternates: { canonical: "/" },
+  openGraph: { title: "Radarune | Müziğini keşfet", description: "Yeni şarkıları keşfet, sanatçıları takip et ve müziğini Radarune topluluğuyla buluştur.", url: "/", type: "website" },
+};
 
 function renderValue(value: string | null | undefined) {
   return value?.trim() || null;

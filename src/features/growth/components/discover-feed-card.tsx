@@ -216,10 +216,10 @@ export function DiscoverFeedCard({
   }
 
   return (
-    <div className="mx-auto w-full max-w-[760px]">
-      <article className="overflow-hidden rounded-[28px] border border-black/10 bg-[#07090c] shadow-[0_28px_90px_rgba(15,23,42,0.22)]">
+    <div className="mx-auto w-full min-w-0 max-w-full sm:max-w-[760px]">
+      <article className="w-full min-w-0 max-w-full overflow-hidden rounded-[28px] border border-black/10 bg-[#07090c] shadow-[0_28px_90px_rgba(15,23,42,0.22)]">
         <div
-          className="relative aspect-video min-h-[360px] cursor-pointer overflow-hidden sm:min-h-[430px]"
+          className="relative aspect-video w-full min-w-0 cursor-pointer overflow-hidden"
           onClick={togglePlay}
           role="button"
           tabIndex={0}
@@ -234,14 +234,14 @@ export function DiscoverFeedCard({
             <iframe
               allow="autoplay; encrypted-media; picture-in-picture"
               allowFullScreen
-              className="absolute inset-0 size-full"
+              className="absolute inset-0 block size-full max-w-full border-0"
               src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&controls=1&rel=0&playsinline=1&mute=1`}
               title={item.title}
             />
           ) : shouldShowSpotify && spotifyUrl ? (
             <iframe
               allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-              className="absolute inset-0 size-full"
+              className="absolute inset-0 block size-full max-w-full border-0"
               src={spotifyUrl}
               title={item.title}
             />

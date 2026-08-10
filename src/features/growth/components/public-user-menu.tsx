@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   ChevronDown,
   CircleUserRound,
+  LifeBuoy,
   LayoutDashboard,
   Music2,
   Settings,
@@ -60,7 +61,7 @@ export function PublicUserMenu({
     <div className="relative" ref={wrapperRef}>
       <button
         aria-expanded={open}
-        className="flex max-w-48 items-center gap-2 rounded-full border border-transparent px-1.5 py-1 transition hover:border-black/5 hover:bg-black/[0.04]"
+          className="flex max-w-48 items-center gap-2 rounded-full border border-white/10 px-1.5 py-1 text-white transition hover:border-white/20 hover:bg-white/[0.06]"
         onClick={() => setOpen((current) => !current)}
         type="button"
       >
@@ -69,19 +70,19 @@ export function PublicUserMenu({
         </span>
 
         <span className="hidden min-w-0 sm:block">
-          <span className="block truncate text-left text-sm font-semibold text-black">
+          <span className="block truncate text-left text-sm font-semibold text-white">
             {currentUser.name}
           </span>
 
           {currentUser.username ? (
-            <span className="block truncate text-left text-[11px] text-black/40">
+            <span className="block truncate text-left text-[11px] text-white/55">
               @{currentUser.username}
             </span>
           ) : null}
         </span>
 
         <ChevronDown
-          className={`hidden size-4 shrink-0 text-black/45 transition sm:block ${
+          className={`hidden size-4 shrink-0 text-white/60 transition sm:block ${
             open ? "rotate-180" : ""
           }`}
         />
@@ -149,6 +150,15 @@ export function PublicUserMenu({
             >
               <Settings className="size-4 text-[#087d70]" />
               Ayarlar
+            </Link>
+
+            <Link
+              className="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold text-black/70 transition hover:bg-black/[0.04] hover:text-black"
+              href="/dashboard/support"
+              onClick={() => setOpen(false)}
+            >
+              <LifeBuoy className="size-4 text-[#087d70]" />
+              Destek merkezi
             </Link>
           </nav>
         </section>

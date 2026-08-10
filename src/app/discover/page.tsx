@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Music2 } from "lucide-react";
 
 import { toAdminActor } from "@/features/admin/server/admin-context";
@@ -9,6 +10,39 @@ import { PublicGrowthShell } from "@/features/growth/components/public-shell";
 import { discoverService, getCachedPublicDiscoverFeed, type DiscoverFeedItem } from "@/features/growth/server/services/discover.service";
 import { globalPlaylistService } from "@/features/growth/server/services/global-playlist.service";
 import { tenantContextService } from "@/features/platform/server/services/tenant-context.service";
+
+export const metadata: Metadata = {
+  title: "Keşfet | Yeni müzikleri dinle ve oy ver | Radarune",
+  description:
+    "Radarune Keşfet’te bağımsız sanatçıların yeni şarkılarını dinle, beğen, oy ver ve yükselen müzikleri ilk sen keşfet.",
+  keywords: [
+    "yeni müzikler",
+    "müzik keşfet",
+    "bağımsız sanatçılar",
+    "yeni şarkılar",
+    "Radarune keşfet",
+  ],
+  alternates: { canonical: "/discover" },
+  openGraph: {
+    title: "Keşfet | Yeni müzikleri dinle ve oy ver | Radarune",
+    description:
+      "Yeni yayınları dinle, sanatçıları takip et ve Radarune topluluğunun yükselen şarkılarını keşfet.",
+    url: "/discover",
+    type: "website",
+    siteName: "Radarune",
+  },
+  twitter: {
+    card: "summary",
+    title: "Keşfet | Radarune",
+    description: "Yeni müzikleri keşfet, dinle ve oy ver.",
+  },
+  robots: { index: true, follow: true },
+};
+
+// Keşfet akışı ağırlıklı rastgele sırayla üretilir. Statik/RSC önbelleği ilk
+// kartı sabitlemesin; her giriş ve yenileme yeni bir seçim yapabilsin.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function DiscoverPage() {
   const session = await authSessionService.getOptionalSession();
@@ -45,7 +79,7 @@ export default async function DiscoverPage() {
 
   return (
     <PublicGrowthShell currentUser={currentUser}>
-      <main className="relative isolate mx-auto min-h-[calc(100vh-4rem)] w-full overflow-hidden pb-36 sm:pb-44">
+      <main className="relative isolate mx-auto min-h-[calc(100vh-4rem)] w-full max-w-full overflow-x-hidden pb-36 sm:pb-44">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 top-0 h-[620px] bg-[radial-gradient(circle_at_14%_10%,rgba(52,211,153,0.18),transparent_32%),radial-gradient(circle_at_84%_8%,rgba(96,165,250,0.15),transparent_34%),linear-gradient(180deg,#f8fffc_0%,#f6f9ff_55%,transparent_100%)]"
