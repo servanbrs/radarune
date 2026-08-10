@@ -31,41 +31,58 @@ export async function generateMetadata(): Promise<Metadata> {
     };
   }
   const organizationId = tenant?.id;
-  const [title, description, verification, indexing] = await Promise.all([
-    configurationResolver.resolve({
-      key: "SEO_TITLE",
-      ...(organizationId ? { organizationId } : {}),
-      defaultValue: "Radarune | Müzik operasyon platformu",
-      parse: stringSetting,
-    }),
-    configurationResolver.resolve({
-      key: "SEO_DESCRIPTION",
-      ...(organizationId ? { organizationId } : {}),
-      defaultValue: "Sanatçılar ve label ekipleri için release, dağıtım, royalty ve keşif operasyonları.",
-      parse: stringSetting,
-    }),
-    configurationResolver.resolve({
-      key: "SEO_GOOGLE_SITE_VERIFICATION",
-      ...(organizationId ? { organizationId } : {}),
-      defaultValue: "",
-      parse: stringSetting,
-    }),
-    configurationResolver.resolve({
-      key: "SEO_INDEXING_ENABLED",
-      ...(organizationId ? { organizationId } : {}),
-      defaultValue: true,
-      parse: booleanSetting,
-    }),
-  ]);
+  const defaultTitle = "Radarune | Müzik operasyon platformu";
+  const defaultDescription = "Sanatçılar ve label ekipleri için release, dağıtım, royalty ve keşif operasyonları.";
+  let titleValue = defaultTitle;
+  let descriptionValue = defaultDescription;
+  let verificationValue = "";
+  let indexingValue = true;
 
-  const verificationValue = verification.value;
+  // A production build must not fail just because the runtime database is
+  // temporarily unreachable. Tenant-specific SEO values are an enhancement;
+  // the safe defaults still produce valid metadata and allow deployment.
+  try {
+    const [title, description, verification, indexing] = await Promise.all([
+      configurationResolver.resolve({
+        key: "SEO_TITLE",
+        ...(organizationId ? { organizationId } : {}),
+        defaultValue: defaultTitle,
+        parse: stringSetting,
+      }),
+      configurationResolver.resolve({
+        key: "SEO_DESCRIPTION",
+        ...(organizationId ? { organizationId } : {}),
+        defaultValue: defaultDescription,
+        parse: stringSetting,
+      }),
+      configurationResolver.resolve({
+        key: "SEO_GOOGLE_SITE_VERIFICATION",
+        ...(organizationId ? { organizationId } : {}),
+        defaultValue: "",
+        parse: stringSetting,
+      }),
+      configurationResolver.resolve({
+        key: "SEO_INDEXING_ENABLED",
+        ...(organizationId ? { organizationId } : {}),
+        defaultValue: true,
+        parse: booleanSetting,
+      }),
+    ]);
+    titleValue = title.value;
+    descriptionValue = description.value;
+    verificationValue = verification.value ?? "";
+    indexingValue = indexing.value;
+  } catch {
+    // Keep the build and public pages available while the database recovers.
+  }
+
   const faviconUrl = tenant?.tenantBranding?.faviconUrl ?? undefined;
   return {
-    title: title.value,
-    description: description.value,
+    title: titleValue,
+    description: descriptionValue,
     ...(verificationValue ? { verification: { google: verificationValue } } : {}),
     ...(faviconUrl ? { icons: { icon: faviconUrl, shortcut: faviconUrl, apple: faviconUrl } } : {}),
-    robots: indexing.value ? undefined : { index: false, follow: false },
+    robots: indexingValue ? undefined : { index: false, follow: false },
   };
 }
 
