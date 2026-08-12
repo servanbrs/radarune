@@ -289,14 +289,14 @@ export function DiscoverFeedClient({
   }, [activeItem?.id]);
 
   return (
-    <div className="relative mx-auto w-full max-w-[1240px]">
+    <div className="relative isolate mx-auto w-full min-w-0 max-w-[1240px] overflow-hidden">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-[8%] top-20 h-[680px] overflow-hidden rounded-[5rem] opacity-30 blur-[85px]"
+        className="pointer-events-none absolute left-1/2 top-20 h-[560px] w-[min(1080px,94%)] -translate-x-1/2 overflow-hidden rounded-[4rem] opacity-[0.18] blur-[70px]"
       >
         {activeArtwork ? (
           <div
-            className="absolute inset-0 scale-125 bg-cover bg-center transition-all duration-700"
+            className="absolute inset-0 scale-110 bg-cover bg-center transition-all duration-700"
             style={{
               backgroundImage: `url("${activeArtwork}")`,
             }}
@@ -306,7 +306,7 @@ export function DiscoverFeedClient({
         )}
       </div>
 
-      <div className="relative mb-6 flex flex-col items-center justify-between gap-4 px-1 sm:mb-8 lg:flex-row">
+      <div className="relative z-10 mb-6 flex flex-col items-center justify-between gap-4 px-1 sm:mb-8 lg:flex-row">
         <div>
           <p className="text-center text-[11px] font-bold uppercase tracking-[0.28em] text-emerald-700 lg:text-left">
             Keşif akışı
@@ -352,7 +352,7 @@ export function DiscoverFeedClient({
         </div>
       </div>
 
-      <div className="relative grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,760px)_minmax(280px,360px)] lg:justify-center xl:grid-cols-[72px_minmax(0,760px)_minmax(280px,360px)] xl:gap-7">
+      <div className="relative z-10 grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,760px)_minmax(280px,360px)] lg:justify-center xl:grid-cols-[72px_minmax(0,760px)_minmax(280px,360px)] xl:gap-7">
         <aside className="hidden flex-col items-center gap-3 pt-20 xl:col-start-1 xl:row-start-1 xl:flex">
           <button
             aria-label="Önceki içerik"
@@ -529,7 +529,7 @@ export function DiscoverFeedClient({
       </div>
 
       {!isAuthenticated ? (
-        <div className="mx-auto mt-10 max-w-2xl rounded-2xl border border-black/[0.07] bg-white/80 p-5 text-center text-sm text-[#65706e] shadow-lg backdrop-blur">
+        <div className="relative z-10 mx-auto mt-10 max-w-2xl rounded-2xl border border-black/[0.07] bg-white/80 p-5 text-center text-sm text-[#65706e] shadow-lg backdrop-blur">
           Beğenme, yorum ve kaydetme özellikleri için{" "}
           <Link className="font-semibold text-emerald-700" href="/sign-in">
             giriş yapın

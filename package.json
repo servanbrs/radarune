@@ -4,7 +4,7 @@
   "private": true,
   "main": "app.js",
   "scripts": {
-    "dev": "next dev --webpack",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "prebuild": "prisma generate",
     "start": "NODE_ENV=production tsx scripts/validate-production-env.ts && NODE_ENV=production next start -H 0.0.0.0 -p ${PORT:-3000}",

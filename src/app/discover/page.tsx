@@ -79,7 +79,7 @@ export default async function DiscoverPage() {
 
   return (
     <PublicGrowthShell currentUser={currentUser}>
-      <main className="relative isolate mx-auto min-h-[calc(100vh-4rem)] w-full max-w-full overflow-x-hidden pb-36 sm:pb-44">
+      <main className="relative isolate mx-auto flex min-h-0 w-full max-w-full min-w-0 flex-1 flex-col overflow-x-hidden pb-10 sm:pb-12">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 top-0 h-[620px] bg-[radial-gradient(circle_at_14%_10%,rgba(52,211,153,0.18),transparent_32%),radial-gradient(circle_at_84%_8%,rgba(96,165,250,0.15),transparent_34%),linear-gradient(180deg,#f8fffc_0%,#f6f9ff_55%,transparent_100%)]"

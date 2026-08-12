@@ -47,6 +47,10 @@ export function AdminWorldMap({ countries }: Props) {
         {geography.features.map((country, index) => {
           const code = isoNumeric[String(country.id ?? "")];
           const activity = code ? data.get(code) : undefined;
+          const countryLabel = code ? countryNames[code] ?? code : "Ülke";
+          const activityLabel = activity
+            ? ` · ${activity.streams.toLocaleString("tr-TR")} stream · ${activity.liveVisitors} canlı ziyaretçi`
+            : "";
           const intensity = activity
             ? 0.35 + Math.min(0.65, (activity.streams + activity.liveVisitors) / maxActivity)
             : 0;
@@ -59,10 +63,7 @@ export function AdminWorldMap({ countries }: Props) {
               strokeWidth="0.7"
               className="transition-colors hover:fill-emerald-300"
             >
-              <title>
-                {code ? countryNames[code] ?? code : "Ülke"}
-                {activity ? ` · ${activity.streams.toLocaleString("tr-TR")} stream · ${activity.liveVisitors} canlı ziyaretçi` : ""}
-              </title>
+              <title>{countryLabel + activityLabel}</title>
             </path>
           );
         })}
