@@ -33,7 +33,7 @@ export type EmailSettings = {
 };
 
 export type EmailTemplateName =
-  "verification" | "welcome" | "passwordReset" | "signIn" | "release";
+  "verification" | "welcome" | "passwordReset" | "signIn" | "release" | "support";
 
 type TemplateVariables = {
   name?: string;
@@ -386,6 +386,16 @@ function templateData(settings: EmailSettings, template: EmailTemplateName) {
         title: "Yeni yayın incelemede",
         buttonLabel: "Yayını incele",
       };
+
+    case "support":
+      return {
+        subject: "Yeni destek veya başvuru geldi · {{title}}",
+        body:
+          "Radarune destek merkezine yeni bir destek veya organizasyon başvurusu geldi: {{title}}. Talebi incelemek için aşağıdaki bağlantıyı açın.",
+        eyebrow: "Destek merkezi",
+        title: "Yeni destek talebi",
+        buttonLabel: "Talebi incele",
+      };
   }
 }
 
@@ -602,7 +612,7 @@ export async function verifyEmailTransport(organizationId?: string) {
 export async function sendTemplatedEmail(input: {
   organizationId?: string;
   to: string;
-  template: "verification" | "welcome" | "passwordReset" | "release";
+  template: "verification" | "welcome" | "passwordReset" | "release" | "support";
   name?: string;
   url?: string;
   title?: string;

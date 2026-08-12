@@ -23,6 +23,14 @@ export class TenantRepository {
     });
   }
 
+  async findDefaultTenant() {
+    return prisma.organization.findFirst({
+      where: { tenantStatus: { in: ["ACTIVE", "MAINTENANCE"] } },
+      orderBy: { createdAt: "asc" },
+      include: { tenantBranding: true, themeConfig: true, discoverConfig: true },
+    });
+  }
+
   async findByMembership(userId: string) {
     return prisma.organizationMembership.findFirst({
       where: { userId, status: "ACTIVE" },

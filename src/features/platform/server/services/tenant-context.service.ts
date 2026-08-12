@@ -13,10 +13,16 @@ export class TenantContextService {
   async resolveFromRequest() {
     const headerList = await headers();
     const host = normalizeHost(headerList.get("x-forwarded-host") ?? headerList.get("host"));
-    if (!host && process.env.NODE_ENV !== "production") return null;
     if (host) {
       const byHost = await tenantRepository.findByHost(host);
       if (byHost) return byHost;
+    }
+
+    // Local development has no tenant host header. Use the first active
+    // workspace so branding (especially the uploaded favicon) remains visible
+    // at localhost without requiring a signed-in session.
+    if (!host && process.env.NODE_ENV !== "production") {
+      return tenantRepository.findDefaultTenant();
     }
 
     const session = await auth.api.getSession({ headers: headerList });

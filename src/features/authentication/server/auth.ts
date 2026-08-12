@@ -12,6 +12,7 @@ import {
   sendTemplatedEmail,
 } from "@/features/email/server/email-settings.service";
 import { getSocialProviderCredentials } from "@/features/authentication/server/social-provider-configuration.service";
+import { notificationService } from "@/features/admin/server/services/notification.service";
 
 async function socialAuthConfig(provider: "GOOGLE_OAUTH" | "FACEBOOK_OAUTH") {
   const credentials = await getSocialProviderCredentials(provider);
@@ -99,6 +100,44 @@ export function createAuth() {
 
   user: {
     modelName: "User",
+  },
+
+  databaseHooks: {
+    user: {
+      create: {
+        async after(user) {
+          // Registration must not fail because an optional notification or
+          // welcome email is temporarily unavailable.
+          try {
+            const organization = await prisma.organization.findFirst({
+              where: { tenantStatus: { in: ["ACTIVE", "MAINTENANCE"] } },
+              orderBy: { createdAt: "asc" },
+              select: { id: true },
+            });
+
+            await sendTemplatedEmail({
+              ...(organization ? { organizationId: organization.id } : {}),
+              to: user.email,
+              name: user.name,
+              template: "welcome",
+            });
+
+            if (organization) {
+              await notificationService.notifyOrganizationAdmins({
+                organizationId: organization.id,
+                type: "NEW_USER_REGISTERED",
+                title: "Yeni kullanıcı kaydı",
+                message: `${user.name} (${user.email}) Radarune'e katıldı.`,
+                entityType: "User",
+                entityId: user.id,
+              });
+            }
+          } catch (error) {
+            console.error("[RADARUNE_SIGNUP] Hoş geldin bildirimi gönderilemedi:", error);
+          }
+        },
+      },
+    },
   },
 
   session: {

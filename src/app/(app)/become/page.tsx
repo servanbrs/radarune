@@ -9,10 +9,18 @@ import {
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { creatorAccessService } from "@/features/authorization/server/creator-access.service";
 import { ArtistApplicationForm } from "@/features/admin/components/artist-application-form";
+import { CreatorApplicationForm } from "@/features/organization/components/creator-application-form";
 
-export default async function BecomePage() {
+export default async function BecomePage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ type?: string | string[] }>;
+}) {
   const { user } =
     await authSessionService.getDashboardContext();
+  const params = await searchParams;
+  const requestedType = typeof params?.type === "string" ? params.type : undefined;
+  const applicationKind = requestedType === "label" ? "LABEL" : "ORGANIZATION";
 
   const access = creatorAccessService.getAccess({
     systemRole: user.systemRole,
@@ -131,7 +139,7 @@ export default async function BecomePage() {
           </div>
 
           <h2 className="mt-6 text-2xl font-semibold">
-            Organizatör başvurusu
+            {applicationKind === "LABEL" ? "Label başvurusu" : "Organizatör başvurusu"}
           </h2>
 
           <p className="mt-3 text-sm leading-7 text-muted">
@@ -156,7 +164,9 @@ export default async function BecomePage() {
             </li>
           </ul>
 
-          <Link className="mt-8 inline-flex rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-white" href="/onboarding/organization">Organizasyon çalışma alanı oluştur</Link>
+          <CreatorApplicationForm kind={applicationKind} />
+
+          <p className="mt-5 text-xs leading-6 text-muted">Label başvurusu yapmak için formdaki başvuru detaylarına label ekibinizi ve kataloğunuzu yazabilirsiniz.</p>
         </article>
       </section>
     </main>

@@ -4,6 +4,8 @@ import { canAccessAdmin } from "@/features/admin/server/admin-context";
 import { createSupportMessageSchema, createSupportTicketSchema, updateSupportTicketSchema, type CreateSupportTicketInput } from "@/features/support/schemas/support.schema";
 import type { FinanceActorContext } from "@/features/finance/server/services/finance-access.service";
 import { prisma } from "@/server/prisma/prisma";
+import { notificationService } from "@/features/admin/server/services/notification.service";
+import { sendTemplatedEmail } from "@/features/email/server/email-settings.service";
 
 export class SupportService {
   async createTicket(actor: FinanceActorContext, input: CreateSupportTicketInput) {
@@ -13,7 +15,7 @@ export class SupportService {
       if (!release) throw new Error("Yayın bulunamadı.");
     }
 
-    return prisma.$transaction(async (tx) => {
+    const ticket = await prisma.$transaction(async (tx) => {
       const ticket = await tx.supportTicket.create({
         data: {
           organizationId: actor.organizationId,
@@ -29,6 +31,38 @@ export class SupportService {
       });
       return ticket;
     });
+
+    await notificationService.notifyOrganizationAdmins({
+      organizationId: actor.organizationId,
+      type: "SUPPORT_TICKET_CREATED",
+      title: "Yeni destek veya başvuru geldi",
+      message: `${parsed.subject} · Başvuru sahibi: ${actor.userId}`,
+      entityType: "SupportTicket",
+      entityId: ticket.id,
+    });
+
+    const recipients = await prisma.user.findMany({
+      where: {
+        systemRole: { in: ["ADMIN", "SUPER_ADMIN"] },
+        accountStatus: "ACTIVE",
+        memberships: { some: { organizationId: actor.organizationId } },
+      },
+      select: { email: true },
+    });
+    void Promise.allSettled(
+      recipients.map((recipient) => sendTemplatedEmail({
+        organizationId: actor.organizationId,
+        to: recipient.email,
+        template: "support",
+        title: parsed.subject,
+        url: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://radarune.com"}/admin/support`,
+      })),
+    ).then((results) => {
+      const failed = results.filter((result) => result.status === "rejected");
+      if (failed.length) console.error("[RADARUNE_EMAIL] Destek başvurusu bildirimi gönderilemedi:", failed.length);
+    });
+
+    return ticket;
   }
 
   async listTickets(actor: FinanceActorContext) {
