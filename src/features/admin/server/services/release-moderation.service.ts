@@ -13,7 +13,7 @@ import type { ReleaseModerationActionInput } from "@/features/admin/schemas/admi
 import type { FinanceActorContext } from "@/features/finance/server/services/finance-access.service";
 
 export class ReleaseModerationService {
-  async listReleases(actor: FinanceActorContext, params: { page: number; pageSize: number; search?: string }) {
+  async listReleases(actor: FinanceActorContext, params: { page: number; pageSize: number; search?: string; status?: Parameters<typeof adminReleaseRepository.list>[0]["status"] }) {
     assertAdminPermission(actor, "releases:view");
     return adminReleaseRepository.list({ ...params, organizationId: actor.organizationId });
   }

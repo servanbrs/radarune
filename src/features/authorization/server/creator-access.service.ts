@@ -20,11 +20,7 @@ function normalizeRole(role: string | null | undefined) {
 function getAccess(input: CreatorAccessInput): CreatorAccess {
   const role = normalizeRole(input.systemRole);
 
-  const isAdmin = [
-    "ADMIN",
-    "SUPER_ADMIN",
-    "MODERATOR",
-  ].includes(role);
+  const isAdmin = ["ADMIN", "SUPER_ADMIN"].includes(role);
 
   const isArtist = role === "ARTIST";
 
@@ -45,7 +41,7 @@ function getAccess(input: CreatorAccessInput): CreatorAccess {
 
   // Performans verileri yalnızca doğrulanmış sanatçıların ve yöneticilerin
   // kendi kataloglarını görmesi için açılır.
-  const canViewAnalytics = isAdmin || isArtist || isOrganizer;
+  const canViewAnalytics = isAdmin || role === "MODERATOR" || isArtist || isOrganizer;
 
   const canUseGrowthTools =
     isAdmin ||

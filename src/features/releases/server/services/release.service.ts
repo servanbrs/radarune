@@ -86,7 +86,7 @@ export class ReleaseService {
     });
     const adminRecipients = await prisma.user.findMany({
       where: {
-        systemRole: { in: ["ADMIN", "SUPER_ADMIN"] },
+        systemRole: { in: ["MODERATOR", "ADMIN", "SUPER_ADMIN"] },
         accountStatus: "ACTIVE",
         memberships: { some: { organizationId: actor.organizationId } },
       },

@@ -6,21 +6,41 @@ import {
 } from "@/features/authorization/server/rbac";
 import type { FinanceActorContext } from "@/features/finance/server/services/finance-access.service";
 
-const ADMIN_SYSTEM_ROLES: ReadonlySet<
+const PLATFORM_ADMIN_ROLES: ReadonlySet<
   FinanceActorContext["systemRole"]
-> = new Set(["MODERATOR", "ADMIN", "SUPER_ADMIN"]);
+> = new Set(["ADMIN", "SUPER_ADMIN"]);
 
 export function canAccessAdmin(
   actor: FinanceActorContext,
 ): boolean {
-  return ADMIN_SYSTEM_ROLES.has(actor.systemRole);
+  return PLATFORM_ADMIN_ROLES.has(actor.systemRole);
+}
+
+const MODERATOR_PATHS = new Set([
+  "/admin/moderation",
+  "/admin/releases",
+  "/admin/applications",
+  "/admin/site-builder/discover",
+  "/admin/social/playlists",
+  "/admin/analytics",
+  "/admin/support",
+]);
+
+export function canAccessModeratorPath(actor: FinanceActorContext, pathname: string) {
+  if (actor.systemRole !== "MODERATOR") return false;
+  return [...MODERATOR_PATHS].some(
+    (allowedPath) => pathname === allowedPath || pathname.startsWith(`${allowedPath}/`),
+  );
 }
 
 export function assertAdminPermission(
   actor: FinanceActorContext,
   permission: AppPermission,
 ) {
-  if (!canAccessAdmin(actor)) {
+  if (!canAccessAdmin(actor) && !(actor.systemRole === "MODERATOR" && [
+    "artists.view", "artists.review", "releases:view", "releases:review", "releases:distribute",
+    "distribution:view", "discover:manage", "playlists:view", "playlists:manage",
+  ].includes(permission))) {
     throw new Error(
       "Bu alan yalnızca Radarune yönetim ekibine açıktır.",
     );

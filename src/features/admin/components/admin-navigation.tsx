@@ -24,7 +24,6 @@ import {
   ReceiptText,
   Search,
   Settings2,
-  ShieldCheck,
   SlidersHorizontal,
   Users,
   Webhook,
@@ -44,6 +43,16 @@ type AdminNavGroup = {
   items: AdminNavItem[];
 };
 
+const moderatorPaths = new Set([
+  "/admin/moderation",
+  "/admin/releases",
+  "/admin/applications",
+  "/admin/site-builder/discover",
+  "/admin/social/playlists",
+  "/admin/analytics",
+  "/admin/support",
+]);
+
 export const adminNavigationGroups: AdminNavGroup[] = [
   {
     title: "Kontrol merkezi",
@@ -60,7 +69,6 @@ export const adminNavigationGroups: AdminNavGroup[] = [
     icon: Workflow,
     items: [
       { href: "/admin/releases", label: "Yayın moderasyonu", icon: FileText },
-      { href: "/admin/moderation", label: "Moderatör paneli", icon: ShieldCheck },
       { href: "/admin/distribution", label: "Dağıtım merkezi", icon: Radio },
       { href: "/admin/distribution/jobs", label: "Job kuyruğu", icon: Workflow },
       { href: "/admin/distribution/dead-letter", label: "Dead-letter", icon: FileClock },
@@ -75,6 +83,7 @@ export const adminNavigationGroups: AdminNavGroup[] = [
       { href: "/admin/finance", label: "Finans yönetimi", icon: ReceiptText },
       { href: "/admin/finance/providers", label: "Ödeme sağlayıcıları", icon: PlugZap },
       { href: "/admin/intelligence/usage", label: "Kullanım analitiği", icon: BarChart3 },
+      { href: "/admin/analytics", label: "Detaylı kullanım analizi", icon: Activity },
       { href: "/admin/audit-logs", label: "İşlem kayıtları", icon: FileClock },
     ],
   },
@@ -117,12 +126,28 @@ export const adminNavigationGroups: AdminNavGroup[] = [
   },
 ];
 
-export function AdminNavigation() {
+export function AdminNavigation({ systemRole }: { systemRole: string }) {
   const pathname = usePathname();
+  const groups = systemRole === "MODERATOR"
+    ? adminNavigationGroups.map((group) => ({ ...group, items: group.items.filter((item) => moderatorPaths.has(item.href)) })).filter((group) => group.items.length > 0)
+    : adminNavigationGroups;
 
   return (
     <nav aria-label="Admin menüsü" className="grid gap-2">
-      {adminNavigationGroups.map((group) => {
+      {(() => {
+        const isCurrent = pathname === "/admin/moderation" || pathname.startsWith("/admin/moderation/");
+        return (
+          <Link
+            aria-current={isCurrent ? "page" : undefined}
+            className={`group/item flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-medium transition ${isCurrent ? "bg-emerald-300 text-[#0d211d] shadow-[0_8px_22px_rgba(110,231,183,0.16)]" : "text-white/58 hover:bg-white/[0.07] hover:text-white"}`}
+            href="/admin/moderation"
+          >
+            <LayoutDashboard className={`size-4 shrink-0 ${isCurrent ? "text-[#0d211d]" : "text-white/35 group-hover/item:text-emerald-300"}`} />
+            <span className="truncate">Dashboard</span>
+          </Link>
+        );
+      })()}
+      {groups.map((group) => {
         const GroupIcon = group.icon;
         const active = group.items.some((item) => {
           const hrefPath = item.href.split("#")[0];

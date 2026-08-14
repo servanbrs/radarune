@@ -100,7 +100,6 @@ export function NotificationBell() {
   }, []);
 
   useEffect(() => {
-    if (!open) return;
     const initialRequest = !loaded && !loading
       ? window.setTimeout(() => void loadNotifications(), 0)
       : undefined;

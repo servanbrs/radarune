@@ -50,6 +50,15 @@ export class ArtistApplicationService {
       metadata: { stageName: application.stageName },
     });
 
+    await notificationService.notifyOrganizationAdmins({
+      organizationId: actor.organizationId,
+      type: "ARTIST_APPLICATION_CREATED",
+      title: "Yeni sanatçı başvurusu",
+      message: `${application.stageName} için yeni sanatçı başvurusu geldi.`,
+      entityType: "ArtistApplication",
+      entityId: application.id,
+    });
+
     return { success: true as const, data: application };
   }
   async listApplications(actor: FinanceActorContext, params: { page: number; pageSize: number; search?: string }) {

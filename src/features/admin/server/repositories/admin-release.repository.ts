@@ -4,9 +4,10 @@ import { prisma } from "@/server/prisma/prisma";
 import type { DatabaseClient } from "@/server/prisma/database-client";
 
 export class AdminReleaseRepository {
-  async list(params: { organizationId: string; page: number; pageSize: number; search?: string }) {
+  async list(params: { organizationId: string; page: number; pageSize: number; search?: string; status?: Prisma.ReleaseWhereInput["status"] }) {
     const where: Prisma.ReleaseWhereInput = {
       organizationId: params.organizationId,
+      ...(params.status ? { status: params.status } : {}),
       ...(params.search
         ? {
             OR: [

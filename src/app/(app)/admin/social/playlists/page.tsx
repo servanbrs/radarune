@@ -17,5 +17,14 @@ export default async function AdminGlobalPlaylistsPage() {
     tracks: playlist.tracks.map((item) => ({ id: item.id, track: item.track, release: item.release })),
     campaign: playlist.campaign ? { id: playlist.campaign.id, slug: playlist.campaign.slug, active: playlist.campaign.active, endsAt: playlist.campaign.endsAt.toISOString(), voteCount: playlist.campaign.voteCount } : null,
   }));
-  return <AdminShell title="Global playlistler" description="Keşfet alanında yayınlanan playlistleri, canlı parçaları ve gerçek kullanıcı oylamalarını yönetin."><GlobalPlaylistManager initialPlaylists={playlists} tracks={data.tracks} /></AdminShell>;
+  const userPlaylists = data.userPlaylists.map((playlist) => ({
+    id: playlist.id,
+    name: playlist.name,
+    slug: playlist.slug,
+    description: playlist.description,
+    public: playlist.public,
+    owner: playlist.ownerUser,
+    tracks: playlist.tracks.map((item) => ({ id: item.id, trackId: item.track.id, track: item.track, release: item.release })),
+  }));
+  return <AdminShell title="Global playlistler" description="Keşfet alanında yayınlanan playlistleri ve kullanıcıların oluşturduğu listeleri yönetin."><GlobalPlaylistManager initialPlaylists={playlists} userPlaylists={userPlaylists} tracks={data.tracks} /></AdminShell>;
 }

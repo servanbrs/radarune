@@ -2,7 +2,7 @@ import "server-only";
 import { Prisma } from "@/generated/prisma/client";
 import { assertAdminPermission } from "@/features/admin/server/admin-context";
 import { auditLogService } from "@/features/finance/server/services/audit-log.service";
-import { globalPlaylistCreateSchema, globalPlaylistTrackSchema, globalPlaylistUpdateSchema, type GlobalPlaylistCreateInput, type GlobalPlaylistUpdateInput } from "@/features/growth/schemas/growth.schema";
+import { adminPlaylistUpdateSchema, globalPlaylistCreateSchema, globalPlaylistTrackSchema, globalPlaylistUpdateSchema, type AdminPlaylistUpdateInput, type GlobalPlaylistCreateInput, type GlobalPlaylistUpdateInput } from "@/features/growth/schemas/growth.schema";
 import { globalPlaylistRepository } from "@/features/growth/server/repositories/global-playlist.repository";
 import type { FinanceActorContext } from "@/features/finance/server/services/finance-access.service";
 import { prisma } from "@/server/prisma/prisma";
@@ -13,9 +13,9 @@ function campaignSlug(slug: string) {
 
 export class GlobalPlaylistService {
   async listForAdmin(actor: FinanceActorContext) {
-    assertAdminPermission(actor, "auth.social.view");
-    const [playlists, tracks] = await Promise.all([this.listForDiscover(actor.organizationId), globalPlaylistRepository.listLiveTracks(actor.organizationId)]);
-    return { playlists, tracks };
+    assertAdminPermission(actor, "playlists:view");
+    const [playlists, tracks, userPlaylists] = await Promise.all([this.listForDiscover(actor.organizationId), globalPlaylistRepository.listLiveTracks(actor.organizationId), globalPlaylistRepository.listUserPlaylists(actor.organizationId)]);
+    return { playlists, tracks, userPlaylists };
   }
 
   async listForDiscover(organizationId: string) {
@@ -32,7 +32,7 @@ export class GlobalPlaylistService {
   }
 
   async create(actor: FinanceActorContext, input: GlobalPlaylistCreateInput) {
-    assertAdminPermission(actor, "auth.social.manage");
+    assertAdminPermission(actor, "playlists:manage");
     const parsed = globalPlaylistCreateSchema.parse(input);
     return prisma.$transaction(async (tx) => {
       const playlist = await globalPlaylistRepository.create({ ...parsed, ownerUserId: actor.userId }, tx);
@@ -46,7 +46,7 @@ export class GlobalPlaylistService {
   }
 
   async update(actor: FinanceActorContext, id: string, input: GlobalPlaylistUpdateInput) {
-    assertAdminPermission(actor, "auth.social.manage");
+    assertAdminPermission(actor, "playlists:manage");
     const parsed = globalPlaylistUpdateSchema.parse(input);
     return prisma.$transaction(async (tx) => {
       const current = await globalPlaylistRepository.findById(id, tx);
@@ -61,7 +61,7 @@ export class GlobalPlaylistService {
   }
 
   async remove(actor: FinanceActorContext, id: string) {
-    assertAdminPermission(actor, "auth.social.manage");
+    assertAdminPermission(actor, "playlists:manage");
     return prisma.$transaction(async (tx) => {
       const current = await globalPlaylistRepository.findById(id, tx);
       if (!current) throw new Error("Global playlist bulunamadı.");
@@ -73,7 +73,7 @@ export class GlobalPlaylistService {
   }
 
   async addTrack(actor: FinanceActorContext, playlistId: string, input: unknown) {
-    assertAdminPermission(actor, "auth.social.manage");
+    assertAdminPermission(actor, "playlists:manage");
     const parsed = globalPlaylistTrackSchema.parse(input);
     return prisma.$transaction(async (tx) => {
       const result = await globalPlaylistRepository.addTrack(playlistId, parsed.trackId, actor.organizationId, tx);
@@ -83,12 +83,31 @@ export class GlobalPlaylistService {
   }
 
   async removeTrack(actor: FinanceActorContext, playlistId: string, trackId: string) {
-    assertAdminPermission(actor, "auth.social.manage");
+    assertAdminPermission(actor, "playlists:manage");
     return prisma.$transaction(async (tx) => {
       const result = await globalPlaylistRepository.removeTrack(playlistId, trackId, tx);
       await auditLogService.create({ organizationId: actor.organizationId, actorUserId: actor.userId, action: "GLOBAL_PLAYLIST_TRACK_REMOVED", entityType: "Playlist", entityId: playlistId, metadata: { trackId } }, tx);
       return result;
     });
+  }
+
+  async updateUserPlaylist(actor: FinanceActorContext, id: string, input: AdminPlaylistUpdateInput) {
+    assertAdminPermission(actor, "playlists:manage");
+    const parsed = adminPlaylistUpdateSchema.parse(input);
+    const current = await globalPlaylistRepository.findUserPlaylist(id, actor.organizationId);
+    if (!current) throw new Error("Kullanıcı playlisti bulunamadı.");
+    return globalPlaylistRepository.updateUserPlaylist(id, actor.organizationId, parsed);
+  }
+
+  async addTrackToUserPlaylist(actor: FinanceActorContext, playlistId: string, input: unknown) {
+    assertAdminPermission(actor, "playlists:manage");
+    const parsed = globalPlaylistTrackSchema.parse(input);
+    return globalPlaylistRepository.addTrackToUserPlaylist(playlistId, parsed.trackId, actor.organizationId);
+  }
+
+  async removeTrackFromUserPlaylist(actor: FinanceActorContext, playlistId: string, trackId: string) {
+    assertAdminPermission(actor, "playlists:manage");
+    return globalPlaylistRepository.removeTrackFromUserPlaylist(playlistId, trackId, actor.organizationId);
   }
 }
 

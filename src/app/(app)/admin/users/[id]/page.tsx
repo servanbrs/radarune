@@ -5,6 +5,8 @@ import { authSessionService } from "@/features/authentication/server/services/au
 import { toAdminActor } from "@/features/admin/server/admin-context";
 import { adminUserService } from "@/features/admin/server/services/admin-user.service";
 import { AdminUserActions } from "@/features/admin/components/admin-user-actions";
+import { rbacService, type SystemRole } from "@/features/authorization/server/rbac";
+import { systemRoles } from "@/features/authorization/permission-catalog";
 
 export default async function AdminUserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -19,6 +21,10 @@ export default async function AdminUserDetailPage({ params }: { params: Promise<
   if (!detail) {
     notFound();
   }
+
+  const permissionsByRole = Object.fromEntries(
+    systemRoles.map((systemRole) => [systemRole, rbacService.listSystemPermissions(systemRole)]),
+  ) as Record<SystemRole, ReturnType<typeof rbacService.listSystemPermissions>>;
 
   return (
     <AdminShell title={detail.name} description="Kullanıcı rolü, hesap durumu, sanatçı profilleri, organizasyonları ve yayınları.">
@@ -41,7 +47,7 @@ export default async function AdminUserDetailPage({ params }: { params: Promise<
           </div>
         </article>
       </section>
-      <AdminUserActions role={detail.systemRole} status={detail.accountStatus} userId={detail.id} />
+      <AdminUserActions permissionsByRole={permissionsByRole} role={detail.systemRole} status={detail.accountStatus} userId={detail.id} />
       <section className="panel p-6">
         <h2 className="text-lg font-semibold">Yayınlar</h2>
         <div className="mt-4 grid gap-3">

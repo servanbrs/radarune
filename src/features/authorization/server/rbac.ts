@@ -104,6 +104,8 @@ export type AppPermission =
   | "artist.profile.view"
   | "artist.profile.edit"
   | "artist.team.manage"
+  | "playlists:view"
+  | "playlists:manage"
   | "users.deletion_requests.view"
   | "users.delete"
   | "email.settings.view"
@@ -216,47 +218,16 @@ const systemRolePermissions: Record<SystemRole, readonly AppPermission[]> = {
     "statements:view:own",
   ],
   MODERATOR: [
-    "admin.dashboard.view",
     "artists.view",
     "artists.review",
-    "providers.view",
-    "admin.intelligence.view",
-    "admin.intelligence.duplicates.review",
     "releases:view",
     "releases:review",
+    "releases:distribute",
     "distribution:view",
-    "analytics:view:all",
-    "royalties:view:all",
-    "revenue-import:view",
-    "statements:view:all",
-    "audit.view",
-    "system-logs.view",
-    "storage.view",
-    "storage.manage",
-    "users.deletion_requests.view",
-    "email.settings.view",
-    "email.settings.manage",
-    "email.templates.manage",
-    "email.logs.view",
-    "auth.social.view",
-    "auth.social.manage",
-    "developer.apps.manage",
-    "developer.api_keys.revoke",
-    "developer.usage.view",
-    "developer.webhooks.manage",
-    "oauth.authorizations.revoke",
-    "tenant:view",
-    "site-builder:view",
-    "homepage:manage",
     "discover:manage",
-    "api-keys:view",
-    "webhooks:view",
-    "system:health:view",
-    "legal:view",
-    "imports.view",
-    "imports.review",
-    "applications.preview_links",
-    "applications.automation.view",
+    "playlists:view",
+    "playlists:manage",
+    "analytics:view:all",
   ],
   ADMIN: [
     "admin.dashboard.view",
@@ -275,6 +246,8 @@ const systemRolePermissions: Record<SystemRole, readonly AppPermission[]> = {
     "releases:distribute",
     "distribution:view",
     "distribution:manage",
+    "playlists:view",
+    "playlists:manage",
     "analytics:view:all",
     "royalties:view:all",
     "royalties:generate",
@@ -336,6 +309,8 @@ const systemRolePermissions: Record<SystemRole, readonly AppPermission[]> = {
     "releases:distribute",
     "distribution:view",
     "distribution:manage",
+    "playlists:view",
+    "playlists:manage",
     "analytics:view:all",
     "royalties:view:all",
     "royalties:generate",
@@ -461,6 +436,10 @@ class RbacService {
 
   listPermissions(role: MembershipRole) {
     return rolePermissions[role];
+  }
+
+  listSystemPermissions(role: SystemRole) {
+    return systemRolePermissions[role];
   }
 
   listEffectivePermissions(membershipRole: MembershipRole, systemRole: SystemRole) {

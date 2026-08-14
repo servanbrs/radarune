@@ -3,6 +3,46 @@ import { prisma } from "@/server/prisma/prisma";
 import type { DatabaseClient } from "@/server/prisma/database-client";
 
 export class NotificationService {
+  async notifyStaff(input: {
+    organizationId?: string;
+    type: string;
+    title: string;
+    message: string;
+    entityType?: string;
+    entityId?: string;
+  }) {
+    const staff = await prisma.user.findMany({
+      where: {
+        accountStatus: "ACTIVE",
+        ...(input.organizationId
+          ? {
+              OR: [
+                { systemRole: "MODERATOR" },
+                { systemRole: "SUPER_ADMIN" },
+                {
+                  systemRole: "ADMIN",
+                  memberships: { some: { organizationId: input.organizationId } },
+                },
+              ],
+            }
+          : { systemRole: { in: ["MODERATOR", "ADMIN", "SUPER_ADMIN"] } }),
+      },
+      select: { id: true, systemRole: true },
+    });
+
+    return Promise.all(
+      staff.map((member) => {
+        // Moderators are platform-wide reviewers, so their notification is
+        // intentionally global even when the event belongs to one workspace.
+        if (member.systemRole === "MODERATOR") {
+          const { organizationId: _organizationId, ...globalInput } = input;
+          return this.create({ ...globalInput, userId: member.id });
+        }
+        return this.create({ ...input, userId: member.id });
+      }),
+    );
+  }
+
   async notifyOrganizationAdmins(input: {
     organizationId: string;
     type: string;
@@ -11,18 +51,7 @@ export class NotificationService {
     entityType?: string;
     entityId?: string;
   }) {
-    const admins = await prisma.user.findMany({
-      where: {
-        systemRole: { in: ["ADMIN", "SUPER_ADMIN"] },
-        accountStatus: "ACTIVE",
-        memberships: { some: { organizationId: input.organizationId } },
-      },
-      select: { id: true },
-    });
-
-    return Promise.all(
-      admins.map((admin) => this.create({ ...input, userId: admin.id })),
-    );
+    return this.notifyStaff(input);
   }
 
   async create(

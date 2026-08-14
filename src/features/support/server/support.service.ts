@@ -8,6 +8,42 @@ import { notificationService } from "@/features/admin/server/services/notificati
 import { sendTemplatedEmail } from "@/features/email/server/email-settings.service";
 
 export class SupportService {
+  private canSeeAllOrganizations(actor: FinanceActorContext) {
+    // Support is a platform-level admin queue: an admin must be able to see
+    // tickets created from a user's personal organization as well.
+    return canAccessAdmin(actor) || actor.systemRole === "MODERATOR";
+  }
+
+  private canManageSupport(actor: FinanceActorContext) {
+    return canAccessAdmin(actor) || actor.systemRole === "MODERATOR";
+  }
+
+  async getStaffPresence() {
+    const staffRoles = ["MODERATOR", "ADMIN", "SUPER_ADMIN"] as const;
+    const [staff, sessions] = await Promise.all([
+      prisma.user.findMany({
+        where: { accountStatus: "ACTIVE", systemRole: { in: [...staffRoles] } },
+        select: { id: true, name: true, systemRole: true },
+        orderBy: { name: "asc" },
+      }),
+      prisma.session.findMany({
+        where: {
+          expiresAt: { gt: new Date() },
+          user: { accountStatus: "ACTIVE", systemRole: { in: [...staffRoles] } },
+        },
+        select: { userId: true },
+      }),
+    ]);
+
+    const activeUserIds = new Set(sessions.map((session) => session.userId));
+    return staff.map((member) => ({
+      id: member.id,
+      name: member.name,
+      role: member.systemRole,
+      active: activeUserIds.has(member.id),
+    }));
+  }
+
   async createTicket(actor: FinanceActorContext, input: CreateSupportTicketInput) {
     const parsed = createSupportTicketSchema.parse(input);
     if (parsed.releaseId) {
@@ -43,9 +79,12 @@ export class SupportService {
 
     const recipients = await prisma.user.findMany({
       where: {
-        systemRole: { in: ["ADMIN", "SUPER_ADMIN"] },
         accountStatus: "ACTIVE",
-        memberships: { some: { organizationId: actor.organizationId } },
+        OR: [
+          { systemRole: "MODERATOR" },
+          { systemRole: "ADMIN", memberships: { some: { organizationId: actor.organizationId } } },
+          { systemRole: "SUPER_ADMIN" },
+        ],
       },
       select: { email: true },
     });
@@ -66,39 +105,44 @@ export class SupportService {
   }
 
   async listTickets(actor: FinanceActorContext) {
+    const canSeeAllOrganizations = this.canSeeAllOrganizations(actor);
     return prisma.supportTicket.findMany({
-      where: canAccessAdmin(actor) ? { organizationId: actor.organizationId } : { organizationId: actor.organizationId, requesterUserId: actor.userId },
+      where: this.canManageSupport(actor)
+        ? canSeeAllOrganizations
+          ? {}
+          : { organizationId: actor.organizationId }
+        : { organizationId: actor.organizationId, requesterUserId: actor.userId },
       orderBy: { lastMessageAt: "desc" },
       take: 100,
-      select: { id: true, subject: true, status: true, priority: true, referenceIsrc: true, referenceUpc: true, releaseId: true, lastMessageAt: true, updatedAt: true, requester: { select: { id: true, name: true, email: true } }, assignedUser: { select: { id: true, name: true } }, _count: { select: { messages: true } } },
+      select: { id: true, subject: true, status: true, priority: true, referenceIsrc: true, referenceUpc: true, releaseId: true, lastMessageAt: true, updatedAt: true, requester: { select: { id: true, name: true, email: true } }, organization: { select: { id: true, name: true, slug: true } }, assignedUser: { select: { id: true, name: true } }, _count: { select: { messages: true } } },
     });
   }
 
   async getThread(actor: FinanceActorContext, ticketId: string) {
-    const ticket = await prisma.supportTicket.findFirst({ where: { id: ticketId, organizationId: actor.organizationId, ...(canAccessAdmin(actor) ? {} : { requesterUserId: actor.userId }) }, include: { messages: { where: canAccessAdmin(actor) ? {} : { internal: false }, orderBy: { createdAt: "asc" }, include: { sender: { select: { id: true, name: true, systemRole: true } } } }, requester: { select: { id: true, name: true, email: true } }, assignedUser: { select: { id: true, name: true } }, release: { select: { id: true, title: true, upc: true, tracks: { select: { isrc: true, title: true } } } } } });
+    const ticket = await prisma.supportTicket.findFirst({ where: { id: ticketId, ...(this.canSeeAllOrganizations(actor) ? {} : { organizationId: actor.organizationId }), ...(this.canManageSupport(actor) ? {} : { requesterUserId: actor.userId }) }, include: { messages: { where: this.canManageSupport(actor) ? {} : { internal: false }, orderBy: { createdAt: "asc" }, include: { sender: { select: { id: true, name: true, systemRole: true } } } }, requester: { select: { id: true, name: true, email: true } }, organization: { select: { id: true, name: true, slug: true } }, assignedUser: { select: { id: true, name: true } }, release: { select: { id: true, title: true, upc: true, tracks: { select: { isrc: true, title: true } } } } } });
     if (!ticket) throw new Error("Destek talebi bulunamadı.");
     return ticket;
   }
 
   async addMessage(actor: FinanceActorContext, ticketId: string, input: unknown) {
     const parsed = createSupportMessageSchema.parse(input);
-    if (parsed.internal && !canAccessAdmin(actor)) throw new Error("İç not ekleme yetkiniz yok.");
-    const ticket = await prisma.supportTicket.findFirst({ where: { id: ticketId, organizationId: actor.organizationId, ...(canAccessAdmin(actor) ? {} : { requesterUserId: actor.userId }) }, select: { id: true } });
+    if (parsed.internal && !this.canManageSupport(actor)) throw new Error("İç not ekleme yetkiniz yok.");
+    const ticket = await prisma.supportTicket.findFirst({ where: { id: ticketId, ...(this.canSeeAllOrganizations(actor) ? {} : { organizationId: actor.organizationId }), ...(this.canManageSupport(actor) ? {} : { requesterUserId: actor.userId }) }, select: { id: true, organizationId: true } });
     if (!ticket) throw new Error("Destek talebi bulunamadı.");
     await prisma.$transaction([
-      prisma.supportMessage.create({ data: { organizationId: actor.organizationId, ticketId, senderUserId: actor.userId, content: parsed.content, internal: parsed.internal } }),
-      prisma.supportTicket.update({ where: { id: ticketId }, data: { lastMessageAt: new Date(), status: canAccessAdmin(actor) && !parsed.internal ? "WAITING_USER" : "IN_PROGRESS" } }),
+      prisma.supportMessage.create({ data: { organizationId: ticket.organizationId, ticketId, senderUserId: actor.userId, content: parsed.content, internal: parsed.internal } }),
+      prisma.supportTicket.update({ where: { id: ticketId }, data: { lastMessageAt: new Date(), status: this.canManageSupport(actor) && !parsed.internal ? "WAITING_USER" : "IN_PROGRESS" } }),
     ]);
     return this.getThread(actor, ticketId);
   }
 
   async updateTicket(actor: FinanceActorContext, ticketId: string, input: unknown) {
-    if (!canAccessAdmin(actor)) throw new Error("Destek talebi yönetme yetkiniz yok.");
+    if (!this.canManageSupport(actor)) throw new Error("Destek talebi yönetme yetkiniz yok.");
     const parsed = updateSupportTicketSchema.parse(input);
 
     const ticket = await prisma.supportTicket.findFirst({
-      where: { id: ticketId, organizationId: actor.organizationId },
-      select: { id: true },
+      where: { id: ticketId, ...(this.canSeeAllOrganizations(actor) ? {} : { organizationId: actor.organizationId }) },
+      select: { id: true, organizationId: true },
     });
 
     if (!ticket) {
@@ -108,7 +152,7 @@ export class SupportService {
     if (parsed.assignedUserId) {
       const assignee = await prisma.organizationMembership.findFirst({
         where: {
-          organizationId: actor.organizationId,
+          organizationId: ticket.organizationId,
           userId: parsed.assignedUserId,
           status: "ACTIVE",
         },

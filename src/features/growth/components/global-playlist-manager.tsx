@@ -21,13 +21,63 @@ type PlaylistItem = {
 };
 
 type TrackItem = { id: string; title: string; trackNumber: number; release: { id: string; title: string } };
+type UserPlaylistItem = {
+  id: string;
+  name: string;
+  slug: string | null;
+  description: string | null;
+  public: boolean;
+  owner: { id: string; name: string; email: string };
+  tracks: Array<{ id: string; trackId: string; track: { id: string; title: string; trackNumber: number }; release: { title: string } | null }>;
+};
 type CreateValues = z.input<typeof globalPlaylistCreateSchema>;
 
 function errorMessage(payload: unknown, fallback: string) {
   return typeof payload === "object" && payload !== null && "error" in payload && typeof payload.error === "string" ? payload.error : fallback;
 }
 
-export function GlobalPlaylistManager({ initialPlaylists, tracks }: { initialPlaylists: PlaylistItem[]; tracks: TrackItem[] }) {
+function UserPlaylistCard({ playlist, tracks, onMessage }: { playlist: UserPlaylistItem; tracks: TrackItem[]; onMessage: (message: string) => void }) {
+  const [name, setName] = useState(playlist.name);
+  const [description, setDescription] = useState(playlist.description ?? "");
+  const [isPublic, setIsPublic] = useState(playlist.public);
+  const [busy, setBusy] = useState(false);
+
+  async function request(url: string, method: "PATCH" | "POST" | "DELETE", body?: unknown) {
+    setBusy(true);
+    try {
+      const init: RequestInit = { method };
+      if (body !== undefined) {
+        init.headers = { "content-type": "application/json" };
+        init.body = JSON.stringify(body);
+      }
+      const response = await fetch(url, init);
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(errorMessage(payload, "İşlem tamamlanamadı."));
+      onMessage("Kullanıcı playlisti güncellendi.");
+      window.location.reload();
+    } catch (error) {
+      onMessage(error instanceof Error ? error.message : "İşlem tamamlanamadı.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return <article className="rounded-2xl border border-line bg-surface p-5">
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div><h3 className="text-lg font-semibold">{playlist.name}</h3><p className="mt-1 text-xs text-muted">{playlist.owner.name} · {playlist.owner.email} · {playlist.public ? "Herkese açık" : "Gizli"}</p></div>
+      <span className="rounded-full border border-line px-3 py-1 text-xs font-semibold">{playlist.tracks.length} parça</span>
+    </div>
+    <div className="mt-4 grid gap-3 md:grid-cols-2">
+      <label className="grid gap-1 text-sm font-medium">Playlist adı<input className="h-10 rounded-xl border border-line bg-background px-3 font-normal" value={name} onChange={(event) => setName(event.target.value)} /></label>
+      <label className="grid gap-1 text-sm font-medium">Açıklama<input className="h-10 rounded-xl border border-line bg-background px-3 font-normal" value={description} onChange={(event) => setDescription(event.target.value)} /></label>
+    </div>
+    <label className="mt-3 flex items-center gap-2 text-sm"><input checked={isPublic} onChange={(event) => setIsPublic(event.target.checked)} type="checkbox" /> Herkese açık playlist</label>
+    <div className="mt-4 grid gap-2">{playlist.tracks.map((item) => <div className="flex items-center justify-between gap-3 rounded-xl border border-line px-3 py-2 text-sm" key={item.id}><span className="truncate">{item.track.title} <span className="text-muted">· {item.release?.title ?? "Yayın"}</span></span><Button disabled={busy} size="sm" type="button" variant="ghost" onClick={() => void request(`/api/admin/social/user-playlists/${playlist.id}/tracks/${item.trackId}`, "DELETE")}>Çıkar</Button></div>)}{playlist.tracks.length === 0 ? <p className="rounded-xl border border-dashed border-line p-3 text-sm text-muted">Henüz parça eklenmedi.</p> : null}</div>
+    <div className="mt-4 flex flex-wrap items-end gap-3 border-t border-line pt-4"><label className="grid min-w-64 flex-1 gap-2 text-sm font-medium">Yayından parça ekle<select className="h-10 rounded-xl border border-line bg-background px-3" defaultValue="" onChange={(event) => { const trackId = event.target.value; if (!trackId) return; void request(`/api/admin/social/user-playlists/${playlist.id}/tracks`, "POST", { trackId }); event.target.value = ""; }}><option value="">Parça seçin</option>{tracks.filter((track) => !playlist.tracks.some((item) => item.trackId === track.id)).map((track) => <option key={track.id} value={track.id}>{track.title} · {track.release.title}</option>)}</select></label><Button disabled={busy || !name.trim()} type="button" onClick={() => void request(`/api/admin/social/user-playlists/${playlist.id}`, "PATCH", { name, description, public: isPublic })}>Değişiklikleri kaydet</Button></div>
+  </article>;
+}
+
+export function GlobalPlaylistManager({ initialPlaylists, userPlaylists, tracks }: { initialPlaylists: PlaylistItem[]; userPlaylists: UserPlaylistItem[]; tracks: TrackItem[] }) {
   const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
   const form = useForm<CreateValues>({ resolver: zodResolver(globalPlaylistCreateSchema), defaultValues: { name: "", slug: "", description: "", featured: false, votingEnabled: true, voteEndsAt: "" } });
@@ -71,6 +121,7 @@ export function GlobalPlaylistManager({ initialPlaylists, tracks }: { initialPla
       <div className="flex flex-wrap items-end gap-3 border-t border-line pt-4"><label className="grid min-w-64 flex-1 gap-2 text-sm font-medium">Canlı parça ekle<select className="h-11 rounded-2xl border border-line bg-surface px-3" defaultValue="" onChange={(event) => { const trackId = event.target.value; if (!trackId) return; void mutate(`/api/admin/social/global-playlists/${playlist.id}/tracks`, "POST", { trackId }).catch((error: unknown) => setMessage(error instanceof Error ? error.message : "Parça eklenemedi.")); event.target.value = ""; }}><option value="">Parça seçin</option>{tracks.filter((track) => !playlist.tracks.some((item) => item.track.id === track.id)).map((track) => <option key={track.id} value={track.id}>{track.title} · {track.release.title}</option>)}</select></label><span className="rounded-full border border-line px-3 py-2 text-xs font-semibold">{playlist.campaign?.active ? "Oylama açık" : "Oylama kapalı"}</span></div>
     </article>)}
     {initialPlaylists.length === 0 ? <div className="panel border-dashed p-8 text-center text-sm text-muted">Henüz global playlist oluşturulmadı.</div> : null}
+    <section className="panel grid gap-4 p-6"><div><h2 className="text-xl font-semibold">Kullanıcı playlistleri</h2><p className="mt-1 text-sm text-muted">Kullanıcıların oluşturduğu playlistleri buradan düzenleyebilir, görünürlüğünü değiştirebilir ve parça ekleyip çıkarabilirsiniz.</p></div>{userPlaylists.length === 0 ? <p className="rounded-xl border border-dashed border-line p-5 text-sm text-muted">Bu organizasyonda kullanıcı playlisti bulunmuyor.</p> : <div className="grid gap-4">{userPlaylists.map((playlist) => <UserPlaylistCard key={playlist.id} onMessage={setMessage} playlist={playlist} tracks={tracks} />)}</div>}</section>
     {message ? <p className="rounded-2xl border border-line bg-surface p-4 text-sm">{message}</p> : null}
   </div>;
 }

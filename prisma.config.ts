@@ -7,7 +7,15 @@ import { defineConfig } from "prisma/config";
 // Loading `.env` first and `.env.local` second prevents accidental commands
 // against the hosted database when a developer explicitly selected localhost.
 dotenv.config({ path: ".env" });
-dotenv.config({ path: ".env.local", override: true });
+// `.env.local` is intentionally local-only. Loading it during a production
+// migration can silently point Prisma at a developer machine or stale DB.
+// The argv check also protects a manually executed `prisma migrate deploy`
+// when the hosting panel forgot to set NODE_ENV.
+const isProductionMigration =
+  process.env.NODE_ENV === "production" || process.argv.includes("deploy");
+if (!isProductionMigration) {
+  dotenv.config({ path: ".env.local", override: true });
+}
 
 const databaseUrl = process.env.DATABASE_URL;
 

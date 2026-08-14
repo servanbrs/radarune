@@ -4,6 +4,7 @@ import { StatusBadge } from "@/features/admin/components/status-badges";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { toAdminActor } from "@/features/admin/server/admin-context";
 import { artistApplicationService } from "@/features/admin/server/services/artist-application.service";
+import { ArtistApplicationReviewActions } from "@/features/admin/components/artist-application-review-actions";
 
 export default async function AdminApplicationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -39,6 +40,7 @@ export default async function AdminApplicationDetailPage({ params }: { params: P
           <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-muted">{application.biography}</p>
         </article>
       </section>
+      <ArtistApplicationReviewActions applicationId={application.id} status={application.status} />
       <section className="panel p-6">
         <h2 className="text-lg font-semibold">İşlem geçmişi</h2>
         <div className="mt-4 space-y-3">

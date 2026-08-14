@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Children, type ReactNode } from "react";
 import {
   Activity,
   ArrowUpRight,
@@ -128,12 +129,20 @@ export function AdminV2Dashboard({ dashboard }: Props) {
           </div>
         </section>
 
-        <section className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <section className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+          <MetricCard
+            icon={Users}
+            label="Toplam kullanıcı"
+            value={dashboard.summary.totalUsers}
+            hint="Kayıtlı aktif hesaplar"
+            href="/admin/users"
+          />
           <MetricCard
             icon={UserCheck}
             label="Aktif kullanıcı"
             value={dashboard.summary.activeUsers}
             hint="Son 15 dakika"
+            href="/admin/analytics?view=active"
           />
 
           <MetricCard
@@ -141,6 +150,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
             label="Bugünkü kayıt"
             value={dashboard.summary.usersToday}
             hint={`7 gün: ${formatNumber(dashboard.summary.usersSevenDays)}`}
+            href="/admin/analytics?view=registrations"
           />
 
           <MetricCard
@@ -150,6 +160,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
             hint={`Bekleyen: ${formatNumber(
               dashboard.summary.pendingReleases,
             )}`}
+            href="/admin/analytics?view=releases"
           />
 
           <MetricCard
@@ -159,6 +170,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
             hint={`Keşfet olayı: ${formatNumber(
               dashboard.summary.discoverEventsToday,
             )}`}
+            href="/admin/analytics?view=playback"
           />
 
           <MetricCard
@@ -168,6 +180,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
             hint={`Başvuru: ${formatNumber(
               dashboard.summary.pendingApplications,
             )}`}
+            href="/admin/distribution/jobs"
           />
         </section>
 
@@ -312,6 +325,42 @@ export function AdminV2Dashboard({ dashboard }: Props) {
             </div>
           </article>
         </section>
+
+        <section className="mt-5 grid gap-5 xl:grid-cols-2">
+          <AnalyticsPreview
+            title="Şu an aktif kullanıcılar"
+            eyebrow="Canlı oturumlar"
+            href="/admin/analytics?view=active"
+            empty="Son 15 dakikada aktif oturum yok."
+          >
+            {dashboard.details.activeSessions.slice(0, 6).map((session) => (
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/[0.06] bg-[#182d29] p-3" key={session.id}>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">{session.name}</p>
+                  <p className="truncate text-xs text-white/45">{session.email} · {session.ipAddress}</p>
+                </div>
+                <span className="shrink-0 rounded-full bg-emerald-300/10 px-2 py-1 text-[10px] font-semibold text-emerald-300">Aktif</span>
+              </div>
+            ))}
+          </AnalyticsPreview>
+
+          <AnalyticsPreview
+            title="Dağıtım kuyruğu"
+            eyebrow="İşlem bekleyen yayınlar"
+            href="/admin/distribution/jobs"
+            empty="Bekleyen dağıtım işi yok."
+          >
+            {dashboard.details.distributionQueue.slice(0, 6).map((job) => (
+              <Link className="flex items-center justify-between gap-3 rounded-2xl border border-white/[0.06] bg-[#182d29] p-3 transition hover:border-emerald-300/30" href={`/admin/distribution/jobs/${job.id}`} key={job.id}>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">{job.releaseTitle}</p>
+                  <p className="truncate text-xs text-white/45">{job.provider} · Deneme {job.attemptCount}/{job.maxRetryCount}</p>
+                </div>
+                <span className="shrink-0 rounded-full bg-amber-300/10 px-2 py-1 text-[10px] font-semibold text-amber-200">{statusLabels[job.status] ?? job.status}</span>
+              </Link>
+            ))}
+          </AnalyticsPreview>
+        </section>
       </div>
     </main>
   );
@@ -322,14 +371,16 @@ function MetricCard({
   label,
   value,
   hint,
+  href,
 }: {
   icon: typeof Users;
   label: string;
   value: number;
   hint: string;
+  href: string;
 }) {
   return (
-    <article className="rounded-[24px] border border-white/[0.08] bg-[#122421] p-5 shadow-[0_14px_42px_rgba(0,0,0,0.18)]">
+    <Link className="group rounded-[24px] border border-white/[0.08] bg-[#122421] p-5 shadow-[0_14px_42px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 hover:border-emerald-300/30 hover:bg-[#16302b]" href={href}>
       <div className="flex items-center justify-between">
         <div className="flex size-11 items-center justify-center rounded-2xl bg-[#101817] text-white">
           <Icon className="size-5" />
@@ -345,6 +396,35 @@ function MetricCard({
       <p className="mt-1 text-sm font-semibold text-white">{label}</p>
 
       <p className="mt-2 text-xs text-white/45">{hint}</p>
+    </Link>
+  );
+}
+
+function AnalyticsPreview({
+  eyebrow,
+  title,
+  href,
+  empty,
+  children,
+}: {
+  eyebrow: string;
+  title: string;
+  href: string;
+  empty: string;
+  children: ReactNode;
+}) {
+  return (
+    <article className="rounded-[28px] border border-white/[0.08] bg-[#122421] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.2)] sm:p-6">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-300">{eyebrow}</p>
+          <h2 className="mt-2 text-xl font-semibold">{title}</h2>
+        </div>
+        <Link aria-label={`${title} ayrıntılarını aç`} className="flex size-10 items-center justify-center rounded-full bg-[#101817] text-white transition hover:bg-emerald-300 hover:text-[#0d211d]" href={href}><ArrowUpRight className="size-4" /></Link>
+      </div>
+      <div className="mt-5 space-y-2">
+        {Children.count(children) ? children : <p className="rounded-2xl border border-white/[0.06] bg-[#182d29] p-4 text-sm text-white/55">{empty}</p>}
+      </div>
     </article>
   );
 }

@@ -108,32 +108,39 @@ export function createAuth() {
         async after(user) {
           // Registration must not fail because an optional notification or
           // welcome email is temporarily unavailable.
+          let organization: { id: string } | null = null;
           try {
-            const organization = await prisma.organization.findFirst({
+            organization = await prisma.organization.findFirst({
               where: { tenantStatus: { in: ["ACTIVE", "MAINTENANCE"] } },
               orderBy: { createdAt: "asc" },
               select: { id: true },
             });
+          } catch (error) {
+            console.error("[RADARUNE_SIGNUP] Organizasyon bulunamadı:", error);
+          }
 
+          try {
             await sendTemplatedEmail({
               ...(organization ? { organizationId: organization.id } : {}),
               to: user.email,
               name: user.name,
               template: "welcome",
             });
-
-            if (organization) {
-              await notificationService.notifyOrganizationAdmins({
-                organizationId: organization.id,
-                type: "NEW_USER_REGISTERED",
-                title: "Yeni kullanıcı kaydı",
-                message: `${user.name} (${user.email}) Radarune'e katıldı.`,
-                entityType: "User",
-                entityId: user.id,
-              });
-            }
           } catch (error) {
-            console.error("[RADARUNE_SIGNUP] Hoş geldin bildirimi gönderilemedi:", error);
+            console.error("[RADARUNE_SIGNUP] Hoş geldin e-postası gönderilemedi:", error);
+          }
+
+          try {
+            await notificationService.notifyStaff({
+              ...(organization ? { organizationId: organization.id } : {}),
+              type: "NEW_USER_REGISTERED",
+              title: "Yeni kullanıcı kaydı",
+              message: `${user.name} (${user.email}) Radarune'e katıldı.`,
+              entityType: "User",
+              entityId: user.id,
+            });
+          } catch (error) {
+            console.error("[RADARUNE_SIGNUP] Ekip bildirimi gönderilemedi:", error);
           }
         },
       },

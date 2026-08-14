@@ -33,6 +33,7 @@ export default async function AppLayout({
   });
 
   const adminAccess = canAccessAdmin(actor);
+  const moderatorAccess = user.systemRole === "MODERATOR";
 
   const creatorAccess = creatorAccessService.getAccess({
     systemRole: user.systemRole,
@@ -87,6 +88,7 @@ export default async function AppLayout({
 
             <UserMenu
               adminAccess={adminAccess}
+              moderatorAccess={moderatorAccess}
               artistAccess={creatorAccess.isArtist}
               email={user.email}
               locale={organization.organization.defaultLocale}

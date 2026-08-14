@@ -4,16 +4,19 @@ import { prisma } from "@/server/prisma/prisma";
 import type { DatabaseClient } from "@/server/prisma/database-client";
 
 export class AdminSystemRepository {
-  async listAuditLogs(params: { organizationId: string; page: number; pageSize: number }) {
+  async listAuditLogs(params: { organizationId: string; page: number; pageSize: number; includeGlobal?: boolean }) {
+    const where = params.includeGlobal
+      ? { OR: [{ organizationId: params.organizationId }, { organizationId: null }] }
+      : { organizationId: params.organizationId };
     const [items, total] = await Promise.all([
       prisma.auditLog.findMany({
-        where: { organizationId: params.organizationId },
+        where,
         orderBy: { createdAt: "desc" },
         skip: (params.page - 1) * params.pageSize,
         take: params.pageSize,
         include: { actorUser: { select: { id: true, name: true, email: true } } },
       }),
-      prisma.auditLog.count({ where: { organizationId: params.organizationId } }),
+      prisma.auditLog.count({ where }),
     ]);
 
     return { items, total };

@@ -3,6 +3,21 @@ import { Prisma, type ArtistApplicationStatus } from "@/generated/prisma/client"
 import { prisma } from "@/server/prisma/prisma";
 import type { DatabaseClient } from "@/server/prisma/database-client";
 
+function isTransientConnectionError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return /ECONNRESET|EPIPE|PROTOCOL_CONNECTION_LOST|ETIMEDOUT|socket hang up/i.test(message);
+}
+
+async function retryRead<T>(read: () => Promise<T>) {
+  try {
+    return await read();
+  } catch (error) {
+    if (!isTransientConnectionError(error)) throw error;
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    return read();
+  }
+}
+
 export class ArtistApplicationRepository {
   async findOpenForUser(userId: string, organizationId: string, client: DatabaseClient = prisma) {
     return client.artistApplication.findFirst({
@@ -80,17 +95,17 @@ export class ArtistApplicationRepository {
   }
 
   async findById(id: string, client: DatabaseClient = prisma) {
-    return client.artistApplication.findUnique({
-      where: { id },
-      include: {
-        user: { select: { id: true, name: true, email: true, systemRole: true } },
-        artist: true,
-        statusHistory: {
-          orderBy: { createdAt: "desc" },
-          include: { actorUser: { select: { id: true, name: true, email: true } } },
+    return retryRead(() => client.artistApplication.findUnique({
+        where: { id },
+        include: {
+          user: { select: { id: true, name: true, email: true, systemRole: true } },
+          artist: true,
+          statusHistory: {
+            orderBy: { createdAt: "desc" },
+            include: { actorUser: { select: { id: true, name: true, email: true } } },
+          },
         },
-      },
-    });
+      }));
   }
 
   async updateStatus(

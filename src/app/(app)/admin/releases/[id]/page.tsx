@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { AdminShell } from "@/features/admin/components/admin-shell";
 import { StatusBadge } from "@/features/admin/components/status-badges";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
@@ -47,8 +48,8 @@ export default async function AdminReleaseDetailPage({ params }: { params: Promi
           </div>
         </article>
       </section>
-      <ReleasePreview artworkUploadId={release.artworkUploadId} artworkUpload={release.uploads.find((upload) => upload.id === release.artworkUploadId) ?? null} audioUploadId={release.tracks[0]?.audioUploadId ?? null} audioUpload={release.tracks[0]?.uploads.find((upload) => upload.id === release.tracks[0]?.audioUploadId) ?? null} uploads={[...release.uploads, ...release.tracks.flatMap((track) => track.uploads)].map((upload) => ({ id: upload.id, fileName: upload.fileName, mimeType: upload.mimeType, kind: upload.kind }))} />
-      <ReleaseReviewActions releaseId={release.id} status={release.status} />
+      <ReleasePreview artworkUploadId={release.artworkUploadId} artworkUpload={release.uploads.find((upload) => upload.id === release.artworkUploadId) ?? null} audioUploadId={release.tracks[0]?.audioUploadId ?? null} audioUpload={release.tracks[0]?.uploads.find((upload) => upload.id === release.tracks[0]?.audioUploadId) ?? null} tracks={release.tracks.map((track) => ({ id: track.id, title: track.title, audioUploadId: track.audioUploadId, uploads: track.uploads.map((upload) => ({ id: upload.id, fileName: upload.fileName, mimeType: upload.mimeType })) }))} uploads={[...release.uploads, ...release.tracks.flatMap((track) => track.uploads)].map((upload) => ({ id: upload.id, fileName: upload.fileName, mimeType: upload.mimeType, kind: upload.kind }))} />
+      <div className="flex flex-wrap items-center gap-3"><Link className="rounded-full border border-line bg-surface px-4 py-2 text-sm font-semibold hover:border-accent" href={`/releases/${release.id}/edit`}>Yayını düzenle / UPC-ISRC ekle</Link><ReleaseReviewActions releaseId={release.id} status={release.status} /></div>
       <section className="panel p-6">
         <h2 className="text-lg font-semibold">Parçalar</h2>
         <div className="mt-4 grid gap-3">

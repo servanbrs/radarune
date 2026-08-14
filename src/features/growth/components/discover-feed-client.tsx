@@ -70,8 +70,11 @@ export function DiscoverFeedClient({
       .filter(({ item }) => item.id !== previousId);
     const selected = candidates[Math.floor(Math.random() * candidates.length)] ?? candidates[0];
     if (!selected) return;
-    setActiveIndex(selected.index);
-    window.sessionStorage.setItem("radarune:last-discover-item", selected.item.id);
+    const frame = window.requestAnimationFrame(() => {
+      setActiveIndex(selected.index);
+      window.sessionStorage.setItem("radarune:last-discover-item", selected.item.id);
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [feed]);
 
   const visibleFeed = useMemo(() => {

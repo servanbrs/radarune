@@ -14,6 +14,16 @@ function dayKey(value: Date) {
   return value.toISOString().slice(0, 10);
 }
 
+function maskIpAddress(value: string | null) {
+  if (!value) return "IP bilgisi yok";
+  if (value.includes(":")) {
+    const parts = value.split(":");
+    return `${parts.slice(0, 2).join(":")}::…`;
+  }
+  const parts = value.split(".");
+  return parts.length === 4 ? `${parts[0]}.${parts[1]}.xxx.xxx` : "Maskeli IP";
+}
+
 function buildDailySeries(dates: Date[], numberOfDays: number) {
   const today = startOfDay(new Date());
   const counts = new Map<string, number>();
@@ -53,7 +63,12 @@ export class AdminV2AnalyticsService {
 
     const [
       users,
+      totalUsers,
       activeUsers,
+      activeSessions,
+      recentRegistrations,
+      recentReleases,
+      distributionQueue,
       releasesToday,
       pendingReleases,
       pendingApplications,
@@ -87,24 +102,84 @@ export class AdminV2AnalyticsService {
         },
       }),
 
+      prisma.user.count({
+        where: {
+          systemRole: { in: ["USER", "ARTIST"] },
+          memberships: { some: { organizationId } },
+        },
+      }),
+
       prisma.session.count({
         where: {
-          expiresAt: {
-            gt: now,
-          },
-          updatedAt: {
-            gte: activeThreshold,
-          },
+          expiresAt: { gt: now },
+          updatedAt: { gte: activeThreshold },
           user: {
-            systemRole: {
-              in: ["USER", "ARTIST"],
-            },
-            memberships: {
-              some: {
-                organizationId,
-              },
-            },
+            systemRole: { in: ["USER", "ARTIST"] },
+            memberships: { some: { organizationId } },
           },
+        },
+      }),
+
+      prisma.session.findMany({
+        where: {
+          expiresAt: { gt: now },
+          updatedAt: { gte: activeThreshold },
+          user: {
+            systemRole: { in: ["USER", "ARTIST"] },
+            memberships: { some: { organizationId } },
+          },
+        },
+        orderBy: { updatedAt: "desc" },
+        take: 50,
+        select: {
+          id: true,
+          updatedAt: true,
+          ipAddress: true,
+          userAgent: true,
+          user: { select: { id: true, name: true, email: true, systemRole: true } },
+        },
+      }),
+
+      prisma.user.findMany({
+        where: {
+          systemRole: { in: ["USER", "ARTIST"] },
+          memberships: { some: { organizationId } },
+          createdAt: { gte: today },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+        select: { id: true, name: true, email: true, createdAt: true },
+      }),
+
+      prisma.release.findMany({
+        where: { organizationId, createdAt: { gte: today } },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+        select: { id: true, title: true, status: true, createdAt: true },
+      }),
+
+      prisma.distributionJob.findMany({
+        where: {
+          organizationId,
+          status: {
+            in: [
+              "PENDING", "VALIDATING", "QUEUED", "PROCESSING",
+              "WAITING_PROVIDER", "RETRY_SCHEDULED", "MANUAL_REVIEW",
+            ],
+          },
+        },
+        orderBy: [{ queuedAt: "asc" }, { createdAt: "asc" }],
+        take: 20,
+        select: {
+          id: true,
+          releaseId: true,
+          releaseTitle: true,
+          provider: true,
+          status: true,
+          attemptCount: true,
+          maxRetryCount: true,
+          createdAt: true,
+          queuedAt: true,
         },
       }),
 
@@ -311,6 +386,7 @@ export class AdminV2AnalyticsService {
       generatedAt: now.toISOString(),
 
       summary: {
+        totalUsers,
         activeUsers,
         usersToday,
         usersSevenDays,
@@ -320,6 +396,32 @@ export class AdminV2AnalyticsService {
         activeDistributionJobs,
         discoverEventsToday,
         playbackToday,
+      },
+
+      details: {
+        activeSessions: activeSessions.map((session) => ({
+          id: session.id,
+          userId: session.user.id,
+          name: session.user.name,
+          email: session.user.email,
+          role: session.user.systemRole,
+          ipAddress: maskIpAddress(session.ipAddress),
+          userAgent: session.userAgent ?? "Cihaz bilgisi yok",
+          updatedAt: session.updatedAt.toISOString(),
+        })),
+        recentRegistrations: recentRegistrations.map((user) => ({
+          ...user,
+          createdAt: user.createdAt.toISOString(),
+        })),
+        recentReleases: recentReleases.map((release) => ({
+          ...release,
+          createdAt: release.createdAt.toISOString(),
+        })),
+        distributionQueue: distributionQueue.map((job) => ({
+          ...job,
+          createdAt: job.createdAt.toISOString(),
+          queuedAt: job.queuedAt?.toISOString() ?? null,
+        })),
       },
 
       charts: {

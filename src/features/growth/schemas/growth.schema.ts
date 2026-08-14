@@ -176,6 +176,8 @@ export const globalPlaylistCreateSchema = globalPlaylistFields.superRefine((valu
 
 export const globalPlaylistUpdateSchema = globalPlaylistFields.partial().superRefine(validateGlobalPlaylistVoteDate);
 
+export const adminPlaylistUpdateSchema = createPlaylistSchema.partial();
+
 export const globalPlaylistTrackSchema = z.object({
   trackId: z.string().cuid(),
 });
@@ -210,4 +212,5 @@ export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 export type CreatePlaylistInput = z.infer<typeof createPlaylistSchema>;
 export type GlobalPlaylistCreateInput = z.infer<typeof globalPlaylistCreateSchema>;
 export type GlobalPlaylistUpdateInput = z.infer<typeof globalPlaylistUpdateSchema>;
+export type AdminPlaylistUpdateInput = z.infer<typeof adminPlaylistUpdateSchema>;
 export type GlobalPlaylistTrackInput = z.infer<typeof globalPlaylistTrackSchema>;

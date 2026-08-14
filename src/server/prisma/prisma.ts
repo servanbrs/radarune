@@ -31,7 +31,16 @@ function createPrismaClient() {
     idleTimeout: env.DATABASE_IDLE_TIMEOUT_SECONDS * 1_000,
   });
 
-  return new PrismaClient({ adapter });
+  return new PrismaClient({
+    adapter,
+    transactionOptions: {
+      // Remote MariaDB instances can need several seconds to hand out a
+      // connection. Keep transaction start behavior consistent with the
+      // adapter pool's configured acquire timeout.
+      maxWait: env.DATABASE_ACQUIRE_TIMEOUT_MS,
+      timeout: Math.max(env.DATABASE_ACQUIRE_TIMEOUT_MS, 60_000),
+    },
+  });
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();

@@ -17,6 +17,7 @@ export default async function AdminAuditLogsPage() {
   return (
     <AdminShell title="Audit log" description="Kritik admin, release, provider ve finans işlemlerinin değiştirilemez işlem izleri.">
       <section className="panel p-6">
+        <p className="mb-4 rounded-2xl border border-line bg-surface p-3 text-sm text-muted">Admin erişim denemeleri, maskesiz IP ve tarayıcı bilgisi yalnızca yetkili yönetim ekibine gösterilir.</p>
         <SimpleTable
           columns={["İşlem", "Varlık", "Aktör", "Metadata", "Tarih"]}
           rows={logs.items.map((log) => [

@@ -19,7 +19,16 @@ type SpotifyTrack = {
   external_ids?: { isrc?: string };
 };
 
-type SpotifyResponse = { items?: SpotifyTrack[]; tracks?: { items?: Array<{ track?: SpotifyTrack }> } };
+type SpotifyArtist = {
+  id?: string;
+  name?: string;
+  external_urls?: { spotify?: string };
+  images?: Array<{ url?: string }>;
+  followers?: { total?: number };
+  popularity?: number;
+};
+
+type SpotifyResponse = { items?: SpotifyTrack[]; tracks?: { items?: Array<{ track?: SpotifyTrack }> }; artists?: { items?: SpotifyArtist[] } };
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -101,6 +110,10 @@ export class SpotifyProviderService implements ExternalProviderAdapter {
 
   async searchTracks(query: string, credentialsOverride?: { clientId?: string; clientSecret?: string }) {
     return this.getResource(`search?q=${encodeURIComponent(query)}&type=track&limit=50`, credentialsOverride);
+  }
+
+  async searchArtists(query: string, credentialsOverride?: { clientId?: string; clientSecret?: string }) {
+    return this.getResource(`search?q=${encodeURIComponent(query)}&type=artist&limit=8`, credentialsOverride);
   }
 
   detectNewReleases(items: unknown[], knownExternalIds: ReadonlySet<string>): ProviderResult<ExternalMediaMetadata[]> {

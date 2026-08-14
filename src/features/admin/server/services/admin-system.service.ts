@@ -43,7 +43,11 @@ const defaults: Array<{ key: UpdateAdminSettingInput["key"]; value: string | boo
 export class AdminSystemService {
   async listAuditLogs(actor: FinanceActorContext, params: { page: number; pageSize: number }) {
     assertAdminPermission(actor, "audit.view");
-    return adminSystemRepository.listAuditLogs({ ...params, organizationId: actor.organizationId });
+    return adminSystemRepository.listAuditLogs({
+      ...params,
+      organizationId: actor.organizationId,
+      includeGlobal: actor.systemRole === "ADMIN" || actor.systemRole === "SUPER_ADMIN",
+    });
   }
 
   async listSystemLogs(actor: FinanceActorContext, params: { page: number; pageSize: number }) {
