@@ -20,13 +20,14 @@ html.theme-transitioning body * {
 }
 
 [data-admin-theme="dark"] {
-  --background: #0b1114;
-  --foreground: #eef7f5;
-  --muted: #9aada9;
-  --line: #26383a;
-  --surface: #111d20;
-  --surface-strong: #182a2c;
-  --accent: #44c7ad;
+  --background: #0b1020;
+  --foreground: #f1f3f8;
+  --muted: #a8b0c3;
+  --line: #2b344b;
+  --surface: #141a2b;
+  --surface-strong: #1c2438;
+  --accent: #d6a85f;
+  --accent-foreground: #17120b;
   --danger: #ff7b7b;
 }
 
@@ -110,18 +111,33 @@ html[data-theme="dark"] .app-shell .shadow-md { box-shadow: 0 12px 40px rgba(0,0
 
 body:has(main[data-admin-theme="dark"]) > div > header,
 body:has(main[data-admin-theme="dark"]) header {
-  background-color: #0f1a1d !important;
-  border-color: #26383a !important;
-  color: #eef7f5;
+  background-color: #10162a !important;
+  border-color: #2b344b !important;
+  color: #f1f3f8;
 }
 body:has(main[data-admin-theme="dark"]) header a,
 body:has(main[data-admin-theme="dark"]) header button { color: #c7d8d4; }
 body:has(main[data-admin-theme="dark"]) header .bg-surface { background-color: #111d20 !important; }
 body:has(main[data-admin-theme="dark"]) [data-radarune-app-footer] {
-  background: #0a1715 !important;
+  background: #0d1324 !important;
   border-color: rgba(255,255,255,.08) !important;
   color: rgba(238,247,245,.55) !important;
 }
+
+/* Admin ve moderatör çalışma alanları: vurgu rengi yeşilden premium altın
+   tonuna çekilir; içerik ve aksiyonlar aynı ortak temayı kullanır. */
+main[data-admin-theme="dark"] [class*="text-emerald-"] { color: #d6a85f !important; }
+main[data-admin-theme="dark"] [class*="border-emerald-"] { border-color: rgba(214, 168, 95, .38) !important; }
+main[data-admin-theme="dark"] [class*="bg-emerald-300"] { background-color: #d6a85f !important; }
+main[data-admin-theme="dark"] [class*="bg-emerald-"] { background-color: rgba(214, 168, 95, .12) !important; }
+main[data-admin-theme="dark"] [class*="hover:bg-emerald-"]:hover { background-color: #e5bd7b !important; }
+main[data-admin-theme="dark"] [class*="bg-[#0d1c1a]"],
+main[data-admin-theme="dark"] [class*="bg-[#0b1114]"],
+main[data-admin-theme="dark"] [class*="bg-[#07110f]"] { background-color: #0b1020 !important; }
+main[data-admin-theme="dark"] [class*="bg-[#101817]"],
+main[data-admin-theme="dark"] [class*="bg-[#111d20]"],
+main[data-admin-theme="dark"] [class*="bg-[#122421]"],
+main[data-admin-theme="dark"] [class*="bg-[#182d29]"] { background-color: #141a2b !important; }
 body:has(main[data-admin-theme="dark"]) [data-radarune-app-footer] a:hover { color: #eef7f5 !important; }
 body:has(main[data-admin-theme="dark"]) [data-radarune-app-footer] select {
   background: #111d20 !important;
@@ -175,6 +191,22 @@ main[data-admin-theme="dark"] .panel { background-color: #111d20 !important; bor
 main[data-admin-theme="dark"] article.panel { background-color: #111d20 !important; border-color: #26383a !important; }
 main[data-admin-theme="dark"] .text-muted { color: #9aada9 !important; }
 main[data-admin-theme="dark"] .bg-background { background-color: #0b1114 !important; }
+
+/* Admin contrast pass: legacy opacity utilities must remain readable on the
+   premium navy surfaces. Keep the color system consistent across every admin
+   route, including pages that still use older component utilities. */
+main[data-admin-theme="dark"] .text-muted { color: #b7c2d0 !important; }
+main[data-admin-theme="dark"] [class*="text-white/35"],
+main[data-admin-theme="dark"] [class*="text-white/40"],
+main[data-admin-theme="dark"] [class*="text-white/45"],
+main[data-admin-theme="dark"] [class*="text-white/50"],
+main[data-admin-theme="dark"] [class*="text-white/55"],
+main[data-admin-theme="dark"] [class*="text-white/58"],
+main[data-admin-theme="dark"] [class*="text-white/60"],
+main[data-admin-theme="dark"] [class*="text-white/65"],
+main[data-admin-theme="dark"] [class*="text-white/70"] { color: #b7c2d0 !important; }
+main[data-admin-theme="dark"] [class*="bg-[#0d211d]"],
+main[data-admin-theme="dark"] [class*="bg-[#0d211d]"] { background-color: #17223a !important; }
 
 @theme inline {
   --color-background: var(--background);

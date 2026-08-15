@@ -139,10 +139,10 @@ export function AdminNavigation({ systemRole }: { systemRole: string }) {
         return (
           <Link
             aria-current={isCurrent ? "page" : undefined}
-            className={`group/item flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-medium transition ${isCurrent ? "bg-emerald-300 text-[#0d211d] shadow-[0_8px_22px_rgba(110,231,183,0.16)]" : "text-white/58 hover:bg-white/[0.07] hover:text-white"}`}
+            className={`group/item flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-medium transition ${isCurrent ? "bg-[#d6a85f] text-[#17120b] shadow-[0_8px_22px_rgba(214,168,95,0.2)]" : "text-white/75 hover:bg-white/[0.07] hover:text-white"}`}
             href="/admin/moderation"
           >
-            <LayoutDashboard className={`size-4 shrink-0 ${isCurrent ? "text-[#0d211d]" : "text-white/35 group-hover/item:text-emerald-300"}`} />
+            <LayoutDashboard className={`size-4 shrink-0 ${isCurrent ? "text-[#17120b]" : "text-white/55 group-hover/item:text-[#d6a85f]"}`} />
             <span className="truncate">Dashboard</span>
           </Link>
         );
@@ -156,9 +156,9 @@ export function AdminNavigation({ systemRole }: { systemRole: string }) {
 
         return (
           <details className="admin-nav-group group" key={group.title} open={active || group.title === "Kontrol merkezi"}>
-            <summary className="flex cursor-pointer list-none items-center justify-between rounded-xl px-3 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-white/42 transition hover:bg-white/[0.06] hover:text-white/75 [&::-webkit-details-marker]:hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between rounded-xl px-3 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-white/68 transition hover:bg-white/[0.06] hover:text-white [&::-webkit-details-marker]:hidden">
               <span className="flex items-center gap-2"><GroupIcon className="size-3.5" />{group.title}</span>
-              <span className="text-sm text-white/35 transition-transform group-open:rotate-180">⌄</span>
+              <span className="text-sm text-white/55 transition-transform group-open:rotate-180">⌄</span>
             </summary>
             <div className="mt-1 grid gap-0.5 pl-1">
               {group.items.map((item) => {
@@ -169,11 +169,11 @@ export function AdminNavigation({ systemRole }: { systemRole: string }) {
                 return (
                   <Link
                     aria-current={isCurrent ? "page" : undefined}
-                    className={`group/item flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-medium transition ${isCurrent ? "bg-emerald-300 text-[#0d211d] shadow-[0_8px_22px_rgba(110,231,183,0.16)]" : "text-white/58 hover:bg-white/[0.07] hover:text-white"}`}
+                    className={`group/item flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-medium transition ${isCurrent ? "bg-[#d6a85f] text-[#17120b] shadow-[0_8px_22px_rgba(214,168,95,0.2)]" : "text-white/75 hover:bg-white/[0.07] hover:text-white"}`}
                     href={item.href}
                     key={item.href}
                   >
-                    <ItemIcon className={`size-4 shrink-0 ${isCurrent ? "text-[#0d211d]" : "text-white/35 group-hover/item:text-emerald-300"}`} />
+                    <ItemIcon className={`size-4 shrink-0 ${isCurrent ? "text-[#17120b]" : "text-white/55 group-hover/item:text-[#d6a85f]"}`} />
                     <span className="truncate">{item.label}</span>
                     {item.badge ? <span className="ml-auto rounded-full bg-white/10 px-1.5 py-0.5 text-[9px]">{item.badge}</span> : null}
                   </Link>

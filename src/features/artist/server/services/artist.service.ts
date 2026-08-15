@@ -6,12 +6,13 @@ import {
 import { artistRepository } from "@/features/artist/server/repositories/artist.repository";
 
 export class ArtistService {
-  async listByOrganizationId(organizationId: string) {
-    return artistRepository.listByOrganizationId(organizationId);
+  async listByOrganizationId(organizationId: string, search?: string) {
+    return artistRepository.listByOrganizationId(organizationId, search);
   }
 
   async createForOrganization(params: {
     createdByUserId: string;
+    ownerUserId?: string;
     input: CreateArtistInput;
     organizationId: string;
   }) {
@@ -42,6 +43,7 @@ export class ArtistService {
 
     const artist = await artistRepository.create({
       createdByUserId: params.createdByUserId,
+      ...(params.ownerUserId ? { ownerUserId: params.ownerUserId } : {}),
       input: parsedInput.data,
       organizationId: params.organizationId,
     });

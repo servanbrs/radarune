@@ -43,7 +43,7 @@ export default async function PublicUserPage({ params }: { params: Promise<{ use
             </div>
             <div className="min-w-0">
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-300">Radarune community profile</p>
-              <h1 className="mt-2 text-4xl font-black tracking-[-0.05em] sm:text-5xl">{profile.name}</h1>
+              <div className="mt-2 flex flex-wrap items-center gap-3"><h1 className="text-4xl font-black tracking-[-0.05em] sm:text-5xl">{profile.name}</h1>{profile.emailVerified ? <span className="inline-flex items-center gap-1 rounded-full bg-emerald-300 px-3 py-1 text-xs font-bold text-[#08201a]">✓ E-posta doğrulandı</span> : null}</div>
               <p className="mt-2 text-sm text-white/55">@{profile.username} · Radarune topluluk üyesi</p>
               <div className="mt-5 flex flex-wrap gap-2">
                 <UserProfileShareButton username={profile.username ?? ""} />

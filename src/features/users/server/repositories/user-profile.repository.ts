@@ -11,6 +11,7 @@ export class UserProfileRepository {
         username: true,
         name: true,
         image: true,
+        emailVerified: true,
         createdAt: true,
         _count: { select: { playlists: { where: { public: true } }, follows: true, playlistLikes: true } },
         playlists: {

@@ -119,6 +119,24 @@ export function createAuth() {
             console.error("[RADARUNE_SIGNUP] Organizasyon bulunamadı:", error);
           }
 
+          if (organization) {
+            try {
+              await prisma.organizationMembership.upsert({
+                where: { organizationId_userId: { organizationId: organization.id, userId: user.id } },
+                update: { status: "ACTIVE", joinedAt: new Date() },
+                create: {
+                  organizationId: organization.id,
+                  userId: user.id,
+                  role: "MEMBER",
+                  status: "ACTIVE",
+                  joinedAt: new Date(),
+                },
+              });
+            } catch (error) {
+              console.error("[RADARUNE_SIGNUP] Organizasyon üyeliği oluşturulamadı:", error);
+            }
+          }
+
           try {
             await sendTemplatedEmail({
               ...(organization ? { organizationId: organization.id } : {}),

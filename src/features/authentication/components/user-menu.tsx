@@ -12,10 +12,14 @@ import {
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SignOutButton } from "@/features/authentication/components/sign-out-button";
+import { useRef } from "react";
 
 export function UserMenu({ name, email, adminAccess, moderatorAccess, artistAccess, locale = "tr-TR" }: { name: string; email: string; adminAccess?: boolean; moderatorAccess?: boolean; artistAccess?: boolean; locale?: string }) {
+  const menuRef = useRef<HTMLDetailsElement | null>(null);
+  const closeMenu = () => menuRef.current?.removeAttribute("open");
+
   return (
-    <details className="group relative">
+    <details className="group relative" ref={menuRef}>
       <summary className="flex cursor-pointer list-none items-center gap-2 rounded-full border border-white/10 bg-white/[0.08] px-3 py-2 text-white [&::-webkit-details-marker]:hidden">
         <span className="grid h-7 w-7 place-items-center rounded-full bg-emerald-300 text-xs font-bold text-[#08201a]">
           {name.slice(0, 1).toUpperCase()}
@@ -28,7 +32,7 @@ export function UserMenu({ name, email, adminAccess, moderatorAccess, artistAcce
           <p className="truncate text-sm font-semibold text-white">{name}</p>
           <p className="mt-1 truncate text-xs text-white/50">{email}</p>
         </div>
-        <nav className="grid gap-1 py-2">
+        <nav className="grid gap-1 py-2" onClick={closeMenu}>
           {adminAccess ? <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/admin"><LayoutDashboard className="h-4 w-4 text-emerald-300" /> Yönetim paneli</Link> : null}
           {moderatorAccess ? <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/admin/moderation"><ShieldHalf className="h-4 w-4 text-amber-300" /> Moderatör paneli</Link> : null}
           {artistAccess ? <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/artist-profile"><UserRound className="h-4 w-4" /> Sanatçı paneli</Link> : null}

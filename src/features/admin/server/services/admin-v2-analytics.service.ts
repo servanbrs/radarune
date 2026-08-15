@@ -1,5 +1,6 @@
 import "server-only";
 
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/server/prisma/prisma";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -60,6 +61,17 @@ export class AdminV2AnalyticsService {
     const sevenDaysAgo = new Date(today.getTime() - 6 * DAY_MS);
     const thirtyDaysAgo = new Date(today.getTime() - 29 * DAY_MS);
     const activeThreshold = new Date(now.getTime() - 15 * 60 * 1000);
+    // Yeni kayıtlar, ilk doğrulama tamamlanmadan kısa bir süre memberships
+    // satırı olmadan bulunabilir. Bunları analizlerden düşürmemek için mevcut
+    // organizasyon üyelerini ve henüz organizasyona bağlanmamış hesapları
+    // birlikte sayıyoruz.
+    const endUserScope: Prisma.UserWhereInput = {
+      systemRole: { in: ["USER", "ARTIST"] },
+      OR: [
+        { memberships: { some: { organizationId } } },
+        { memberships: { none: {} } },
+      ],
+    };
 
     const [
       users,
@@ -85,14 +97,7 @@ export class AdminV2AnalyticsService {
     ] = await Promise.all([
       prisma.user.findMany({
         where: {
-          systemRole: {
-            in: ["USER", "ARTIST"],
-          },
-          memberships: {
-            some: {
-              organizationId,
-            },
-          },
+          ...endUserScope,
           createdAt: {
             gte: thirtyDaysAgo,
           },
@@ -104,8 +109,7 @@ export class AdminV2AnalyticsService {
 
       prisma.user.count({
         where: {
-          systemRole: { in: ["USER", "ARTIST"] },
-          memberships: { some: { organizationId } },
+          ...endUserScope,
         },
       }),
 
@@ -113,10 +117,7 @@ export class AdminV2AnalyticsService {
         where: {
           expiresAt: { gt: now },
           updatedAt: { gte: activeThreshold },
-          user: {
-            systemRole: { in: ["USER", "ARTIST"] },
-            memberships: { some: { organizationId } },
-          },
+          user: endUserScope,
         },
       }),
 
@@ -124,10 +125,7 @@ export class AdminV2AnalyticsService {
         where: {
           expiresAt: { gt: now },
           updatedAt: { gte: activeThreshold },
-          user: {
-            systemRole: { in: ["USER", "ARTIST"] },
-            memberships: { some: { organizationId } },
-          },
+          user: endUserScope,
         },
         orderBy: { updatedAt: "desc" },
         take: 50,
@@ -142,8 +140,7 @@ export class AdminV2AnalyticsService {
 
       prisma.user.findMany({
         where: {
-          systemRole: { in: ["USER", "ARTIST"] },
-          memberships: { some: { organizationId } },
+          ...endUserScope,
           createdAt: { gte: today },
         },
         orderBy: { createdAt: "desc" },

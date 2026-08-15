@@ -18,6 +18,11 @@ export default async function AdminApplicationsPage() {
 
   return (
     <AdminShell title="Sanatçı başvuruları" description="Başvurular incelemeye alınır, transaction içinde onaylanır, reddedilir veya revizyona gönderilir.">
+      <section className="mb-5 grid gap-3 sm:grid-cols-3">
+        <div className="panel p-4"><p className="text-xs uppercase tracking-[0.14em] text-muted">Toplam başvuru</p><p className="mt-2 text-2xl font-bold">{applications.total}</p></div>
+        <div className="panel p-4"><p className="text-xs uppercase tracking-[0.14em] text-muted">Bekleyen / incelemede</p><p className="mt-2 text-2xl font-bold">{applications.items.filter((item) => item.status === "PENDING" || item.status === "UNDER_REVIEW").length}</p></div>
+        <div className="panel p-4"><p className="text-xs uppercase tracking-[0.14em] text-muted">Arşivlenmiş sonuçlar</p><p className="mt-2 text-2xl font-bold">{applications.items.filter((item) => item.status === "APPROVED" || item.status === "REJECTED").length}</p></div>
+      </section>
       <section className="panel p-6">
         <SimpleTable
           columns={["Sahne adı", "Başvuran", "Durum", "Sanatçı", "Tarih"]}

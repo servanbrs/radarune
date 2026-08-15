@@ -3,10 +3,25 @@ import { prisma } from "@/server/prisma/prisma";
 import type { CreateArtistInput } from "@/features/artist/schemas/artist.schema";
 
 export class ArtistRepository {
-  async listByOrganizationId(organizationId: string) {
+  async listByOrganizationId(organizationId: string, search?: string) {
+    const normalizedSearch = search?.trim();
     return prisma.artist.findMany({
       where: {
         organizationId,
+        ...(normalizedSearch
+          ? {
+              OR: [
+                { name: { contains: normalizedSearch } },
+                { slug: { contains: normalizedSearch } },
+                { ownerUser: { is: { name: { contains: normalizedSearch } } } },
+                { ownerUser: { is: { email: { contains: normalizedSearch } } } },
+                { ownerUser: { is: { username: { contains: normalizedSearch } } } },
+                { createdByUser: { is: { name: { contains: normalizedSearch } } } },
+                { createdByUser: { is: { email: { contains: normalizedSearch } } } },
+                { createdByUser: { is: { username: { contains: normalizedSearch } } } },
+              ],
+            }
+          : {}),
       },
       orderBy: {
         name: "asc",
@@ -23,6 +38,8 @@ export class ArtistRepository {
         coverImageUrl: true,
         profilePublishedAt: true,
         createdAt: true,
+        ownerUser: { select: { id: true, name: true, email: true, username: true } },
+        createdByUser: { select: { id: true, name: true, email: true, username: true } },
         _count: {
           select: {
             labelLinks: true,
@@ -52,6 +69,7 @@ export class ArtistRepository {
 
   async create(params: {
     createdByUserId: string;
+    ownerUserId?: string;
     input: CreateArtistInput;
     organizationId: string;
   }) {
@@ -61,7 +79,7 @@ export class ArtistRepository {
       data: {
         organizationId,
         createdByUserId,
-        ownerUserId: createdByUserId,
+        ownerUserId: params.ownerUserId ?? createdByUserId,
         name: input.name,
         slug: input.slug,
         sortName: input.sortName ?? null,
