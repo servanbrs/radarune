@@ -91,11 +91,9 @@ export function VerifyLoginOtpForm() {
 
       setMessage("Giriş doğrulandı. Dashboard açılıyor…");
 
-      window.setTimeout(() => {
-        const next = new URLSearchParams(window.location.search).get("next");
-        router.replace(safeRedirectPath(next));
-        router.refresh();
-      }, 500);
+      const next = new URLSearchParams(window.location.search).get("next");
+      router.replace(safeRedirectPath(next));
+      router.refresh();
     });
   }
 

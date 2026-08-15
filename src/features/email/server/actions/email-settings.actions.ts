@@ -6,6 +6,7 @@ import { toAdminActor } from "@/features/admin/server/admin-context";
 import { adminSystemService } from "@/features/admin/server/services/admin-system.service";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import {
+  clearEmailSettingsCache,
   encryptEmailPassword,
   sendTemplatedEmail,
   verifyEmailTransport,
@@ -137,6 +138,8 @@ export async function saveEmailSettingsAction(formData: FormData) {
       reason,
     });
   }
+
+  clearEmailSettingsCache(actor.organizationId);
 
   revalidatePath("/admin/email");
   revalidatePath("/admin/settings");

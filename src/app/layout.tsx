@@ -26,6 +26,9 @@ const versionedIconUrl = (url: string | null | undefined, updatedAt: unknown) =>
   return `${url}${separator}v=${Number.isFinite(timestamp) ? timestamp : Date.now()}`;
 };
 
+const faviconUrlOrFallback = (url: string | null | undefined) =>
+  url ?? "/favicon.ico";
+
 async function resolveWithin<T>(promise: Promise<T>, timeoutMs = 2500): Promise<T | null> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
@@ -99,7 +102,11 @@ export async function generateMetadata(): Promise<Metadata> {
     return {
       title: "Radarune | Müzik operasyon platformu",
       description: "Sanatçılar ve label ekipleri için release, dağıtım, royalty ve keşif operasyonları.",
-      ...(faviconUrl ? { icons: { icon: faviconUrl, shortcut: faviconUrl, apple: faviconUrl } } : {}),
+      icons: {
+        icon: faviconUrlOrFallback(faviconUrl),
+        shortcut: faviconUrlOrFallback(faviconUrl),
+        apple: faviconUrlOrFallback(faviconUrl),
+      },
     };
   }
   const organizationId = tenant?.id;
@@ -128,7 +135,11 @@ export async function generateMetadata(): Promise<Metadata> {
     title: titleValue,
     description: descriptionValue,
     ...(verificationValue ? { verification: { google: verificationValue } } : {}),
-    ...(faviconUrl ? { icons: { icon: faviconUrl, shortcut: faviconUrl, apple: faviconUrl } } : {}),
+    icons: {
+      icon: faviconUrlOrFallback(faviconUrl),
+      shortcut: faviconUrlOrFallback(faviconUrl),
+      apple: faviconUrlOrFallback(faviconUrl),
+    },
     robots: indexingValue ? undefined : { index: false, follow: false },
   };
 }

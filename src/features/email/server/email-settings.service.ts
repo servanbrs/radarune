@@ -49,6 +49,12 @@ const DEFAULT_PRIMARY_COLOR = "#12b981";
 
 let cachedTransport: nodemailer.Transporter | null = null;
 let cachedTransportKey = "";
+const emailSettingsCache = new Map<
+  string,
+  { expiresAt: number; value: EmailSettings }
+>();
+const emailSettingsInflight = new Map<string, Promise<EmailSettings>>();
+const EMAIL_SETTINGS_CACHE_TTL_MS = 15_000;
 
 const fallback: EmailSettings = {
   organizationId: null,
@@ -246,7 +252,7 @@ function isCompleteSmtpConfiguration(settings: EmailSettings) {
   );
 }
 
-export async function getEmailSettings(
+async function loadEmailSettings(
   organizationId?: string,
 ): Promise<EmailSettings> {
   // Local development must use the explicitly configured local SMTP profile.
@@ -295,6 +301,40 @@ export async function getEmailSettings(
     ...fallback,
     provider: normalizeProvider(fallback.provider),
   };
+}
+
+export async function getEmailSettings(
+  organizationId?: string,
+): Promise<EmailSettings> {
+  const cacheKey = organizationId ?? "platform";
+  const cached = emailSettingsCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+
+  const existing = emailSettingsInflight.get(cacheKey);
+  if (existing) return existing;
+
+  const pending = loadEmailSettings(organizationId)
+    .then((value) => {
+      emailSettingsCache.set(cacheKey, {
+        expiresAt: Date.now() + EMAIL_SETTINGS_CACHE_TTL_MS,
+        value,
+      });
+      return value;
+    })
+    .finally(() => {
+      emailSettingsInflight.delete(cacheKey);
+    });
+
+  emailSettingsInflight.set(cacheKey, pending);
+  return pending;
+}
+
+export function clearEmailSettingsCache(organizationId?: string) {
+  if (organizationId) {
+    emailSettingsCache.delete(organizationId);
+    return;
+  }
+  emailSettingsCache.clear();
 }
 
 export function createEmailTransport(settings: EmailSettings) {

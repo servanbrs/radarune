@@ -29,7 +29,16 @@ const trustedOrigins = [
     : ["http://localhost:3000", "http://127.0.0.1:3000"]),
 ];
 
+const organizationIdCache = new Map<
+  string,
+  { expiresAt: number; value: string | undefined }
+>();
+const ORGANIZATION_ID_CACHE_TTL_MS = 60_000;
+
 async function organizationIdForUser(userId: string) {
+  const cached = organizationIdCache.get(userId);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+
   const membership = await prisma.organizationMembership.findFirst({
     where: {
       userId,
@@ -42,7 +51,12 @@ async function organizationIdForUser(userId: string) {
     },
   });
 
-  return membership?.organizationId;
+  const value = membership?.organizationId;
+  organizationIdCache.set(userId, {
+    expiresAt: Date.now() + ORGANIZATION_ID_CACHE_TTL_MS,
+    value,
+  });
+  return value;
 }
 
 async function sendAuthEmail(input: {
