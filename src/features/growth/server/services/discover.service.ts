@@ -572,10 +572,15 @@ export class DiscoverService {
 
 export const discoverService = new DiscoverService();
 
-// The public feed is intentionally request-scoped. Caching the randomized
-// order makes every visitor see the same first card for the cache window.
-export async function getCachedPublicDiscoverFeed(tenantOrganizationId?: string) {
-  return discoverService.getFeed(undefined, tenantOrganizationId);
+// Anonymous public pages should not open a fresh set of release/external-media
+// queries for every request. Keep the ranked feed warm for a short window;
+// personalized feeds still use getFeed directly.
+export function getCachedPublicDiscoverFeed(tenantOrganizationId?: string) {
+  return unstable_cache(
+    () => discoverService.getFeed(undefined, tenantOrganizationId),
+    ["radarune-public-discover-feed", tenantOrganizationId ?? "global"],
+    { revalidate: 30 },
+  )();
 }
 
 export const getCachedPublicCandidates = unstable_cache(

@@ -13,10 +13,36 @@ import { authSessionService } from "@/features/authentication/server/services/au
 import { PublicGrowthShell } from "@/features/growth/components/public-shell";
 import { TrackPlayButton } from "@/features/growth/components/track-play-button";
 import type { DiscoverFeedItem } from "@/features/growth/server/services/discover.service";
-import { discoverService } from "@/features/growth/server/services/discover.service";
+import {
+  discoverService,
+  getCachedPublicDiscoverFeed,
+} from "@/features/growth/server/services/discover.service";
 import { tenantContextService } from "@/features/platform/server/services/tenant-context.service";
 
 export const dynamic = "force-dynamic";
+
+const PUBLIC_QUERY_TIMEOUT_MS = 2500;
+
+async function resolveWithin<T>(
+  promise: Promise<T>,
+  timeoutMs = PUBLIC_QUERY_TIMEOUT_MS,
+): Promise<T | null> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<null>((resolve) => {
+        timer = setTimeout(() => resolve(null), timeoutMs);
+      }),
+    ]);
+  } catch {
+    // Public pages must remain usable when an optional session lookup fails.
+    // Treat the visitor as anonymous and let the public feed render.
+    return null;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
 
 export const metadata: Metadata = {
   title: "Hype | Radarune topluluk sıralaması",
@@ -118,9 +144,13 @@ function LeaderCard({
 }
 
 export default async function HypePage() {
-  const session = await authSessionService.getOptionalSession();
-  const tenant = await tenantContextService.resolveFromRequest();
-  const feed = await discoverService.getFeed(undefined, tenant?.id);
+  const session = await resolveWithin(authSessionService.getOptionalSession());
+  const tenant = await resolveWithin(tenantContextService.resolveFromRequest());
+  const feed = await resolveWithin(
+    session
+      ? discoverService.getFeed(undefined, tenant?.id)
+      : getCachedPublicDiscoverFeed(tenant?.id),
+  ) ?? [];
   const ranking = [...feed].sort(
     (left, right) =>
       hypeScore(right) - hypeScore(left) ||

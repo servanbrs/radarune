@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
 import "./globals.css";
 import { configurationResolver } from "@/features/configuration/server/configuration-resolver.service";
 import { tenantContextService } from "@/features/platform/server/services/tenant-context.service";
@@ -13,16 +14,80 @@ const booleanSetting = (value: unknown) => {
   return undefined;
 };
 
-const versionedIconUrl = (url: string | null | undefined, updatedAt: Date | null | undefined) => {
+const versionedIconUrl = (url: string | null | undefined, updatedAt: unknown) => {
   if (!url) return undefined;
   const separator = url.includes("?") ? "&" : "?";
-  return `${url}${separator}v=${updatedAt?.getTime() ?? Date.now()}`;
+  const timestamp =
+    updatedAt instanceof Date
+      ? updatedAt.getTime()
+      : typeof updatedAt === "string"
+        ? Date.parse(updatedAt)
+        : Number.NaN;
+  return `${url}${separator}v=${Number.isFinite(timestamp) ? timestamp : Date.now()}`;
 };
+
+async function resolveWithin<T>(promise: Promise<T>, timeoutMs = 2500): Promise<T | null> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<null>((resolve) => {
+        timer = setTimeout(() => resolve(null), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+const getCachedSeoSettings = (organizationId?: string) =>
+  unstable_cache(
+    async () => {
+      const defaultTitle = "Radarune | Müzik operasyon platformu";
+      const defaultDescription = "Sanatçılar ve label ekipleri için release, dağıtım, royalty ve keşif operasyonları.";
+
+      const [title, description, verification, indexing] = await Promise.all([
+        configurationResolver.resolve({
+          key: "SEO_TITLE",
+          ...(organizationId ? { organizationId } : {}),
+          defaultValue: defaultTitle,
+          parse: stringSetting,
+        }),
+        configurationResolver.resolve({
+          key: "SEO_DESCRIPTION",
+          ...(organizationId ? { organizationId } : {}),
+          defaultValue: defaultDescription,
+          parse: stringSetting,
+        }),
+        configurationResolver.resolve({
+          key: "SEO_GOOGLE_SITE_VERIFICATION",
+          ...(organizationId ? { organizationId } : {}),
+          defaultValue: "",
+          parse: stringSetting,
+        }),
+        configurationResolver.resolve({
+          key: "SEO_INDEXING_ENABLED",
+          ...(organizationId ? { organizationId } : {}),
+          defaultValue: true,
+          parse: booleanSetting,
+        }),
+      ]);
+
+      return {
+        title: title.value,
+        description: description.value,
+        verification: verification.value ?? "",
+        indexing: indexing.value,
+      };
+    },
+    ["public-seo-settings", organizationId ?? "default"],
+    { revalidate: 60 },
+  )();
 
 export async function generateMetadata(): Promise<Metadata> {
   let tenant: Awaited<ReturnType<typeof tenantContextService.resolveFromRequest>> = null;
   try {
-    tenant = await tenantContextService.resolveFromRequest();
+    tenant = await resolveWithin(tenantContextService.resolveFromRequest());
   } catch {
     // Metadata must never take the site down when the database is unavailable.
   }
@@ -49,36 +114,11 @@ export async function generateMetadata(): Promise<Metadata> {
   // temporarily unreachable. Tenant-specific SEO values are an enhancement;
   // the safe defaults still produce valid metadata and allow deployment.
   try {
-    const [title, description, verification, indexing] = await Promise.all([
-      configurationResolver.resolve({
-        key: "SEO_TITLE",
-        ...(organizationId ? { organizationId } : {}),
-        defaultValue: defaultTitle,
-        parse: stringSetting,
-      }),
-      configurationResolver.resolve({
-        key: "SEO_DESCRIPTION",
-        ...(organizationId ? { organizationId } : {}),
-        defaultValue: defaultDescription,
-        parse: stringSetting,
-      }),
-      configurationResolver.resolve({
-        key: "SEO_GOOGLE_SITE_VERIFICATION",
-        ...(organizationId ? { organizationId } : {}),
-        defaultValue: "",
-        parse: stringSetting,
-      }),
-      configurationResolver.resolve({
-        key: "SEO_INDEXING_ENABLED",
-        ...(organizationId ? { organizationId } : {}),
-        defaultValue: true,
-        parse: booleanSetting,
-      }),
-    ]);
-    titleValue = title.value;
-    descriptionValue = description.value;
-    verificationValue = verification.value ?? "";
-    indexingValue = indexing.value;
+    const seo = await getCachedSeoSettings(organizationId);
+    titleValue = seo.title;
+    descriptionValue = seo.description;
+    verificationValue = seo.verification;
+    indexingValue = seo.indexing;
   } catch {
     // Keep the build and public pages available while the database recovers.
   }

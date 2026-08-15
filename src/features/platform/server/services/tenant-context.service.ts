@@ -1,5 +1,6 @@
 import "server-only";
 import { headers } from "next/headers";
+import { unstable_cache } from "next/cache";
 import { auth } from "@/features/authentication/server/auth";
 import { tenantRepository } from "@/features/platform/server/repositories/tenant.repository";
 
@@ -9,12 +10,26 @@ function normalizeHost(host: string | null) {
   return value && value !== "localhost" ? value : null;
 }
 
+const getCachedTenantByHost = (host: string) =>
+  unstable_cache(
+    () => tenantRepository.findByHost(host),
+    ["public-tenant-by-host", host],
+    { revalidate: 60 },
+  )();
+
+const getCachedDefaultTenant = () =>
+  unstable_cache(
+    () => tenantRepository.findDefaultTenant(),
+    ["public-default-tenant"],
+    { revalidate: 60 },
+  )();
+
 export class TenantContextService {
   async resolveFromRequest() {
     const headerList = await headers();
     const host = normalizeHost(headerList.get("x-forwarded-host") ?? headerList.get("host"));
     if (host) {
-      const byHost = await tenantRepository.findByHost(host);
+      const byHost = await getCachedTenantByHost(host);
       if (byHost) return byHost;
     }
 
@@ -22,7 +37,7 @@ export class TenantContextService {
     // workspace so branding (especially the uploaded favicon) remains visible
     // at localhost without requiring a signed-in session.
     if (!host && process.env.NODE_ENV !== "production") {
-      return tenantRepository.findDefaultTenant();
+      return getCachedDefaultTenant();
     }
 
     const session = await auth.api.getSession({ headers: headerList });
