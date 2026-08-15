@@ -41,7 +41,15 @@ const getSession = cache(async () => {
   const hasSessionCookie = /(?:^|;\s*)(?:__Secure-)?better-auth\.session_token=/.test(cookieHeader);
   if (!hasSessionCookie) return null;
 
-  return auth.api.getSession({ headers: requestHeaders });
+  try {
+    return await auth.api.getSession({ headers: requestHeaders });
+  } catch (error) {
+    // A transient remote database failure must not crash the shared app
+    // layout. Protected pages will redirect to sign-in; public pages can
+    // continue rendering while the database connection recovers.
+    console.error("[AUTH_SESSION] Oturum okunamadı:", error);
+    return null;
+  }
 });
 
 class AuthSessionService {
