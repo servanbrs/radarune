@@ -65,10 +65,20 @@ export class ReleaseModerationService {
     if (!payloadResult.success) {
       throw new Error(payloadResult.message);
     }
-    return distributionJobService.createJob(actor, {
+    const job = await distributionJobService.createJob(actor, {
       provider: release.distributionProvider ?? undefined,
       payload: payloadResult.data,
     });
+    await notificationService.create({
+      organizationId: actor.organizationId,
+      userId: release.createdByUserId,
+      type: "RELEASE_QUEUED_FOR_DISTRIBUTION",
+      title: "Yayın dağıtım kuyruğuna alındı",
+      message: `${release.title} dağıtım için kuyruğa alındı.`,
+      entityType: "Release",
+      entityId: release.id,
+    });
+    return job;
   }
 
   private async approveRelease(actor: FinanceActorContext, releaseId: string) {

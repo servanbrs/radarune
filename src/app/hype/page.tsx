@@ -11,6 +11,7 @@ import {
 
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { PublicGrowthShell } from "@/features/growth/components/public-shell";
+import { TrackPlayButton } from "@/features/growth/components/track-play-button";
 import type { DiscoverFeedItem } from "@/features/growth/server/services/discover.service";
 import { discoverService } from "@/features/growth/server/services/discover.service";
 import { tenantContextService } from "@/features/platform/server/services/tenant-context.service";
@@ -47,6 +48,12 @@ function artistHref(item: DiscoverFeedItem) {
   return item.artist?.slug ? `/artist/${item.artist.slug}` : "/discover";
 }
 
+function itemHref(item: DiscoverFeedItem) {
+  if (item.trackId) return `/track/${item.trackId}`;
+  if (item.releaseId) return `/release/${item.releaseId}`;
+  return item.externalUrl ?? "/discover";
+}
+
 function LeaderCard({
   item,
   rank,
@@ -81,9 +88,12 @@ function LeaderCard({
           <p className="text-xs font-black uppercase tracking-[0.2em] text-orange-200">
             {rank === 1 ? "Haftanın zirvesi" : `İlk ${rank}`}
           </p>
-          <h3 className="mt-1 line-clamp-2 text-xl font-black tracking-[-0.04em] sm:text-2xl">
+          <Link
+            className="mt-1 line-clamp-2 text-xl font-black tracking-[-0.04em] hover:text-orange-200 sm:text-2xl"
+            href={itemHref(item)}
+          >
             {item.title}
-          </h3>
+          </Link>
           <p className="mt-1 truncate text-sm text-white/65">
             {item.artist?.name ?? item.artistName}
           </p>
@@ -95,6 +105,7 @@ function LeaderCard({
           <Heart className="size-4 fill-current" />
           {item.likeCount ?? 0} oy
         </span>
+        {item.trackId ? <TrackPlayButton trackId={item.trackId} className="size-9 bg-white text-[#101817] hover:bg-orange-200" /> : null}
         <Link
           className="inline-flex items-center gap-1 font-bold text-emerald-300 hover:text-white"
           href={artistHref(item)}
@@ -192,11 +203,14 @@ export default async function HypePage() {
               <div className="flex min-w-0 items-center gap-3 border-b border-black/[0.06] px-3 py-3 last:border-b-0 sm:gap-4 sm:px-5" key={item.id}>
                 <span className={`flex size-9 shrink-0 items-center justify-center rounded-xl text-sm font-black ${index < 3 ? "bg-orange-100 text-orange-800" : "bg-[#f0f5f3] text-[#74807b]"}`}>{String(index + 1).padStart(2, "0")}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-bold">{item.title}</p>
+                  <Link className="truncate font-bold hover:text-orange-700" href={itemHref(item)}>
+                    {item.title}
+                  </Link>
                   <p className="mt-0.5 truncate text-xs text-[#74807b]">{item.artist?.name ?? item.artistName} · {item.primaryGenre}</p>
                 </div>
                 <div className="hidden shrink-0 items-center gap-1 text-xs text-[#74807b] sm:flex"><Heart className="size-3.5 text-orange-600" />{item.likeCount ?? 0}</div>
                 <span className="hidden shrink-0 items-center gap-1 text-xs font-semibold text-emerald-700 md:inline-flex"><TrendingUp className="size-3.5" />{Math.round(hypeScore(item))}</span>
+                {item.trackId ? <TrackPlayButton trackId={item.trackId} className="size-8 bg-[#101817] text-white hover:bg-orange-300 hover:text-[#101817]" /> : null}
                 <Link aria-label={`${item.title} sanatçı profili`} className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-[#087d70] hover:bg-[#e9faf4]" href={artistHref(item)}><ArrowUpRight className="size-4" /></Link>
               </div>
             ))}

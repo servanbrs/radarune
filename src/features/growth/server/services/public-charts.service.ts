@@ -273,7 +273,11 @@ const getRadaruneMostLiked = unstable_cache(
         title: item.title,
         artistName:
           item.artistName?.trim() || "Bilinmeyen sanatçı",
-        thumbnailUrl: item.thumbnailUrl,
+        thumbnailUrl:
+          item.thumbnailUrl ??
+          (item.releaseId
+            ? `/api/public/v1/releases/${item.releaseId}/artwork`
+            : null),
         externalUrl: item.externalUrl,
         embedUrl: item.embedUrl,
         provider: "RADARUNE",
@@ -339,7 +343,11 @@ const getRadaruneMostDiscussed = unstable_cache(
         title: item.title,
         artistName:
           item.artistName?.trim() || "Bilinmeyen sanatçı",
-        thumbnailUrl: item.thumbnailUrl,
+        thumbnailUrl:
+          item.thumbnailUrl ??
+          (item.releaseId
+            ? `/api/public/v1/releases/${item.releaseId}/artwork`
+            : null),
         externalUrl: item.externalUrl,
         embedUrl: item.embedUrl,
         provider: "RADARUNE",
@@ -398,7 +406,11 @@ const getRadaruneNewReleases = unstable_cache(
           title: item.title,
           artistName:
             item.artistName?.trim() || "Bilinmeyen sanatçı",
-          thumbnailUrl: item.thumbnailUrl,
+          thumbnailUrl:
+            item.thumbnailUrl ??
+            (item.releaseId
+              ? `/api/public/v1/releases/${item.releaseId}/artwork`
+              : null),
           externalUrl: item.externalUrl,
           embedUrl: item.embedUrl,
           provider: "RADARUNE",

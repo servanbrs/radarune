@@ -1,0 +1,59 @@
+import { redirect } from "next/navigation";
+
+import { AdminShell } from "@/features/admin/components/admin-shell";
+import { adminV2AnalyticsService } from "@/features/admin/server/services/admin-v2-analytics.service";
+import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
+
+const cards = [
+  ["Keşfet yönetimi", "/admin/site-builder/discover", "Keşfet sıralaması ve görünürlük ayarlarını yönet."],
+  ["Listeler", "/admin/social/playlists", "Global listeleri, parçaları ve oylama akışını yönet."],
+  ["Yayın kuyruğu", "/admin/releases", "Yayınları incele, onayla ve dağıtıma gönder."],
+  ["Sanatçı başvuruları", "/admin/applications", "Sanatçı başvurularını incele, onayla veya revizyona gönder."],
+] as const;
+
+export default async function ModeratorPage() {
+  const { organization, user } = await authSessionService.getDashboardContext();
+  if (user.systemRole !== "MODERATOR") redirect("/admin");
+
+  const dashboard = await adminV2AnalyticsService.getDashboard(organization.organization.id);
+  const insights = [
+    ["Aktif kullanıcı", dashboard.summary.activeUsers, "Son 15 dakika"],
+    ["Bugünkü kayıt", dashboard.summary.usersToday, "Yeni kullanıcı"],
+    ["Bugünkü yayın", dashboard.summary.releasesToday, "Gönderilen yayın"],
+    ["Bugünkü oynatma", dashboard.summary.playbackToday, "Oynatma olayı"],
+    ["Dağıtım kuyruğu", dashboard.summary.activeDistributionJobs, "Bekleyen iş"],
+  ] as const;
+
+  return (
+    <AdminShell title="Moderatör paneli" description="Yayın, keşfet, listeler, başvurular, destek ve platform hareketlerini tek operasyon ekranından yönetin.">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        {insights.map(([label, value, detail]) => (
+          <a className="panel p-4 transition hover:-translate-y-0.5 hover:border-accent" href={label === "Dağıtım kuyruğu" ? "/admin/releases" : "/admin/analytics"} key={label}>
+            <p className="text-2xl font-semibold">{value}</p>
+            <p className="mt-1 text-sm font-semibold">{label}</p>
+            <p className="mt-1 text-xs text-muted">{detail}</p>
+          </a>
+        ))}
+      </section>
+      <div className="mt-5 grid gap-4 md:grid-cols-3">
+        {cards.map(([title, href, description]) => (
+          <a className="panel p-6 transition hover:-translate-y-1 hover:border-accent" href={href} key={href}>
+            <p className="text-lg font-semibold">{title}</p>
+            <p className="mt-2 text-sm leading-6 text-muted">{description}</p>
+            <span className="mt-5 inline-flex text-sm font-semibold text-accent">Aç →</span>
+          </a>
+        ))}
+        <a className="panel p-6 transition hover:-translate-y-1 hover:border-accent" href="/admin/analytics">
+          <p className="text-lg font-semibold">Analizler</p>
+          <p className="mt-2 text-sm leading-6 text-muted">Aktif kullanıcıları, yeni kayıtları, yayınları ve dağıtım kuyruğunu detaylandır.</p>
+          <span className="mt-5 inline-flex text-sm font-semibold text-accent">Analizleri aç →</span>
+        </a>
+        <a className="panel p-6 transition hover:-translate-y-1 hover:border-accent" href="/admin/support">
+          <p className="text-lg font-semibold">Destek merkezi</p>
+          <p className="mt-2 text-sm leading-6 text-muted">Kullanıcılara yanıt ver, destek kayıtlarını yönet ve gerektiğinde iç not ekle.</p>
+          <span className="mt-5 inline-flex text-sm font-semibold text-accent">Desteğe git →</span>
+        </a>
+      </div>
+    </AdminShell>
+  );
+}

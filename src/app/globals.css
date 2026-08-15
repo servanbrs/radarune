@@ -55,20 +55,20 @@ main[data-admin-theme="dark"] .bg-white,
 main[data-admin-theme="dark"] .bg-white\/60,
 main[data-admin-theme="dark"] .bg-white\/70,
 main[data-admin-theme="dark"] .bg-white\/80 {
-  background-color: #17272a !important;
-  color: #eef7f5 !important;
+  background-color: #151c2d !important;
+  color: #f1f3f8 !important;
 }
-main[data-admin-theme="dark"] .hover\:bg-white:hover { background-color: #1d3437 !important; }
-main[data-admin-theme="dark"] .text-foreground { color: #eef7f5 !important; }
-main[data-admin-theme="dark"] .text-muted { color: #9aada9 !important; }
+main[data-admin-theme="dark"] .hover\:bg-white:hover { background-color: #202b44 !important; }
+main[data-admin-theme="dark"] .text-foreground { color: #f1f3f8 !important; }
+main[data-admin-theme="dark"] .text-muted { color: #b7c2d0 !important; }
 main[data-admin-theme="dark"] { color-scheme: dark; }
 
 [data-admin-theme="dark"] input,
 [data-admin-theme="dark"] select,
 [data-admin-theme="dark"] textarea {
-  background-color: #17272a !important;
-  border-color: #31484b !important;
-  color: #eef7f5 !important;
+  background-color: #17223a !important;
+  border-color: #36425d !important;
+  color: #f1f3f8 !important;
 }
 [data-admin-theme="dark"] input::placeholder,
 [data-admin-theme="dark"] textarea::placeholder { color: #8da09c !important; }
@@ -168,6 +168,26 @@ header details.group:hover > div { display: grid; }
 [data-radarune-app-header="dark"] nav a { color: #f4fffb !important; }
 [data-radarune-app-header="dark"] input { color: #f4fffb !important; }
 [data-radarune-app-header="dark"] input::placeholder { color: rgba(244, 255, 251, 0.4) !important; }
+
+/* The authenticated admin route shares the app header. Keep it visually
+   continuous with the premium admin sidebar instead of the legacy green
+   public header. Public pages keep their existing creator header. */
+body:has(main[data-admin-theme="dark"]) [data-radarune-app-header="dark"] {
+  background: #0b1020 !important;
+  border-color: #2b344b !important;
+  box-shadow: 0 12px 50px rgba(4, 8, 20, 0.32) !important;
+}
+body:has(main[data-admin-theme="dark"]) [data-radarune-app-header="dark"] a:first-child,
+body:has(main[data-admin-theme="dark"]) [data-radarune-app-header="dark"] nav a {
+  color: #f1f3f8 !important;
+}
+body:has(main[data-admin-theme="dark"]) [data-radarune-app-header="dark"] a:first-child p:first-child {
+  color: #d6a85f !important;
+}
+body:has(main[data-admin-theme="dark"]) [data-radarune-app-header="dark"] nav a:hover {
+  background: rgba(214, 168, 95, 0.12) !important;
+  color: #e5bd7b !important;
+}
 [data-radarune-studio-nav="dark"] {
   background: #0b201c !important;
   color: rgba(244, 255, 251, 0.68) !important;
@@ -187,10 +207,10 @@ header details.group:hover > div { display: grid; }
   border-color: rgba(19, 19, 19, 0.08) !important;
   box-shadow: 0 18px 60px rgba(55, 43, 27, 0.08) !important;
 }
-main[data-admin-theme="dark"] .panel { background-color: #111d20 !important; border-color: #26383a !important; color: #eef7f5; }
-main[data-admin-theme="dark"] article.panel { background-color: #111d20 !important; border-color: #26383a !important; }
-main[data-admin-theme="dark"] .text-muted { color: #9aada9 !important; }
-main[data-admin-theme="dark"] .bg-background { background-color: #0b1114 !important; }
+main[data-admin-theme="dark"] .panel { background-color: #151c2d !important; border-color: #2b344b !important; color: #f1f3f8; }
+main[data-admin-theme="dark"] article.panel { background-color: #151c2d !important; border-color: #2b344b !important; }
+main[data-admin-theme="dark"] .text-muted { color: #b7c2d0 !important; }
+main[data-admin-theme="dark"] .bg-background { background-color: #0b1020 !important; }
 
 /* Admin contrast pass: legacy opacity utilities must remain readable on the
    premium navy surfaces. Keep the color system consistent across every admin

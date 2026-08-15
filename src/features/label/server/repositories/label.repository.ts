@@ -25,6 +25,10 @@ export class LabelRepository {
             artistLinks: true,
           },
         },
+        artistLinks: {
+          select: { id: true, artistId: true, artist: { select: { id: true, name: true, slug: true } } },
+          orderBy: { artist: { name: "asc" } },
+        },
       },
     });
   }
@@ -86,6 +90,27 @@ export class LabelRepository {
         slug: true,
       },
     });
+  }
+
+  async linkArtist(params: { organizationId: string; labelId: string; artistId: string }) {
+    const { organizationId, labelId, artistId } = params;
+    const [label, artist] = await Promise.all([
+      prisma.label.findFirst({ where: { id: labelId, organizationId }, select: { id: true } }),
+      prisma.artist.findFirst({ where: { id: artistId, organizationId }, select: { id: true } }),
+    ]);
+    if (!label || !artist) throw new Error("Label veya sanatçı bu çalışma alanında bulunamadı.");
+    return prisma.labelArtist.upsert({
+      where: { labelId_artistId: { labelId, artistId } },
+      update: {},
+      create: { labelId, artistId },
+    });
+  }
+
+  async unlinkArtist(params: { organizationId: string; labelId: string; artistId: string }) {
+    const { organizationId, labelId, artistId } = params;
+    const label = await prisma.label.findFirst({ where: { id: labelId, organizationId }, select: { id: true } });
+    if (!label) throw new Error("Label bu çalışma alanında bulunamadı.");
+    return prisma.labelArtist.deleteMany({ where: { labelId, artistId } });
   }
 }
 

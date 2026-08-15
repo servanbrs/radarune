@@ -135,15 +135,16 @@ export function AdminNavigation({ systemRole }: { systemRole: string }) {
   return (
     <nav aria-label="Admin menüsü" className="grid gap-2">
       {(() => {
-        const isCurrent = pathname === "/admin/moderation" || pathname.startsWith("/admin/moderation/");
+        const dashboardHref = systemRole === "MODERATOR" ? "/moderator" : "/admin";
+        const isCurrent = pathname === dashboardHref || pathname.startsWith(`${dashboardHref}/`);
         return (
           <Link
             aria-current={isCurrent ? "page" : undefined}
             className={`group/item flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-medium transition ${isCurrent ? "bg-[#d6a85f] text-[#17120b] shadow-[0_8px_22px_rgba(214,168,95,0.2)]" : "text-white/75 hover:bg-white/[0.07] hover:text-white"}`}
-            href="/admin/moderation"
+            href={dashboardHref}
           >
             <LayoutDashboard className={`size-4 shrink-0 ${isCurrent ? "text-[#17120b]" : "text-white/55 group-hover/item:text-[#d6a85f]"}`} />
-            <span className="truncate">Dashboard</span>
+            <span className="truncate">{systemRole === "MODERATOR" ? "Moderatör paneli" : "Dashboard"}</span>
           </Link>
         );
       })()}

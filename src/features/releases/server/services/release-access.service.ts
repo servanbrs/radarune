@@ -70,6 +70,11 @@ export class ReleaseAccessService {
               },
             },
           },
+          {
+            labelLinks: {
+              some: { label: { organizationId: actor.organizationId } },
+            },
+          },
         ],
       },
       select: {

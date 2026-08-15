@@ -19,6 +19,19 @@ function slugify(value: string) {
 }
 
 export class ArtistApplicationService {
+  private canAccessApplication(
+    actor: FinanceActorContext,
+    application: NonNullable<Awaited<ReturnType<typeof artistApplicationRepository.findById>>>,
+  ) {
+    return (
+      actor.systemRole === "SUPER_ADMIN" ||
+      application.organizationId === actor.organizationId ||
+      application.user.memberships.some(
+        (membership) => membership.organizationId === actor.organizationId,
+      )
+    );
+  }
+
   async createApplication(actor: FinanceActorContext, input: CreateArtistApplicationInput) {
     const parsed = createArtistApplicationSchema.safeParse(input);
     if (!parsed.success) {
@@ -39,6 +52,10 @@ export class ArtistApplicationService {
       ...(parsed.data.spotifyArtistUrl ? { spotifyArtistUrl: parsed.data.spotifyArtistUrl } : {}),
       ...(parsed.data.appleMusicArtistUrl ? { appleMusicArtistUrl: parsed.data.appleMusicArtistUrl } : {}),
       ...(parsed.data.youtubeChannelUrl ? { youtubeChannelUrl: parsed.data.youtubeChannelUrl } : {}),
+      socialLinks: {
+        ...(parsed.data.deezerArtistUrl ? { deezerArtistUrl: parsed.data.deezerArtistUrl } : {}),
+        ...(parsed.data.itunesArtistUrl ? { itunesArtistUrl: parsed.data.itunesArtistUrl } : {}),
+      },
     });
 
     await auditLogService.create({
@@ -63,13 +80,17 @@ export class ArtistApplicationService {
   }
   async listApplications(actor: FinanceActorContext, params: { page: number; pageSize: number; search?: string }) {
     assertAdminPermission(actor, "artists.review");
-    return artistApplicationRepository.list({ ...params, organizationId: actor.organizationId });
+    return artistApplicationRepository.list({
+      ...params,
+      organizationId: actor.organizationId,
+      global: actor.systemRole === "SUPER_ADMIN",
+    });
   }
 
   async getApplication(actor: FinanceActorContext, id: string) {
     assertAdminPermission(actor, "artists.review");
     const application = await artistApplicationRepository.findById(id);
-    if (!application || application.organizationId !== actor.organizationId) {
+    if (!application || !this.canAccessApplication(actor, application)) {
       return null;
     }
     return application;
@@ -84,7 +105,7 @@ export class ArtistApplicationService {
 
     return prisma.$transaction(async (tx) => {
       const application = await artistApplicationRepository.findById(id, tx);
-      if (!application || application.organizationId !== actor.organizationId) {
+      if (!application || !this.canAccessApplication(actor, application)) {
         throw new Error("Sanatçı başvurusu bulunamadı.");
       }
 
@@ -117,7 +138,10 @@ export class ArtistApplicationService {
               sortName: application.stageName,
               type: "SOLO",
               spotifyProfileUrl: application.spotifyArtistUrl,
-              appleMusicProfileUrl: application.appleMusicArtistUrl,
+              appleMusicProfileUrl: application.appleMusicArtistUrl ?? (typeof application.socialLinks === "object" && application.socialLinks !== null && "itunesArtistUrl" in application.socialLinks ? String((application.socialLinks as Record<string, unknown>).itunesArtistUrl) : null),
+              deezerProfileUrl: typeof application.socialLinks === "object" && application.socialLinks !== null && "deezerArtistUrl" in application.socialLinks
+                ? String((application.socialLinks as Record<string, unknown>).deezerArtistUrl)
+                : null,
             },
           }));
 
@@ -131,7 +155,7 @@ export class ArtistApplicationService {
         const updated = await artistApplicationRepository.updateStatus(
           {
             id,
-            organizationId: actor.organizationId,
+            organizationId: application.organizationId,
             previousStatus: application.status,
             status: "APPROVED",
             actorUserId: actor.userId,
@@ -144,7 +168,7 @@ export class ArtistApplicationService {
 
         await notificationService.create(
           {
-            organizationId: actor.organizationId,
+            organizationId: application.organizationId,
             userId: application.userId,
             type: "ARTIST_APPLICATION_APPROVED",
             title: "Sanatçı başvurunuz onaylandı",
@@ -157,7 +181,7 @@ export class ArtistApplicationService {
 
         await auditLogService.create(
           {
-            organizationId: actor.organizationId,
+            organizationId: application.organizationId,
             actorUserId: actor.userId,
             action: "ARTIST_APPLICATION_APPROVED",
             entityType: "ArtistApplication",
@@ -185,7 +209,7 @@ export class ArtistApplicationService {
     const updated = await artistApplicationRepository.updateStatus(
       {
         id: application.id,
-        organizationId: actor.organizationId,
+        organizationId: application.organizationId,
         previousStatus: application.status,
         status,
         actorUserId: actor.userId,
@@ -198,7 +222,7 @@ export class ArtistApplicationService {
     if (status !== "UNDER_REVIEW") {
       await notificationService.create(
         {
-          organizationId: actor.organizationId,
+          organizationId: application.organizationId,
           userId: application.userId,
           type:
             status === "REJECTED"
@@ -214,11 +238,24 @@ export class ArtistApplicationService {
         },
         tx,
       );
+    } else {
+      await notificationService.create(
+        {
+          organizationId: application.organizationId,
+          userId: application.userId,
+          type: "ARTIST_APPLICATION_UNDER_REVIEW",
+          title: "Sanatçı başvurunuz incelemede",
+          message: "Başvurunuz ekip tarafından incelenmeye alındı.",
+          entityType: "ArtistApplication",
+          entityId: application.id,
+        },
+        tx,
+      );
     }
 
     await auditLogService.create(
       {
-        organizationId: actor.organizationId,
+        organizationId: application.organizationId,
         actorUserId: actor.userId,
         action: `ARTIST_APPLICATION_${status}`,
         entityType: "ArtistApplication",

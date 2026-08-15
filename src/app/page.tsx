@@ -37,6 +37,15 @@ export default async function HomePage() {
     }
     const page = await siteBuilderService.getHomepage(tenant.id);
     const sections = page?.sections.filter((section) => section.active).sort((a, b) => a.sortOrder - b.sortOrder) ?? [];
+    if (sections.length === 0 && process.env.NODE_ENV !== "production") {
+      let discoverReleases: Awaited<ReturnType<typeof getCachedPublicCandidates>> = [];
+      try {
+        discoverReleases = await getCachedPublicCandidates();
+      } catch {
+        // Keep the local landing page usable while the remote DB is recovering.
+      }
+      return <RadaruneLandingPage discoverReleases={discoverReleases} />;
+    }
     const theme = await prisma.themeConfig.findFirst({ where: { organizationId: tenant.id, draft: false } });
     const themeStyle = {
       "--background": theme?.backgroundColor,

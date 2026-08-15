@@ -64,9 +64,8 @@ export class AdminV2AnalyticsService {
     // Yeni kayıtlar, ilk doğrulama tamamlanmadan kısa bir süre memberships
     // satırı olmadan bulunabilir. Bunları analizlerden düşürmemek için mevcut
     // organizasyon üyelerini ve henüz organizasyona bağlanmamış hesapları
-    // birlikte sayıyoruz.
+    // birlikte sayıyoruz; böylece toplam ve son 7 günlük kayıtlar eksilmez.
     const endUserScope: Prisma.UserWhereInput = {
-      systemRole: { in: ["USER", "ARTIST"] },
       OR: [
         { memberships: { some: { organizationId } } },
         { memberships: { none: {} } },
@@ -141,10 +140,10 @@ export class AdminV2AnalyticsService {
       prisma.user.findMany({
         where: {
           ...endUserScope,
-          createdAt: { gte: today },
+          createdAt: { gte: sevenDaysAgo },
         },
         orderBy: { createdAt: "desc" },
-        take: 10,
+        take: 20,
         select: { id: true, name: true, email: true, createdAt: true },
       }),
 

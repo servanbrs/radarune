@@ -47,6 +47,9 @@ type TemplateVariables = {
 
 const DEFAULT_PRIMARY_COLOR = "#12b981";
 
+let cachedTransport: nodemailer.Transporter | null = null;
+let cachedTransportKey = "";
+
 const fallback: EmailSettings = {
   organizationId: null,
   provider: env.MAIL_PROVIDER,
@@ -246,6 +249,17 @@ function isCompleteSmtpConfiguration(settings: EmailSettings) {
 export async function getEmailSettings(
   organizationId?: string,
 ): Promise<EmailSettings> {
+  // Local development must use the explicitly configured local SMTP profile.
+  // A stale organization-level password in the shared production database can
+  // otherwise override .env.local and make every OTP request wait for SMTP
+  // retries before failing.
+  if (env.NODE_ENV !== "production" && isCompleteSmtpConfiguration(fallback)) {
+    return {
+      ...fallback,
+      provider: normalizeProvider(fallback.provider),
+    };
+  }
+
   let settings = await loadOrganizationSettings(organizationId);
 
   // Sign-up/OTP flows may run before a user belongs to an organization, or the
@@ -295,11 +309,27 @@ export function createEmailTransport(settings: EmailSettings) {
     );
   }
 
-  return nodemailer.createTransport({
+  const transportKey = [
+    settings.host,
+    settings.port,
+    settings.username,
+    settings.password,
+  ].join("\u001f");
+
+  if (cachedTransport && cachedTransportKey === transportKey) {
+    return cachedTransport;
+  }
+
+  cachedTransport?.close();
+  cachedTransportKey = transportKey;
+  const transport = nodemailer.createTransport({
     host: settings.host,
     port: settings.port,
     secure: settings.port === 465,
     requireTLS: settings.port === 587,
+    pool: true,
+    maxConnections: 3,
+    maxMessages: 100,
     auth: {
       user: settings.username,
       pass: settings.password,
@@ -308,6 +338,9 @@ export function createEmailTransport(settings: EmailSettings) {
     greetingTimeout: 15_000,
     socketTimeout: 30_000,
   });
+
+  cachedTransport = transport;
+  return transport;
 }
 
 function escapeHtml(value: string) {

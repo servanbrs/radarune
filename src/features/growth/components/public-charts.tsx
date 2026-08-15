@@ -7,12 +7,14 @@ import {
   Music2,
   Play,
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import type {
   PublicChartSection,
   PublicChartTrack,
 } from "@/features/growth/server/services/public-charts.service";
+import { TrackPlayButton } from "@/features/growth/components/track-play-button";
 
 type PublicChartsProps = {
   sections: PublicChartSection[];
@@ -50,12 +52,18 @@ function ChartTrackCard({
         <div className="relative aspect-video overflow-hidden bg-[#dfe8e7]">
           {isEmbed && embedUrl ? <iframe allow="autoplay; encrypted-media; picture-in-picture" className="absolute inset-0 size-full" src={`${embedUrl}${embedUrl.includes("?") ? "&" : "?"}autoplay=${playing ? "1" : "0"}&playsinline=1&rel=0`} title={item.title} /> : null}
           {item.thumbnailUrl ? (
-            <img
-              alt=""
-              className={`${isEmbed || playing ? "hidden" : "h-full w-full"} object-cover transition duration-500 group-hover:scale-105`}
-              loading="lazy"
-              src={item.thumbnailUrl}
-            />
+            <Link
+              aria-label={`${item.title} şarkı sayfasını aç`}
+              className={`${isEmbed || playing ? "hidden" : "block h-full w-full"}`}
+              href={item.trackId ? `/track/${item.trackId}` : item.releaseId ? `/release/${item.releaseId}` : item.externalUrl}
+            >
+              <img
+                alt={`${item.title} kapak görseli`}
+                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                loading="lazy"
+                src={item.thumbnailUrl}
+              />
+            </Link>
           ) : (
             <div className="flex h-full items-center justify-center bg-gradient-to-br from-[#0b8274]/20 to-[#111827]/15">
               <Music2 className="size-10 text-[#087d70]" />
@@ -77,9 +85,12 @@ function ChartTrackCard({
         </div>
 
         <div className="p-4">
-          <h3 className="line-clamp-2 min-h-12 text-base font-bold leading-6 text-black">
+          <Link
+            className="line-clamp-2 min-h-12 text-base font-bold leading-6 text-black hover:text-[#087d70]"
+            href={item.trackId ? `/track/${item.trackId}` : item.releaseId ? `/release/${item.releaseId}` : item.externalUrl}
+          >
             {item.title}
-          </h3>
+          </Link>
 
           <p className="mt-1 truncate text-sm text-black/50">
             {item.artistName}
@@ -94,6 +105,7 @@ function ChartTrackCard({
             </p>
 
             {item.externalUrl ? <a aria-label="Kaynağı yeni sekmede aç" className="rounded-full p-1 text-black/35 transition hover:bg-black/5 hover:text-[#087d70]" href={item.externalUrl} rel="noreferrer" target="_blank" onClick={(event) => event.stopPropagation()}><ArrowUpRight className="size-4" /></a> : null}
+            {isLocalTrack ? <TrackPlayButton trackId={item.trackId!} className="size-8 bg-[#087d70] text-white hover:bg-[#055d54]" /> : null}
           </div>
         </div>
       </div>

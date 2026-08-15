@@ -6,8 +6,8 @@ import {
 import { artistRepository } from "@/features/artist/server/repositories/artist.repository";
 
 export class ArtistService {
-  async listByOrganizationId(organizationId: string, search?: string) {
-    return artistRepository.listByOrganizationId(organizationId, search);
+  async listByOrganizationId(organizationId: string, search?: string, global = false) {
+    return artistRepository.listByOrganizationId(organizationId, search, global);
   }
 
   async createForOrganization(params: {

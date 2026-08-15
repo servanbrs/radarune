@@ -30,6 +30,33 @@ const capabilities = [
 
 const workflowSteps = ["Hazırla", "Doğrula", "Dağıt", "Ölç"] as const;
 
+const frequentlyAskedQuestions = [
+  {
+    question: "Radarune nedir?",
+    answer: "Radarune; yeni müzikleri keşfetmek, sanatçıları takip etmek, şarkılara oy vermek ve sanatçıların yayın operasyonlarını tek bir yerde yönetmek için oluşturulmuş ücretsiz bir müzik platformudur.",
+  },
+  {
+    question: "Sanatçı olarak şarkımı nasıl gönderebilirim?",
+    answer: "Ücretsiz hesabını oluşturduktan sonra sanatçı veya üretici çalışma alanından sanatçı profilini oluşturabilir, yayın bilgilerini ve dosyalarını ekleyerek incelemeye gönderebilirsin.",
+  },
+  {
+    question: "Keşfet bölümündeki şarkılar nasıl seçiliyor?",
+    answer: "Keşfet akışı; yayın durumu, topluluk oyları, etkileşim ve güncellik sinyallerini birlikte değerlendirir. Böylece yeni ve ilgi gören şarkılar farklı kullanıcılara ulaşabilir.",
+  },
+  {
+    question: "Radarune ile müzik dağıtımı nasıl ilerliyor?",
+    answer: "Yayınını hazırlayıp gerekli bilgileri tamamladıktan sonra içerik kontrol edilir. Onaylanan yayınlar dağıtım kuyruğuna alınır ve süreç boyunca durumunu çalışma alanından takip edebilirsin.",
+  },
+  {
+    question: "Smart Link ne işe yarar?",
+    answer: "Smart Link; Spotify, Apple Music, YouTube ve diğer bağlantılarını tek, paylaşılabilir bir sayfada birleştirir. Sanatçılar bu sayfayı sosyal profillerinde ve yayın duyurularında kullanabilir.",
+  },
+  {
+    question: "Radarune kullanmak ücretli mi?",
+    answer: "Müzik keşfetme, oy verme, sanatçı profili oluşturma ve temel paylaşım özellikleri ücretsizdir. Ücretli bir özellik veya dağıtım adımı varsa işlem öncesinde açıkça belirtilir.",
+  },
+] as const;
+
 export function RadaruneLandingPage({ discoverReleases = [] }: { discoverReleases?: PublicDiscoverCandidate[] }) {
   return (
     <main className="landing-shell min-h-screen overflow-hidden bg-[#090b0f] pb-20 text-white lg:pb-0">
@@ -216,6 +243,25 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
           <Link className="landing-cta-button mt-8 inline-flex items-center gap-2 rounded-full !bg-[#090b0f] px-6 py-3.5 font-semibold !text-white shadow-lg shadow-black/20 hover:!bg-[#20252d]" href="/sign-up">
             Ücretsiz hesap oluştur <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
           </Link>
+        </div>
+      </section>
+
+      <section className="relative z-10 mx-5 mb-8 rounded-[2rem] border border-white/10 bg-white/[0.035] px-6 py-10 md:mx-auto md:max-w-7xl md:px-12 md:py-14" aria-labelledby="faq-title">
+        <div className="max-w-2xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#efb848]">Sıkça sorulan sorular</p>
+          <h2 id="faq-title" className="mt-4 text-3xl font-semibold leading-tight tracking-[-0.04em] md:text-5xl">Radarune hakkında merak edilenler.</h2>
+          <p className="mt-4 text-base leading-7 text-white/55">Başlamak, müzik keşfetmek ve yayınını duyurmakla ilgili en sık sorulan soruların yanıtları.</p>
+        </div>
+        <div className="mt-8 divide-y divide-white/10 rounded-2xl border border-white/10 bg-[#11151b]/70 px-5 md:px-7">
+          {frequentlyAskedQuestions.map(({ answer, question }, index) => (
+            <details className="group py-5 first:pt-2 last:pb-2" key={question} open={index === 0}>
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-5 py-3 text-base font-semibold text-white marker:hidden md:text-lg">
+                <span>{question}</span>
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[#efb848]/40 text-xl font-normal leading-none text-[#efb848] transition group-open:rotate-45" aria-hidden="true">+</span>
+              </summary>
+              <p className="max-w-3xl pb-3 pr-12 text-sm leading-7 text-white/55 md:text-base">{answer}</p>
+            </details>
+          ))}
         </div>
       </section>
 

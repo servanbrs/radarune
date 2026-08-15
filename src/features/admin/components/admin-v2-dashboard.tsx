@@ -97,9 +97,9 @@ export function AdminV2Dashboard({ dashboard }: Props) {
   );
 
   return (
-    <main data-admin-theme="dark" className="min-h-screen bg-[#0d1c1a] text-[#eef7f5]">
+    <main data-admin-theme="dark" className="min-h-screen bg-[#0b1020] text-[#f1f3f8]">
       <div className="mx-auto w-full max-w-[1680px] px-4 py-6 sm:px-6 lg:px-8">
-        <section className="relative overflow-hidden rounded-[32px] bg-[#101817] px-6 py-8 text-white shadow-[0_28px_90px_rgba(15,23,42,0.2)] sm:px-9 lg:px-11">
+        <section className="relative overflow-hidden rounded-[32px] bg-[#121a2b] px-6 py-8 text-white shadow-[0_28px_90px_rgba(4,8,20,0.35)] sm:px-9 lg:px-11">
           <div className="pointer-events-none absolute -right-24 -top-36 size-[430px] rounded-full bg-emerald-400/20 blur-[100px]" />
 
           <div className="relative flex flex-col gap-7 xl:flex-row xl:items-end xl:justify-between">
@@ -185,7 +185,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
         </section>
 
         <section className="mt-5 grid gap-5 xl:grid-cols-[minmax(320px,.72fr)_minmax(0,1.28fr)]">
-          <article className="rounded-[28px] border border-white/[0.08] bg-[#122421] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.2)] sm:p-6">
+          <article className="rounded-[28px] border border-white/[0.08] bg-[#151c2d] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.2)] sm:p-6">
             <SectionHeading
               eyebrow="Kullanıcı analizi"
               title="Son 30 gün yeni kullanıcılar"
@@ -223,7 +223,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
             </div>
           </article>
 
-          <article className="overflow-hidden rounded-[28px] border border-white/[0.08] bg-[#101817] p-5 text-white shadow-[0_20px_65px_rgba(0,0,0,0.25)] sm:p-6">
+          <article className="overflow-hidden rounded-[28px] border border-white/[0.08] bg-[#121a2b] p-5 text-white shadow-[0_20px_65px_rgba(0,0,0,0.25)] sm:p-6">
             <SectionHeading
               eyebrow="Global dağılım"
               title="Ülke bazlı müzik aktivitesi"
@@ -293,7 +293,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
             <div className="mt-5 space-y-3">
               {dashboard.recentActivities.map((activity) => (
                 <div
-                  className="flex items-start gap-3 rounded-2xl border border-white/[0.06] bg-[#182d29] p-3.5"
+                  className="flex items-start gap-3 rounded-2xl border border-white/[0.06] bg-[#1b2438] p-3.5"
                   key={activity.id}
                 >
                   <span className="mt-1.5 size-2 shrink-0 rounded-full bg-emerald-500" />
@@ -318,7 +318,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
               ))}
 
               {!dashboard.recentActivities.length ? (
-                <p className="rounded-2xl border border-white/[0.06] bg-[#182d29] p-4 text-sm text-white/55">
+                <p className="rounded-2xl border border-white/[0.06] bg-[#1b2438] p-4 text-sm text-white/55">
                   Henüz yönetim aktivitesi bulunmuyor.
                 </p>
               ) : null}
@@ -334,7 +334,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
             empty="Son 15 dakikada aktif oturum yok."
           >
             {dashboard.details.activeSessions.slice(0, 6).map((session) => (
-              <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/[0.06] bg-[#182d29] p-3" key={session.id}>
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/[0.06] bg-[#1b2438] p-3" key={session.id}>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{session.name}</p>
                   <p className="truncate text-xs text-white/45">{session.email} · {session.ipAddress}</p>
@@ -351,7 +351,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
             empty="Bekleyen dağıtım işi yok."
           >
             {dashboard.details.distributionQueue.slice(0, 6).map((job) => (
-              <Link className="flex items-center justify-between gap-3 rounded-2xl border border-white/[0.06] bg-[#182d29] p-3 transition hover:border-emerald-300/30" href={`/admin/distribution/jobs/${job.id}`} key={job.id}>
+                <Link className="flex items-center justify-between gap-3 rounded-2xl border border-white/[0.06] bg-[#1b2438] p-3 transition hover:border-emerald-300/30" href={`/admin/distribution/jobs/${job.id}`} key={job.id}>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{job.releaseTitle}</p>
                   <p className="truncate text-xs text-white/45">{job.provider} · Deneme {job.attemptCount}/{job.maxRetryCount}</p>
@@ -380,7 +380,7 @@ function MetricCard({
   href: string;
 }) {
   return (
-    <Link className="group rounded-[24px] border border-white/[0.08] bg-[#122421] p-5 shadow-[0_14px_42px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 hover:border-emerald-300/30 hover:bg-[#16302b]" href={href}>
+    <Link className="group rounded-[24px] border border-white/[0.08] bg-[#151c2d] p-5 shadow-[0_14px_42px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 hover:border-emerald-300/30 hover:bg-[#202b44]" href={href}>
       <div className="flex items-center justify-between">
         <div className="flex size-11 items-center justify-center rounded-2xl bg-[#101817] text-white">
           <Icon className="size-5" />
@@ -414,7 +414,7 @@ function AnalyticsPreview({
   children: ReactNode;
 }) {
   return (
-    <article className="rounded-[28px] border border-white/[0.08] bg-[#122421] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.2)] sm:p-6">
+    <article className="rounded-[28px] border border-white/[0.08] bg-[#151c2d] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.2)] sm:p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-300">{eyebrow}</p>
@@ -423,7 +423,7 @@ function AnalyticsPreview({
         <Link aria-label={`${title} ayrıntılarını aç`} className="flex size-10 items-center justify-center rounded-full bg-[#101817] text-white transition hover:bg-emerald-300 hover:text-[#0d211d]" href={href}><ArrowUpRight className="size-4" /></Link>
       </div>
       <div className="mt-5 space-y-2">
-        {Children.count(children) ? children : <p className="rounded-2xl border border-white/[0.06] bg-[#182d29] p-4 text-sm text-white/55">{empty}</p>}
+        {Children.count(children) ? children : <p className="rounded-2xl border border-white/[0.06] bg-[#1b2438] p-4 text-sm text-white/55">{empty}</p>}
       </div>
     </article>
   );
@@ -477,7 +477,7 @@ function StatusPanel({
   const max = Math.max(1, ...items.map((item) => item.value));
 
   return (
-    <article className="rounded-[28px] border border-white/[0.08] bg-[#122421] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.2)] sm:p-6">
+    <article className="rounded-[28px] border border-white/[0.08] bg-[#151c2d] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.2)] sm:p-6">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-700">
@@ -518,7 +518,7 @@ function StatusPanel({
         ))}
 
         {!items.length ? (
-          <p className="rounded-2xl border border-white/[0.06] bg-[#182d29] p-4 text-sm text-white/55">
+          <p className="rounded-2xl border border-white/[0.06] bg-[#1b2438] p-4 text-sm text-white/55">
             Henüz veri bulunmuyor.
           </p>
         ) : null}

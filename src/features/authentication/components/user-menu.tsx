@@ -34,7 +34,7 @@ export function UserMenu({ name, email, adminAccess, moderatorAccess, artistAcce
         </div>
         <nav className="grid gap-1 py-2" onClick={closeMenu}>
           {adminAccess ? <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/admin"><LayoutDashboard className="h-4 w-4 text-emerald-300" /> Yönetim paneli</Link> : null}
-          {moderatorAccess ? <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/admin/moderation"><ShieldHalf className="h-4 w-4 text-amber-300" /> Moderatör paneli</Link> : null}
+          {moderatorAccess ? <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/moderator"><ShieldHalf className="h-4 w-4 text-amber-300" /> Moderatör paneli</Link> : null}
           {artistAccess ? <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/artist-profile"><UserRound className="h-4 w-4" /> Sanatçı paneli</Link> : null}
           <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/settings">
             <UserRound className="h-4 w-4" /> Profil ayarları

@@ -45,6 +45,6 @@ function createPrismaClient() {
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+// Keep one pool per Node.js process. This also matters in production where
+// route bundles can evaluate this module more than once.
+globalForPrisma.prisma = prisma;

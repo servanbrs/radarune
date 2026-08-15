@@ -19,6 +19,11 @@ const slugSchema = z
     }
   });
 
+const optionalSlugSchema = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+  slugSchema.optional(),
+);
+
 const httpsUrlSchema = z
   .string()
   .trim()
@@ -148,7 +153,7 @@ export const createCommentSchema = z.object({
 
 export const createPlaylistSchema = z.object({
   name: z.string().trim().min(2).max(120).transform(stripHtml),
-  slug: slugSchema.optional(),
+  slug: optionalSlugSchema,
   description: z.string().trim().max(2000).transform(stripHtml).optional(),
   public: z.boolean().default(false),
 });

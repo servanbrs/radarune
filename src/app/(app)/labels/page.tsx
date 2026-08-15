@@ -3,13 +3,19 @@ import { rbacService } from "@/features/authorization/server/rbac";
 import { CreateLabelForm } from "@/features/label/components/create-label-form";
 import { labelService } from "@/features/label/server/services/label.service";
 import { getStatusLabel } from "@/features/admin/components/status-badges";
+import { prisma } from "@/server/prisma/prisma";
+import { linkLabelArtistAction, unlinkLabelArtistAction } from "@/features/label/server/actions/manage-label-artists.action";
 
 export default async function LabelsPage() {
   const { organization } = await authSessionService.getDashboardContext();
   rbacService.redirectIfMissingPermission(organization.role, "label:view");
 
-  const labels = await labelService.listByOrganizationId(organization.organization.id);
+  const [labels, artists] = await Promise.all([
+    labelService.listByOrganizationId(organization.organization.id),
+    prisma.artist.findMany({ where: { organizationId: organization.organization.id }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
+  ]);
   const canCreate = rbacService.hasPermission(organization.role, "label:create");
+  const canManageArtists = rbacService.hasPermission(organization.role, "label:update");
 
   return (
     <main className="page-shell">
@@ -64,6 +70,19 @@ export default async function LabelsPage() {
                   <p className="mt-2 text-sm text-muted">
                     Linked artists: {label._count.artistLinks}
                   </p>
+                  <div className="mt-4 rounded-2xl border border-line bg-white/50 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Label sanatçıları</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {label.artistLinks.map((link) => (
+                        <div className="flex items-center gap-2 rounded-full border border-line bg-white px-3 py-1.5 text-sm" key={link.id}>
+                          <span>{link.artist.name}</span>
+                          {canManageArtists ? <form action={unlinkLabelArtistAction}><input name="labelId" type="hidden" value={label.id} /><input name="artistId" type="hidden" value={link.artistId} /><button className="text-danger" title="Labeldan çıkar" type="submit">×</button></form> : null}
+                        </div>
+                      ))}
+                      {label.artistLinks.length === 0 ? <span className="text-sm text-muted">Henüz sanatçı bağlanmadı.</span> : null}
+                    </div>
+                    {canManageArtists ? <form action={linkLabelArtistAction} className="mt-4 flex flex-wrap gap-2"><input name="labelId" type="hidden" value={label.id} /><select className="min-h-10 flex-1 rounded-xl border border-line bg-white px-3 text-sm" name="artistId" required><option value="">Sanatçı seç</option>{artists.filter((artist) => !label.artistLinks.some((link) => link.artistId === artist.id)).map((artist) => <option key={artist.id} value={artist.id}>{artist.name}</option>)}</select><button className="rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-white" type="submit">Sanatçı ekle</button></form> : null}
+                  </div>
                 </article>
               ))
             )}

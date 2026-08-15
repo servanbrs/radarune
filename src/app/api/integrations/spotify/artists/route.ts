@@ -16,7 +16,7 @@ export async function GET(request: Request) {
 
   const items = (result.data.artists?.items ?? []).flatMap((artist) => {
     if (!artist.id || !artist.name) return [];
-    return [{ id: artist.id, name: artist.name, url: artist.external_urls?.spotify ?? `https://open.spotify.com/artist/${artist.id}`, imageUrl: artist.images?.[0]?.url ?? null, followers: artist.followers?.total ?? 0, popularity: artist.popularity ?? 0 }];
+    return [{ id: artist.id, name: artist.name, url: artist.external_urls?.spotify ?? `https://open.spotify.com/artist/${artist.id}`, imageUrl: artist.images?.[0]?.url ?? null, followers: artist.followers?.total ?? 0, popularity: artist.popularity ?? 0, provider: "SPOTIFY" as const }];
   });
   return NextResponse.json({ items });
 }

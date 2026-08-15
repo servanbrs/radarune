@@ -40,7 +40,7 @@ export function AdminAnalyticsDetail({ dashboard }: { dashboard: AdminV2Analytic
       </section>
 
       <section className="grid gap-5 xl:grid-cols-2">
-        <Panel eyebrow="Bugünkü hareket" title="Son kayıtlar ve yayınlar" icon={Clock3}>
+        <Panel eyebrow="Son 7 günlük hareket" title="Son kayıtlar ve yayınlar" icon={Clock3}>
           <div className="space-y-2">{dashboard.details.recentRegistrations.map((user) => <div className="flex items-center justify-between rounded-2xl border border-line bg-surface p-3" key={user.id}><div><p className="text-sm font-semibold">{user.name}</p><p className="text-xs text-muted">Yeni kullanıcı · {user.email}</p></div><span className="text-xs text-muted">{new Date(user.createdAt).toLocaleTimeString("tr-TR")}</span></div>)}{dashboard.details.recentReleases.map((release) => <Link className="flex items-center justify-between rounded-2xl border border-line bg-surface p-3 transition hover:border-emerald-300" href={`/admin/releases/${release.id}`} key={release.id}><div><p className="text-sm font-semibold">{release.title}</p><p className="text-xs text-muted">Yeni yayın · {release.status}</p></div><ArrowUpRight className="size-4 text-muted" /></Link>)}</div>
           {!dashboard.details.recentRegistrations.length && !dashboard.details.recentReleases.length ? <Empty text="Bugün henüz kayıt yok." /> : null}
         </Panel>

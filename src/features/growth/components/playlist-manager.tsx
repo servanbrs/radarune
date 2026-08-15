@@ -16,6 +16,20 @@ export function PlaylistManager({ playlist, availableTracks }: { playlist: { id:
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
+  async function sharePlaylist() {
+    if (!playlist.slug) {
+      setMessage("Paylaşım için önce playlisti herkese açık olarak kaydedin.");
+      return;
+    }
+    const url = `${window.location.origin}/playlist/${playlist.slug}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setMessage("Playlist bağlantısı kopyalandı.");
+    } catch {
+      setMessage(url);
+    }
+  }
+
   async function save() {
     setBusy(true); setMessage(null);
     const response = await fetch(`/api/growth/playlists/${playlist.id}`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ name, slug: slug || undefined, description: description || undefined, public: isPublic }) });
@@ -55,7 +69,7 @@ export function PlaylistManager({ playlist, availableTracks }: { playlist: { id:
         <label className="grid gap-2 text-sm font-semibold">Kısa adres<input className="h-11 rounded-xl border border-line bg-background px-3 font-normal" value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="gece-surusleri" /></label>
         <label className="grid gap-2 text-sm font-semibold">Açıklama<textarea className="min-h-24 rounded-xl border border-line bg-background p-3 font-normal" value={description} onChange={(e) => setDescription(e.target.value)} /></label>
         <label className="flex items-center gap-3 rounded-xl border border-line bg-background/60 p-3 text-sm"><input checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} type="checkbox" /> Herkese açık playlist</label>
-        <div className="flex flex-wrap gap-2"><button className="rounded-xl bg-accent px-4 py-3 text-sm font-bold text-accent-foreground disabled:opacity-50" disabled={busy || !name.trim()} onClick={() => void save()} type="button">{busy ? "Kaydediliyor…" : "Değişiklikleri kaydet"}</button><button className="rounded-xl border border-danger/30 px-4 py-3 text-sm font-bold text-danger" disabled={busy} onClick={() => void removePlaylist()} type="button">Playlisti sil</button></div>
+        <div className="flex flex-wrap gap-2"><button className="rounded-xl bg-accent px-4 py-3 text-sm font-bold text-accent-foreground disabled:opacity-50" disabled={busy || !name.trim()} onClick={() => void save()} type="button">{busy ? "Kaydediliyor…" : "Değişiklikleri kaydet"}</button><button className="rounded-xl border border-line px-4 py-3 text-sm font-bold" disabled={busy} onClick={() => void sharePlaylist()} type="button">Bağlantıyı paylaş</button><button className="rounded-xl border border-danger/30 px-4 py-3 text-sm font-bold text-danger" disabled={busy} onClick={() => void removePlaylist()} type="button">Playlisti sil</button></div>
         {message ? <p className="rounded-xl border border-line bg-background p-3 text-sm" role="status">{message}</p> : null}
       </div>
     </section>

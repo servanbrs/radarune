@@ -1,6 +1,7 @@
 import "server-only";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/server/prisma/prisma";
+import { normalizeSlug } from "@/features/growth/lib/security.shared";
 
 export class SocialRepository {
   async isFollowing(userId: string, artistId: string) {
@@ -122,12 +123,20 @@ export class SocialRepository {
     description?: string;
     public: boolean;
   }) {
+    const baseSlug = input.slug ?? normalizeSlug(input.name);
+    let slug = baseSlug || undefined;
+    if (slug) {
+      const existing = await prisma.playlist.findUnique({ where: { slug }, select: { id: true } });
+      if (existing) {
+        slug = `${baseSlug}-${Math.random().toString(36).slice(2, 7)}`.slice(0, 80);
+      }
+    }
     return prisma.playlist.create({
       data: {
         organizationId: input.organizationId ?? null,
         ownerUserId: input.ownerUserId,
         name: input.name,
-        slug: input.slug ?? null,
+        slug: slug ?? null,
         description: input.description ?? null,
         public: input.public,
       },
@@ -147,7 +156,7 @@ export class SocialRepository {
   async findPublicPlaylist(slug: string) {
     return prisma.playlist.findFirst({
       where: { slug, public: true },
-      include: { tracks: { include: { track: true, release: true }, orderBy: { sortOrder: "asc" } } },
+      include: { ownerUser: { select: { name: true } }, tracks: { include: { track: true, release: true }, orderBy: { sortOrder: "asc" } } },
     });
   }
 
@@ -175,7 +184,13 @@ export class SocialRepository {
   async updatePlaylist(userId: string, playlistId: string, input: { name: string; slug?: string; description?: string; public: boolean }) {
     const playlist = await prisma.playlist.findFirst({ where: { id: playlistId, ownerUserId: userId }, select: { id: true } });
     if (!playlist) throw new Error("Playlist bulunamadı veya bu playlist size ait değil.");
-    return prisma.playlist.update({ where: { id: playlistId }, data: { name: input.name, slug: input.slug ?? null, description: input.description ?? null, public: input.public }, select: { id: true, slug: true } });
+    const baseSlug = input.slug ?? normalizeSlug(input.name);
+    let slug = baseSlug || undefined;
+    if (slug) {
+      const existing = await prisma.playlist.findFirst({ where: { slug, NOT: { id: playlistId } }, select: { id: true } });
+      if (existing) slug = `${baseSlug}-${Math.random().toString(36).slice(2, 7)}`.slice(0, 80);
+    }
+    return prisma.playlist.update({ where: { id: playlistId }, data: { name: input.name, slug: slug ?? null, description: input.description ?? null, public: input.public }, select: { id: true, slug: true } });
   }
   async deletePlaylist(userId: string, playlistId: string) {
     const deleted = await prisma.playlist.deleteMany({ where: { id: playlistId, ownerUserId: userId } });

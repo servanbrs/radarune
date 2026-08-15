@@ -68,7 +68,7 @@ export function AdminWorldMap({ countries }: Props) {
           );
         })}
       </svg>
-      <div className="pointer-events-none absolute bottom-3 left-3 rounded-full border border-white/10 bg-[#0d1c1a]/85 px-3 py-1.5 text-[11px] text-white/55 backdrop-blur">
+      <div className="pointer-events-none absolute bottom-3 left-3 rounded-full border border-white/10 bg-[#121a2b]/90 px-3 py-1.5 text-[11px] text-white/65 backdrop-blur">
         Daha koyu renk = daha yüksek aktivite
       </div>
     </div>

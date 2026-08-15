@@ -65,6 +65,14 @@ export const createArtistApplicationSchema = z.object({
     (value) => (value === "" ? undefined : value),
     z.string().url("YouTube bağlantısı geçerli değil.").optional(),
   ),
+  deezerArtistUrl: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().url("Deezer bağlantısı geçerli değil.").optional(),
+  ),
+  itunesArtistUrl: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().url("iTunes bağlantısı geçerli değil.").optional(),
+  ),
 });
 
 export const releaseModerationActionSchema = z.object({

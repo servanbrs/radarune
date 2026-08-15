@@ -40,6 +40,7 @@ export class ArtistApplicationRepository {
     spotifyArtistUrl?: string;
     appleMusicArtistUrl?: string;
     youtubeChannelUrl?: string;
+    socialLinks?: Record<string, string>;
   }, client: DatabaseClient = prisma) {
     return client.artistApplication.create({
       data: {
@@ -51,6 +52,7 @@ export class ArtistApplicationRepository {
         spotifyArtistUrl: input.spotifyArtistUrl || null,
         appleMusicArtistUrl: input.appleMusicArtistUrl || null,
         youtubeChannelUrl: input.youtubeChannelUrl || null,
+        socialLinks: input.socialLinks ?? Prisma.JsonNull,
         statusHistory: {
           create: {
             organizationId: input.organizationId,
@@ -63,19 +65,39 @@ export class ArtistApplicationRepository {
       select: { id: true, status: true, stageName: true },
     });
   }
-  async list(params: { organizationId: string; page: number; pageSize: number; search?: string }) {
-    const where: Prisma.ArtistApplicationWhereInput = {
-      organizationId: params.organizationId,
-      ...(params.search
-        ? {
-            OR: [
-              { stageName: { contains: params.search } },
-              { legalName: { contains: params.search } },
-              { user: { email: { contains: params.search } } },
-            ],
-          }
-        : {}),
-    };
+  async list(params: {
+    organizationId: string;
+    page: number;
+    pageSize: number;
+    search?: string;
+    global?: boolean;
+  }) {
+    const searchWhere: Prisma.ArtistApplicationWhereInput | undefined = params.search
+      ? {
+          OR: [
+            { stageName: { contains: params.search } },
+            { legalName: { contains: params.search } },
+            { user: { email: { contains: params.search } } },
+          ],
+        }
+      : undefined;
+
+    // Süper yönetici platformdaki tüm çalışma alanlarının başvurularını görür.
+    // Diğer yöneticiler yalnızca kendi çalışma alanlarını (ve üyeliği sonradan
+    // taşınmış eski başvuruları) görmeye devam eder.
+    const tenantWhere: Prisma.ArtistApplicationWhereInput | undefined = params.global
+      ? undefined
+      : {
+          OR: [
+            { organizationId: params.organizationId },
+            { user: { memberships: { some: { organizationId: params.organizationId } } } },
+          ],
+        };
+
+    const where: Prisma.ArtistApplicationWhereInput =
+      tenantWhere && searchWhere
+        ? { AND: [tenantWhere, searchWhere] }
+        : tenantWhere ?? searchWhere ?? {};
 
     const [items, total] = await Promise.all([
       prisma.artistApplication.findMany({
@@ -84,7 +106,15 @@ export class ArtistApplicationRepository {
         skip: (params.page - 1) * params.pageSize,
         take: params.pageSize,
         include: {
-          user: { select: { id: true, name: true, email: true, systemRole: true } },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              systemRole: true,
+              memberships: { select: { organizationId: true } },
+            },
+          },
           artist: { select: { id: true, name: true } },
         },
       }),
@@ -98,7 +128,15 @@ export class ArtistApplicationRepository {
     return retryRead(() => client.artistApplication.findUnique({
         where: { id },
         include: {
-          user: { select: { id: true, name: true, email: true, systemRole: true } },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              systemRole: true,
+              memberships: { select: { organizationId: true } },
+            },
+          },
           artist: true,
           statusHistory: {
             orderBy: { createdAt: "desc" },

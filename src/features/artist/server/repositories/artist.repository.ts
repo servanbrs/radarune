@@ -1,27 +1,50 @@
 import "server-only";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/server/prisma/prisma";
 import type { CreateArtistInput } from "@/features/artist/schemas/artist.schema";
 
 export class ArtistRepository {
-  async listByOrganizationId(organizationId: string, search?: string) {
+  async listByOrganizationId(
+    organizationId: string,
+    search?: string,
+    global = false,
+  ) {
     const normalizedSearch = search?.trim();
+
+    // Hostinger veritabanında eski tablolar farklı MySQL kolasyonlarıyla
+    // oluşturulmuş. Prisma'nın OR + contains sorgusu bazı alanlarda
+    // `Illegal mix of collations` üretiyor. Arama adaylarını parametreli raw
+    // sorguyla, tek bir kolasyona çevirerek bulup asıl kayıtları yine Prisma
+    // ile çekiyoruz.
+    let searchIds: string[] | undefined;
+    if (normalizedSearch) {
+      const pattern = `%${normalizedSearch}%`;
+      const tenantClause = global
+        ? Prisma.sql`1 = 1 AND`
+        : Prisma.sql`a.organizationId = ${organizationId} AND`;
+      const rows = await prisma.$queryRaw<Array<{ id: string }>>(Prisma.sql`
+        SELECT DISTINCT a.id
+        FROM Artist AS a
+        LEFT JOIN User AS owner_user ON owner_user.id = a.ownerUserId
+        LEFT JOIN User AS creator_user ON creator_user.id = a.createdByUserId
+        WHERE ${tenantClause} (
+            CONVERT(a.name USING utf8mb4) COLLATE utf8mb4_unicode_ci LIKE CONVERT(${pattern} USING utf8mb4) COLLATE utf8mb4_unicode_ci
+            OR CONVERT(a.slug USING utf8mb4) COLLATE utf8mb4_unicode_ci LIKE CONVERT(${pattern} USING utf8mb4) COLLATE utf8mb4_unicode_ci
+            OR CONVERT(owner_user.name USING utf8mb4) COLLATE utf8mb4_unicode_ci LIKE CONVERT(${pattern} USING utf8mb4) COLLATE utf8mb4_unicode_ci
+            OR CONVERT(owner_user.email USING utf8mb4) COLLATE utf8mb4_unicode_ci LIKE CONVERT(${pattern} USING utf8mb4) COLLATE utf8mb4_unicode_ci
+            OR CONVERT(owner_user.username USING utf8mb4) COLLATE utf8mb4_unicode_ci LIKE CONVERT(${pattern} USING utf8mb4) COLLATE utf8mb4_unicode_ci
+            OR CONVERT(creator_user.name USING utf8mb4) COLLATE utf8mb4_unicode_ci LIKE CONVERT(${pattern} USING utf8mb4) COLLATE utf8mb4_unicode_ci
+            OR CONVERT(creator_user.email USING utf8mb4) COLLATE utf8mb4_unicode_ci LIKE CONVERT(${pattern} USING utf8mb4) COLLATE utf8mb4_unicode_ci
+            OR CONVERT(creator_user.username USING utf8mb4) COLLATE utf8mb4_unicode_ci LIKE CONVERT(${pattern} USING utf8mb4) COLLATE utf8mb4_unicode_ci
+          )
+      `);
+      searchIds = rows.map((row) => row.id);
+    }
+
     return prisma.artist.findMany({
       where: {
-        organizationId,
-        ...(normalizedSearch
-          ? {
-              OR: [
-                { name: { contains: normalizedSearch } },
-                { slug: { contains: normalizedSearch } },
-                { ownerUser: { is: { name: { contains: normalizedSearch } } } },
-                { ownerUser: { is: { email: { contains: normalizedSearch } } } },
-                { ownerUser: { is: { username: { contains: normalizedSearch } } } },
-                { createdByUser: { is: { name: { contains: normalizedSearch } } } },
-                { createdByUser: { is: { email: { contains: normalizedSearch } } } },
-                { createdByUser: { is: { username: { contains: normalizedSearch } } } },
-              ],
-            }
-          : {}),
+        ...(global ? {} : { organizationId }),
+        ...(searchIds ? { id: { in: searchIds } } : {}),
       },
       orderBy: {
         name: "asc",

@@ -9,12 +9,13 @@ export default async function AdminArtistsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { organization } = await authSessionService.getDashboardContext();
+  const { organization, user } = await authSessionService.getDashboardContext();
   const params = await searchParams;
   const search = typeof params.q === "string" ? params.q.trim() : "";
   const artists = await artistService.listByOrganizationId(
     organization.organization.id,
     search || undefined,
+    user.systemRole === "SUPER_ADMIN",
   );
 
   return (

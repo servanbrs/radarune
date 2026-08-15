@@ -17,7 +17,6 @@ export function canAccessAdmin(
 }
 
 const MODERATOR_PATHS = new Set([
-  "/admin/moderation",
   "/admin/releases",
   "/admin/applications",
   "/admin/site-builder/discover",
