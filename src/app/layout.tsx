@@ -41,7 +41,7 @@ const versionedIconUrl = (url: string | null | undefined, updatedAt: unknown) =>
 };
 
 const faviconUrlOrFallback = (url: string | null | undefined) =>
-  url ?? "/favicon.ico";
+  url ?? "/favicon-transparent-48.png";
 
 async function resolveWithin<T>(promise: Promise<T>, timeoutMs = 2500): Promise<T | null> {
   let timer: ReturnType<typeof setTimeout> | undefined;
