@@ -40,7 +40,7 @@ export class ImportRepository {
     return prisma.importItem.findMany({
       where: { organizationId, status: { in: ["DETECTED", "PENDING_REVIEW"] } },
       orderBy: { detectedAt: "desc" },
-      take: 100,
+      take: 200,
       select: {
         id: true,
         provider: true,

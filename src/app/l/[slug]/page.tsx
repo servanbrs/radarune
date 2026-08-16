@@ -5,6 +5,27 @@ import { PublicGrowthShell } from "@/features/growth/components/public-shell";
 import { growthRepository } from "@/features/growth/server/repositories/growth.repository";
 import { smartLinkAnalyticsService } from "@/features/growth/server/services/smart-link-analytics.service";
 
+function utmSourceForPlatform(platform: string) {
+  switch (platform) {
+    case "SPOTIFY":
+      return "spotify";
+    case "YOUTUBE":
+    case "YOUTUBE_MUSIC":
+      return "youtube";
+    default:
+      return platform.toLowerCase();
+  }
+}
+
+function platformLinkHref(slug: string, platformId: string, platform: string) {
+  const params = new URLSearchParams({
+    utm_source: utmSourceForPlatform(platform),
+    utm_medium: "smart_link",
+    utm_campaign: `smart_link_${slug}`,
+  });
+  return `/l/${slug}/go/${platformId}?${params.toString()}`;
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const smartLink = await growthRepository.findSmartLinkBySlug(slug);
@@ -56,7 +77,7 @@ export default async function SmartLinkPublicPage({ params, searchParams }: { pa
         {smartLink.description ? <p className="mt-4 text-sm leading-7 text-muted">{smartLink.description}</p> : null}
         <div className="mt-8 grid gap-3">
           {smartLink.platforms.map((platform) => (
-            <a className="rounded-2xl bg-foreground px-5 py-4 text-sm font-semibold text-white transition hover:opacity-90" href={`/l/${smartLink.slug}/go/${platform.id}`} key={platform.id} rel="noopener noreferrer" target="_blank">
+            <a className="rounded-2xl bg-foreground px-5 py-4 text-sm font-semibold text-white transition hover:opacity-90" href={platformLinkHref(smartLink.slug, platform.id, platform.platform)} key={platform.id} rel="noopener noreferrer" target="_blank">
               {platform.buttonText ?? `${platform.platform} üzerinde ${smartLink.ctaText}`}
             </a>
           ))}

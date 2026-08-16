@@ -80,7 +80,9 @@ function spotifyTracks(value: unknown): unknown[] {
   if (typeof value !== "object" || value === null) return [];
   const response = value as { tracks?: { items?: Array<{ track?: unknown }> }; items?: unknown[] };
   if (Array.isArray(response.tracks?.items)) return response.tracks.items.map((item) => item.track).filter((item): item is unknown => item !== undefined);
-  return response.items ?? [];
+  return response.items
+    ? response.items.map((item) => (typeof item === "object" && item !== null && "track" in item ? item.track : item)).filter(Boolean)
+    : [];
 }
 
 function artistSlug(value: string) {
@@ -165,26 +167,51 @@ export class ImportSourceService {
     const { organizationId, sourceId, actorUserId } = input;
     const source = await importRepository.findSource(organizationId, sourceId);
     if (!source) throw new Error("Import kaynağı bulunamadı.");
-    if (!source.active) throw new Error("Import kaynağı aktif değil.");
+    if (source.status === "PAUSED") throw new Error("Import kaynağı duraklatılmış.");
+
+    // A source can have been created before the provider credentials were
+    // configured. Validate the current runtime credentials before claiming the
+    // source so that an old CONFIGURATION_REQUIRED source can recover without
+    // being deleted and recreated.
+    const providerKey = source.provider;
+    if (!providerKey) throw new Error("Import provider bilgisi eksik.");
+    const credentials = await integrationCredentialService.runtime(organizationId, providerKey);
+    const configuration = providerKey === "YOUTUBE"
+      ? youtubeProviderService.validateConfiguration(credentials?.apiKey)
+      : spotifyProviderService.validateConfiguration(credentials ?? undefined);
+    const importEnabled = providerImportEnabled(providerKey) || Boolean(credentials);
+
+    if (!importEnabled) {
+      const message = providerKey === "YOUTUBE"
+        ? "YouTube import etkin değil. Admin > Entegrasyonlar > YouTube bölümünden geçerli YouTube Data API anahtarını kaydedip bağlantıyı test edin."
+        : "Spotify import etkin değil. Admin > Entegrasyonlar > Spotify bölümünden geçerli bağlantı bilgilerini kaydedip bağlantıyı test edin.";
+      await prisma.importSource.update({
+        where: { id: source.id },
+        data: { status: "CONFIGURATION_REQUIRED", active: false, lastError: message },
+      });
+      throw new Error(message);
+    }
+
+    if (!configuration.success) {
+      await prisma.importSource.update({
+        where: { id: source.id },
+        data: { status: "CONFIGURATION_REQUIRED", active: false, lastError: configuration.message },
+      });
+      throw new Error(configuration.message);
+    }
+
+    if (!source.active || source.status === "CONFIGURATION_REQUIRED") {
+      await prisma.importSource.update({
+        where: { id: source.id },
+        data: { status: "ACTIVE", active: true, lastError: null },
+      });
+    }
+
     const lockToken = crypto.randomUUID();
     const claimed = await importRepository.claimSource(organizationId, sourceId, lockToken, new Date(Date.now() + 10 * 60_000));
     if (!claimed) throw new Error("Import kaynağı zaten çalışıyor.");
 
     try {
-      const providerKey = source.provider;
-      if (!providerKey) throw new Error("Import provider bilgisi eksik.");
-      const credentials = await integrationCredentialService.runtime(organizationId, providerKey);
-      const configuration = providerKey === "YOUTUBE"
-        ? youtubeProviderService.validateConfiguration(credentials?.apiKey)
-        : spotifyProviderService.validateConfiguration(credentials ?? undefined);
-      if (!providerImportEnabled(providerKey) && !credentials) {
-        throw new Error(`${providerKey} import özelliği ortamda etkin değil.`);
-      }
-      if (!configuration.success) {
-        await prisma.importSource.update({ where: { id: source.id }, data: { status: "CONFIGURATION_REQUIRED", active: false, lastError: configuration.message } });
-        return configuration;
-      }
-
       const run = await importRepository.createRun({
         organizationId,
         sourceId: source.id,
@@ -200,10 +227,9 @@ export class ImportSourceService {
         return metadata;
       }
 
-      // Imports are intentionally limited to ten records per run. This keeps
-      // review batches manageable and prevents a broad search from flooding
-      // the moderation queue.
-      const youtubeMetadata = source.provider === "YOUTUBE" ? metadata.data.slice(0, 10) : metadata.data;
+      // Keep the per-source cap enforced by fetchSourceMetadata. Larger
+      // channel imports still remain review-only until an admin approves them.
+      const youtubeMetadata = metadata.data;
       const eligibleArtistIds = source.provider === "YOUTUBE"
         ? await this.youtubeEligibleArtistIds(organizationId, source.artistId)
         : null;
@@ -212,7 +238,8 @@ export class ImportSourceService {
       let failedCount = 0;
       let skippedCount = 0;
       for (const item of youtubeMetadata) {
-        if (source.provider === "YOUTUBE" && !this.isEligibleYouTubeItem(item, eligibleArtistIds, source.artistId)) {
+        const reviewableYouTubeCollection = source.type === "YOUTUBE_CHANNEL" || source.type === "YOUTUBE_PLAYLIST";
+        if (source.provider === "YOUTUBE" && !this.isEligibleYouTubeItem(item, eligibleArtistIds, source.artistId, reviewableYouTubeCollection)) {
           skippedCount += 1;
           continue;
         }
@@ -269,20 +296,23 @@ export class ImportSourceService {
   private async fetchSourceMetadata(source: { type: string; provider: "YOUTUBE" | "SPOTIFY" | null; providerExternalId: string | null; lastCheckedAt: Date | null; maxItems?: number }, credentials: Record<string, string> | null) {
     if (!source.provider || !source.providerExternalId) return { success: false as const, code: "PROVIDER_ERROR" as const, message: "Import provider kimliği eksik." };
     if (source.provider === "YOUTUBE") {
-      if (source.type === "YOUTUBE_SEARCH") {
-        const query = source.providerExternalId;
-        if (!query) return { success: false as const, code: "PROVIDER_ERROR" as const, message: "YouTube arama terimi eksik." };
+      const maxItems = Math.min(source.maxItems ?? 100, 200);
+
+      const collectYouTubePages = async (fetchPage: (pageToken?: string) => Promise<Awaited<ReturnType<typeof youtubeProviderService.searchMusic>>>) => {
         const items: unknown[] = [];
         let pageToken: string | undefined;
-        const maxItems = Math.min(source.maxItems ?? 10, 10);
         for (let page = 0; page < 4 && items.length < maxItems; page += 1) {
-          const response = await youtubeProviderService.searchMusic(query, pageToken, credentials?.apiKey);
+          const response = await fetchPage(pageToken);
           if (!response.success) return response;
           items.push(...(response.data.items ?? []));
           pageToken = response.data.nextPageToken;
           if (!pageToken) break;
         }
-        const ids = items.slice(0, maxItems).map(externalIdFromYouTubeItem).filter((id): id is string => Boolean(id));
+        return { success: true as const, data: items.slice(0, maxItems) };
+      };
+
+      const resolveYouTubeMetadata = async (items: unknown[]) => {
+        const ids = items.map(externalIdFromYouTubeItem).filter((id): id is string => Boolean(id));
         const detailItems: unknown[] = [];
         for (let offset = 0; offset < ids.length; offset += 50) {
           const details = await youtubeProviderService.getVideos(ids.slice(offset, offset + 50), credentials?.apiKey);
@@ -290,40 +320,57 @@ export class ImportSourceService {
           detailItems.push(...(details.data.items ?? []));
         }
         const detected = youtubeProviderService.detectNewVideos(detailItems, source.lastCheckedAt ?? undefined);
-        return detected.success ? { ...detected, data: detected.data.slice(0, 10) } : detected;
+        return detected.success ? { ...detected, data: detected.data.slice(0, maxItems) } : detected;
+      };
+
+      if (source.type === "YOUTUBE_SEARCH") {
+        const query = source.providerExternalId;
+        if (!query) return { success: false as const, code: "PROVIDER_ERROR" as const, message: "YouTube arama terimi eksik." };
+        const collected = await collectYouTubePages((pageToken) => youtubeProviderService.searchMusic(query, pageToken, credentials?.apiKey));
+        return collected.success ? resolveYouTubeMetadata(collected.data) : collected;
       }
       if (source.type === "YOUTUBE_CHANNEL") {
-        const response = await youtubeProviderService.listChannelVideosByReference(source.providerExternalId, undefined, credentials?.apiKey);
-        if (!response.success) return response;
-        const ids = (response.data.items ?? []).map(externalIdFromYouTubeItem).filter((id): id is string => Boolean(id)).slice(0, 10);
-        const details = await youtubeProviderService.getVideos(ids, credentials?.apiKey);
-        if (!details.success) return details;
-        const detected = youtubeProviderService.detectNewVideos(details.data.items ?? [], source.lastCheckedAt ?? undefined);
-        return detected.success ? { ...detected, data: detected.data.slice(0, 10) } : detected;
+        const collected = await collectYouTubePages((pageToken) => youtubeProviderService.listChannelVideosByReference(source.providerExternalId!, pageToken, credentials?.apiKey));
+        return collected.success ? resolveYouTubeMetadata(collected.data) : collected;
       }
-      const response = await youtubeProviderService.listPlaylistVideos(source.providerExternalId, undefined, credentials?.apiKey);
-      if (!response.success) return response;
-      const ids = (response.data.items ?? []).map(externalIdFromYouTubeItem).filter((id): id is string => Boolean(id)).slice(0, 10);
-      const details = await youtubeProviderService.getVideos(ids, credentials?.apiKey);
-      if (!details.success) return details;
-      const detected = youtubeProviderService.detectNewVideos(details.data.items ?? [], source.lastCheckedAt ?? undefined);
-      return detected.success ? { ...detected, data: detected.data.slice(0, 10) } : detected;
+      // A YouTube Mix is exposed by the Data API as a playlist (`list=RD…`),
+      // so it intentionally follows this same paginated path.
+      const collected = await collectYouTubePages((pageToken) => youtubeProviderService.listPlaylistVideos(source.providerExternalId!, pageToken, credentials?.apiKey));
+      return collected.success ? resolveYouTubeMetadata(collected.data) : collected;
     }
 
     const provider = spotifyProviderService;
+    const maxItems = Math.min(source.maxItems ?? 100, 200);
     if (source.type === "SPOTIFY_SEARCH") {
       const response = await provider.searchTracks(source.providerExternalId, credentials ?? undefined);
       if (!response.success) return response;
-      return provider.detectNewReleases(spotifyTracks(response.data).slice(0, Math.min(source.maxItems ?? 100, 200)), new Set());
+      return provider.detectNewReleases(spotifyTracks(response.data).slice(0, maxItems), new Set());
     }
-    const response = source.type === "SPOTIFY_ARTIST"
-      ? await provider.getArtistAlbums(source.providerExternalId, credentials ?? undefined)
-      : source.type === "SPOTIFY_PLAYLIST"
-        ? await provider.listPlaylistTracks(source.providerExternalId, credentials ?? undefined)
-        : await provider.getAlbum(source.providerExternalId, credentials ?? undefined);
-    if (!response.success) return response;
-    if (source.type !== "SPOTIFY_ARTIST") return provider.detectNewReleases(spotifyTracks(response.data), new Set());
-    const albumIds = (response.data.items ?? [])
+    if (source.type === "SPOTIFY_PLAYLIST") {
+      const tracks: unknown[] = [];
+      for (let offset = 0; offset < maxItems; offset += 100) {
+        const response = await provider.listPlaylistTracks(source.providerExternalId, credentials ?? undefined, offset);
+        if (!response.success) return response;
+        const page = spotifyTracks(response.data);
+        tracks.push(...page);
+        if (page.length < 100) break;
+      }
+      return provider.detectNewReleases(tracks.slice(0, maxItems), new Set());
+    }
+    if (source.type === "SPOTIFY_ALBUM") {
+      const response = await provider.getAlbum(source.providerExternalId, credentials ?? undefined);
+      if (!response.success) return response;
+      return provider.detectNewReleases(spotifyTracks(response.data).slice(0, maxItems), new Set());
+    }
+    const albumPages: unknown[] = [];
+    for (let offset = 0; offset < maxItems; offset += 50) {
+      const response = await provider.getArtistAlbums(source.providerExternalId, credentials ?? undefined, offset);
+      if (!response.success) return response;
+      const page = response.data.items ?? [];
+      albumPages.push(...page);
+      if (page.length < 50) break;
+    }
+    const albumIds = albumPages
       .map((item) => {
         if (typeof item !== "object" || item === null) return null;
         const value = item as { id?: string };
@@ -331,11 +378,12 @@ export class ImportSourceService {
       })
       .filter((id): id is string => Boolean(id));
     const tracks: unknown[] = [];
-    for (const albumId of albumIds.slice(0, 20)) {
+    for (const albumId of albumIds.slice(0, maxItems)) {
       const album = await provider.getAlbum(albumId, credentials ?? undefined);
       if (album.success) tracks.push(...spotifyTracks(album.data));
+      if (tracks.length >= maxItems) break;
     }
-    return provider.detectNewReleases(tracks, new Set());
+    return provider.detectNewReleases(tracks.slice(0, maxItems), new Set());
   }
 
   private async youtubeEligibleArtistIds(organizationId: string, assignedArtistId: string | null) {
@@ -357,7 +405,8 @@ export class ImportSourceService {
       .map((artist) => ({ id: artist.id, name: artist.name.trim().toLocaleLowerCase("tr-TR") }));
   }
 
-  private isEligibleYouTubeItem(metadata: ExternalMediaMetadata, artists: Array<{ id: string; name: string }> | null, assignedArtistId: string | null) {
+  private isEligibleYouTubeItem(metadata: ExternalMediaMetadata, artists: Array<{ id: string; name: string }> | null, assignedArtistId: string | null, reviewableCollection = false) {
+    if (reviewableCollection && !assignedArtistId) return true;
     if (!artists || artists.length === 0) return false;
     if (assignedArtistId) return true;
     const artistName = metadata.artistName?.trim().toLocaleLowerCase("tr-TR");

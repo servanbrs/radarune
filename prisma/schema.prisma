@@ -357,6 +357,13 @@ enum ReleaseStatus {
   REMOVED
 }
 
+enum WeeklyShareCardStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+}
+
 enum ReleaseArtistRole {
   PRIMARY_ARTIST
   FEATURED_ARTIST
@@ -600,6 +607,9 @@ enum AdminSettingKey {
   EMAIL_BRAND_FOOTER_TEXT
   EMAIL_TEMPLATE_SIGN_IN_SUBJECT
   EMAIL_TEMPLATE_SIGN_IN_BODY
+  REWARD_EMAIL_VERIFICATION_REQUIRED
+  REWARD_MIN_ACTIVE_DAYS
+  REWARD_REAL_INTERACTION_REQUIRED
 }
 
 enum SmartLinkBackgroundType {
@@ -1209,6 +1219,8 @@ model User {
   supportTicketsRequested        SupportTicket[]                  @relation("SupportTicketRequester")
   supportTicketsAssigned         SupportTicket[]                  @relation("SupportTicketAssignee")
   supportMessages                SupportMessage[]                 @relation("SupportMessageSender")
+  weeklyShareCardsCreated        WeeklyShareCard[]                @relation("WeeklyShareCardCreatedBy")
+  weeklyShareCardsReviewed       WeeklyShareCard[]                @relation("WeeklyShareCardReviewedBy")
 }
 
 model Session {
@@ -1373,6 +1385,7 @@ model Organization {
   preSaveSubscribers             PreSaveSubscriber[]
   releaseLikes                   ReleaseLike[]
   smartLinks                     SmartLink[]
+  weeklyShareCards               WeeklyShareCard[]
   smartLinkClicks                SmartLinkClick[]
   smartLinkPlatforms             SmartLinkPlatform[]
   smartLinkViews                 SmartLinkView[]
@@ -1431,6 +1444,44 @@ model Organization {
   @@index([tenantStatus])
   @@index([primaryDomain])
   @@index([ownerUserId])
+}
+
+model WeeklyShareCard {
+  id               String                @id @default(cuid())
+  organizationId   String
+  createdByUserId  String
+  reviewedByUserId String?
+  weekStart        DateTime
+  title            String
+  subtitle         String?
+  status           WeeklyShareCardStatus @default(DRAFT)
+  cardData         Json
+  reviewNote       String?               @db.Text
+  reviewedAt       DateTime?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  organization     Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdByUser    User                  @relation("WeeklyShareCardCreatedBy", fields: [createdByUserId], references: [id], onDelete: Cascade)
+  reviewedByUser   User?                 @relation("WeeklyShareCardReviewedBy", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  items            WeeklyShareCardItem[]
+
+  @@unique([organizationId, weekStart])
+  @@index([organizationId, status, createdAt])
+  @@index([createdByUserId])
+  @@index([reviewedByUserId])
+}
+
+model WeeklyShareCardItem {
+  id        String          @id @default(cuid())
+  cardId    String
+  releaseId String
+  rank      Int
+  card      WeeklyShareCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  release   Release         @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+
+  @@unique([cardId, releaseId])
+  @@unique([cardId, rank])
+  @@index([releaseId])
 }
 
 enum IntegrationCredentialProvider {
@@ -1809,6 +1860,7 @@ model Release {
   externalMediaSources     ExternalMediaSource[]
   importMatches            ImportMatch[]
   supportTickets           SupportTicket[]
+  weeklyShareCardItems     WeeklyShareCardItem[]
 
   @@index([organizationId, status, updatedAt])
   @@index([createdByUserId, status])

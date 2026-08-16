@@ -10,6 +10,7 @@ import { authSessionService } from "@/features/authentication/server/services/au
 import { creatorAccessService } from "@/features/authorization/server/creator-access.service";
 import { ArtistApplicationForm } from "@/features/admin/components/artist-application-form";
 import { CreatorApplicationForm } from "@/features/organization/components/creator-application-form";
+import { VerifiedArtistExamples } from "@/features/artist/components/verified-artist-examples";
 
 export default async function BecomePage({
   searchParams,
@@ -169,6 +170,8 @@ export default async function BecomePage({
           <p className="mt-5 text-xs leading-6 text-muted">Label başvurusu yapmak için formdaki başvuru detaylarına label ekibinizi ve kataloğunuzu yazabilirsiniz.</p>
         </article>
       </section>
+
+      <VerifiedArtistExamples />
     </main>
   );
 }

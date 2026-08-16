@@ -144,6 +144,9 @@ export const updateAdminSettingSchema = z.object({
     "EMAIL_BRAND_FOOTER_TEXT",
     "EMAIL_TEMPLATE_SIGN_IN_SUBJECT",
     "EMAIL_TEMPLATE_SIGN_IN_BODY",
+    "REWARD_EMAIL_VERIFICATION_REQUIRED",
+    "REWARD_MIN_ACTIVE_DAYS",
+    "REWARD_REAL_INTERACTION_REQUIRED",
   ]),
   value: z.union([
     z.string().trim().max(2000),

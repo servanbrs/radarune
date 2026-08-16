@@ -11,6 +11,7 @@ export default async function SpotifyIntegrationPage() {
   assertAdminPermission(actor, "integrations.spotify.view");
   const status = spotifyProviderService.validateConfiguration();
   const saved = await integrationCredentialService.runtime(actor.organizationId, "SPOTIFY");
-  const configured = status.success || Boolean(saved?.clientId && saved.clientSecret);
+  const savedStatus = spotifyProviderService.validateConfiguration(saved ?? undefined);
+  const configured = status.success || savedStatus.success;
   return <AdminShell title="Spotify entegrasyonu" description="Client credential token cache yalnızca sunucu belleğinde tutulur ve istemciye aktarılmaz."><IntegrationStatusCard configured={configured} missing={configured ? [] : ["SPOTIFY_CLIENT_ID", "SPOTIFY_CLIENT_SECRET"]} provider="Spotify" /></AdminShell>;
 }

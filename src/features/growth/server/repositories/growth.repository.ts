@@ -201,6 +201,25 @@ export class GrowthRepository {
     });
   }
 
+  async compareSmartLinkClicksByUtm(organizationId: string, periodDays = 30) {
+    const since = new Date(Date.now() - periodDays * 24 * 60 * 60 * 1000);
+    const rows = await prisma.smartLinkClick.groupBy({
+      by: ["utmSource"],
+      where: {
+        organizationId,
+        createdAt: { gte: since },
+        utmSource: { in: ["spotify", "youtube"] },
+      },
+      _count: { _all: true },
+    });
+
+    return {
+      periodDays,
+      spotify: rows.find((row) => row.utmSource === "spotify")?._count._all ?? 0,
+      youtube: rows.find((row) => row.utmSource === "youtube")?._count._all ?? 0,
+    };
+  }
+
   async findPublicSmartLinkPlatform(slug: string, platformId: string) {
     return prisma.smartLinkPlatform.findFirst({
       where: { id: platformId, active: true, smartLink: { slug, active: true } },

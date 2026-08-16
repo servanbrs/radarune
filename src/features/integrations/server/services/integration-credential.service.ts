@@ -31,7 +31,38 @@ function environmentCredentials(provider: IntegrationProvider): Record<string, s
   return null;
 }
 
+function hasUsableCredentials(provider: IntegrationProvider, credentials: unknown): credentials is Record<string, string> {
+  if (!credentials || typeof credentials !== "object") return false;
+  const values = credentials as Record<string, unknown>;
+  if (provider === "SPOTIFY" || provider === "GOOGLE_OAUTH" || provider === "FACEBOOK_OAUTH") {
+    return typeof values.clientId === "string" && Boolean(values.clientId.trim())
+      && typeof values.clientSecret === "string" && Boolean(values.clientSecret.trim());
+  }
+  if (provider === "YOUTUBE") return typeof values.apiKey === "string" && Boolean(values.apiKey.trim());
+  return Object.values(values).some((value) => typeof value === "string" && Boolean(value.trim()));
+}
+
 export class IntegrationCredentialService {
+  private async fallbackCredentials(organizationId: string, provider: IntegrationProvider) {
+    const organization = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { tenantMode: true },
+    });
+    if (organization?.tenantMode !== "SINGLE_TENANT") return environmentCredentials(provider);
+
+    const sharedRow = await prisma.integrationCredential.findFirst({
+      where: { provider, active: true, organization: { tenantMode: "SINGLE_TENANT" } },
+      orderBy: { updatedAt: "desc" },
+    });
+    if (!sharedRow) return environmentCredentials(provider);
+    try {
+      const parsed: unknown = JSON.parse(decryptBillingSecret(sharedRow.credentialsEncrypted));
+      return hasUsableCredentials(provider, parsed) ? parsed : environmentCredentials(provider);
+    } catch {
+      return environmentCredentials(provider);
+    }
+  }
+
   async list(actor: FinanceActorContext) {
     assertAdminPermission(actor, "integrations.spotify.view");
     const rows = await prisma.integrationCredential.findMany({
@@ -68,12 +99,12 @@ export class IntegrationCredentialService {
    */
   async runtime(organizationId: string, provider: IntegrationProvider) {
     const row = await prisma.integrationCredential.findUnique({ where: { organizationId_provider: { organizationId, provider } } });
-    if (!row?.active) return environmentCredentials(provider);
+    if (!row?.active) return this.fallbackCredentials(organizationId, provider);
 
     try {
       const parsed: unknown = JSON.parse(decryptBillingSecret(row.credentialsEncrypted));
-      if (!parsed || typeof parsed !== "object") throw new Error("Credential payload formatı geçersiz.");
-      return parsed as Record<string, string>;
+      if (!hasUsableCredentials(provider, parsed)) throw new Error("Credential alanları eksik veya geçersiz.");
+      return parsed;
     } catch {
       // AES-GCM reports this as “Unsupported state or unable to authenticate
       // data” when the encryption key changed or the ciphertext was damaged.
@@ -82,7 +113,7 @@ export class IntegrationCredentialService {
         where: { id: row.id },
         data: { active: false, lastTestError: CREDENTIAL_KEY_MISMATCH_MESSAGE },
       }).catch(() => undefined);
-      return environmentCredentials(provider);
+      return this.fallbackCredentials(organizationId, provider);
     }
   }
 

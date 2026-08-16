@@ -137,6 +137,63 @@ export function AdminSettingsForm({
 
       <section className="grid gap-5 rounded-2xl border border-line bg-white/70 p-4 sm:p-6">
         <div>
+          <h2 className="text-lg font-semibold">Ödül uygunluk kuralları</h2>
+          <p className="mt-1 text-sm text-muted">
+            Ödül, koşulların tamamı sağlanmadan verilmeyecek şekilde güvenli bir bekleme kuralı uygular.
+          </p>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className="flex items-start gap-3 rounded-xl border border-line bg-white p-4">
+            <input
+              defaultChecked={getBooleanValue(settings, "REWARD_EMAIL_VERIFICATION_REQUIRED", true)}
+              name="rewardEmailVerificationRequired"
+              type="checkbox"
+            />
+            <span>
+              <strong className="block text-sm">E-posta doğrulaması zorunlu</strong>
+              <span className="mt-1 block text-xs text-muted">
+                Doğrulanmamış hesaplar ödül için uygun sayılmaz.
+              </span>
+            </span>
+          </label>
+
+          <label className="flex items-start gap-3 rounded-xl border border-line bg-white p-4">
+            <input
+              defaultChecked={getBooleanValue(settings, "REWARD_REAL_INTERACTION_REQUIRED", true)}
+              name="rewardRealInteractionRequired"
+              type="checkbox"
+            />
+            <span>
+              <strong className="block text-sm">Gerçek etkileşim zorunlu</strong>
+              <span className="mt-1 block text-xs text-muted">
+                En az bir geçerli oy, beğeni, yorum, takip veya anlamlı oynatma gerekir.
+              </span>
+            </span>
+          </label>
+        </div>
+
+        <label className="text-sm font-medium md:max-w-sm">
+          Minimum aktiflik süresi
+          <div className="relative mt-2">
+            <input
+              className={inputClassName}
+              defaultValue={getNumberValue(settings, "REWARD_MIN_ACTIVE_DAYS", 7)}
+              min={0}
+              max={3650}
+              name="rewardMinActiveDays"
+              type="number"
+            />
+            <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-sm text-muted">gün</span>
+          </div>
+          <span className="mt-1 block text-xs text-muted">
+            Varsayılan: 7 gün. Kullanıcı bu süre boyunca aktif hesap durumunda olmalıdır.
+          </span>
+        </label>
+      </section>
+
+      <section className="grid gap-5 rounded-2xl border border-line bg-white/70 p-4 sm:p-6">
+        <div>
           <h2 className="text-lg font-semibold">
             Üyelik ve başvurular
           </h2>

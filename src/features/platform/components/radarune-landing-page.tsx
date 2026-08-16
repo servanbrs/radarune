@@ -103,14 +103,14 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
             MÜZİĞİN RADARI · TAMAMEN ÜCRETSİZ
           </div>
           <h1 className="landing-title max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.05em] md:text-7xl lg:text-[5.25rem]">
-            Müziğin radarı.<br /><span className="text-[#efb848]">Şarkını keşfet,</span><br />sesini duyur.
+            Sanatçını keşfet.<br /><span className="text-[#efb848]">Şarkıyı şimdi dinle.</span><br />Sesini duyur.
           </h1>
           <p className="mt-8 max-w-xl text-lg leading-8 text-white/60 md:text-xl">
-            Yeni müzikleri keşfet, favorilerini oyla ve kendi şarkını müzikseverlere duyur. Radarune; keşif, paylaşım ve sanatçı görünürlüğünü herkes için ücretsiz sunar.
+            Yeni sanatçıları ve yayınlarını keşfet, şarkıları hemen dinle ve favorilerini oyla. Sanatçıysan müziğini Radarune topluluğuyla buluştur.
           </p>
           <div className="mt-10 flex flex-wrap items-center gap-4">
             <Link className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 font-semibold text-[#090b0f] hover:bg-[#efb848]" href="/discover">
-              Şarkı keşfet <Compass className="h-4 w-4" aria-hidden="true" />
+              Şimdi dinle <Headphones className="h-4 w-4" aria-hidden="true" />
             </Link>
             <Link className="inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3.5 font-semibold text-white/80 hover:border-[#efb848]/60 hover:text-white" href="/sign-up">
               Şarkını duyur <ArrowUpRight className="h-4 w-4" aria-hidden="true" />

@@ -11,7 +11,13 @@ export async function GET(request: Request) {
   if (query.length < 2) return NextResponse.json({ items: [] });
 
   const credentials = await integrationCredentialService.runtime(actor.organizationId, "SPOTIFY");
-  const result = await spotifyProviderService.searchArtists(query, credentials?.clientId && credentials.clientSecret ? credentials : undefined);
+  if (!credentials?.clientId?.trim() || !credentials.clientSecret?.trim()) {
+    return NextResponse.json({
+      error: "Spotify bağlantısı bu çalışma alanında etkin değil. Admin → Entegrasyonlar → Spotify bölümünde Client ID ve Client Secret bilgilerini bu çalışma alanı için kaydedip bağlantıyı test edin. Başvuruyu yine de sanatçı adını manuel yazarak gönderebilirsiniz.",
+      code: "CONFIGURATION_REQUIRED",
+    }, { status: 503 });
+  }
+  const result = await spotifyProviderService.searchArtists(query, credentials);
   if (!result.success) return NextResponse.json({ error: result.message, code: result.code }, { status: result.code === "CONFIGURATION_REQUIRED" ? 503 : 502 });
 
   const items = (result.data.artists?.items ?? []).flatMap((artist) => {
