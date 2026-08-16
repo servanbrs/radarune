@@ -1,7 +1,7 @@
 import "server-only";
 
 import { prisma } from "@/server/prisma/prisma";
-import { env } from "@/lib/env";
+import { env, platformEncryptionKey } from "@/lib/env";
 import { assertAdminPermission } from "@/features/admin/server/admin-context";
 import { verifyEmailTransport } from "@/features/email/server/email-settings.service";
 
@@ -145,8 +145,7 @@ export class SystemHealthService {
         : "NEXT_PUBLIC_APP_URL yapılandırılmamış.",
     });
 
-    const webhookEncryptionIsConfigured =
-      Boolean(env.WEBHOOK_ENCRYPTION_KEY);
+    const webhookEncryptionIsConfigured = Boolean(platformEncryptionKey);
 
     const webhookEncryptionCheck = await runMeasuredCheck({
       checkKey: "webhook_encryption",
@@ -156,7 +155,7 @@ export class SystemHealthService {
         : "NOT_CONFIGURED",
       message: webhookEncryptionIsConfigured
         ? "Webhook secret şifreleme anahtarı hazır."
-        : "WEBHOOK_ENCRYPTION_KEY yapılandırılmamış.",
+        : "ENCRYPTION_KEY veya WEBHOOK_ENCRYPTION_KEY yapılandırılmamış.",
     });
 
     const mailCheck = await runMeasuredCheck(
