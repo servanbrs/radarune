@@ -14,16 +14,30 @@ const booleanSetting = (value: unknown) => {
   return undefined;
 };
 
+const normalizeMediaUrl = (url: string) => {
+  // Uploaded branding files used to be stored with the current host
+  // (localhost during development). Keep those files portable between local
+  // and production deployments by using only their same-origin media path.
+  try {
+    const parsed = new URL(url);
+    if (parsed.pathname.startsWith("/api/media/")) return `${parsed.pathname}${parsed.search}`;
+  } catch {
+    // Relative URLs are already deployment-safe.
+  }
+  return url;
+};
+
 const versionedIconUrl = (url: string | null | undefined, updatedAt: unknown) => {
   if (!url) return undefined;
-  const separator = url.includes("?") ? "&" : "?";
+  const portableUrl = normalizeMediaUrl(url);
+  const separator = portableUrl.includes("?") ? "&" : "?";
   const timestamp =
     updatedAt instanceof Date
       ? updatedAt.getTime()
       : typeof updatedAt === "string"
         ? Date.parse(updatedAt)
         : Number.NaN;
-  return `${url}${separator}v=${Number.isFinite(timestamp) ? timestamp : Date.now()}`;
+  return `${portableUrl}${separator}v=${Number.isFinite(timestamp) ? timestamp : Date.now()}`;
 };
 
 const faviconUrlOrFallback = (url: string | null | undefined) =>

@@ -25,10 +25,18 @@ export async function GET(request: Request) {
 
     if (configuredUrl) {
       const iconUrl = new URL(configuredUrl, request.url);
+      // Branding uploads may have been saved with localhost or an older
+      // deployment host. Redirect to the current app's media route instead.
+      if (iconUrl.pathname.startsWith("/api/media/")) {
+        return NextResponse.redirect(new URL(`${iconUrl.pathname}${iconUrl.search}`, request.url), {
+          status: 307,
+          headers: { "Cache-Control": "no-cache, no-store, must-revalidate" },
+        });
+      }
       if (iconUrl.protocol === "http:" || iconUrl.protocol === "https:") {
         return NextResponse.redirect(iconUrl, {
           status: 307,
-          headers: { "Cache-Control": "public, max-age=300" },
+          headers: { "Cache-Control": "no-cache, no-store, must-revalidate" },
         });
       }
     }
@@ -38,7 +46,7 @@ export async function GET(request: Request) {
 
   return new Response(fallbackIcon, {
     headers: {
-      "Cache-Control": "public, max-age=300",
+      "Cache-Control": "no-cache, no-store, must-revalidate",
       "Content-Type": "image/svg+xml",
       "X-Content-Type-Options": "nosniff",
     },
