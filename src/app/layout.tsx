@@ -117,8 +117,11 @@ export async function generateMetadata(): Promise<Metadata> {
       title: "Radarune | Müzik operasyon platformu",
       description: "Sanatçılar ve label ekipleri için release, dağıtım, royalty ve keşif operasyonları.",
       icons: {
-        icon: faviconUrlOrFallback(faviconUrl),
-        shortcut: faviconUrlOrFallback(faviconUrl),
+        icon: [
+          { url: "/favicon.ico", type: "image/x-icon" },
+          ...(faviconUrl ? [{ url: faviconUrl }] : []),
+        ],
+        shortcut: "/favicon.ico",
         apple: faviconUrlOrFallback(faviconUrl),
       },
     };
@@ -145,15 +148,28 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   const faviconUrl = versionedIconUrl(tenant?.tenantBranding?.faviconUrl, tenant?.tenantBranding?.updatedAt);
+  const logoUrl = versionedIconUrl(tenant?.tenantBranding?.logoUrl, tenant?.tenantBranding?.updatedAt);
   return {
     title: titleValue,
     description: descriptionValue,
     ...(verificationValue ? { verification: { google: verificationValue } } : {}),
     icons: {
-      icon: faviconUrlOrFallback(faviconUrl),
-      shortcut: faviconUrlOrFallback(faviconUrl),
+      icon: [
+        { url: "/favicon.ico", type: "image/x-icon" },
+        ...(faviconUrl ? [{ url: faviconUrl }] : []),
+      ],
+      shortcut: "/favicon.ico",
       apple: faviconUrlOrFallback(faviconUrl),
     },
+    ...(logoUrl
+      ? {
+          openGraph: {
+            title: titleValue,
+            description: descriptionValue,
+            images: [{ url: logoUrl, alt: "Radarune" }],
+          },
+        }
+      : {}),
     robots: indexingValue ? undefined : { index: false, follow: false },
   };
 }
