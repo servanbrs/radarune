@@ -20,5 +20,24 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     ...(query.get("utm_medium") ? { utmMedium: query.get("utm_medium")! } : {}),
     ...(query.get("utm_campaign") ? { utmCampaign: query.get("utm_campaign")! } : {}),
   });
-  return NextResponse.redirect(platform.url);
+
+  // Smart-link targets are user-configurable, so validate the destination
+  // before redirecting. This blocks javascript:, data:, credentials and other
+  // malformed destinations while preserving normal HTTPS/HTTP platform links.
+  let destination: URL;
+  try {
+    destination = new URL(platform.url);
+  } catch {
+    return NextResponse.json({ error: "Geçersiz bağlantı adresi." }, { status: 422 });
+  }
+
+  if (
+    !["http:", "https:"].includes(destination.protocol) ||
+    destination.username ||
+    destination.password
+  ) {
+    return NextResponse.json({ error: "Güvenli olmayan bağlantı adresi." }, { status: 422 });
+  }
+
+  return NextResponse.redirect(destination);
 }

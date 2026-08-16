@@ -1,6 +1,6 @@
 import "server-only";
+import ExcelJS from "exceljs";
 import { PDFDocument, StandardFonts } from "pdf-lib";
-import * as XLSX from "xlsx";
 import { formatMinorMoney } from "@/features/finance/lib/formatters";
 import { financialStatementService } from "@/features/finance/server/services/financial-statement.service";
 import { royaltyEngineService } from "@/features/finance/server/services/royalty-engine.service";
@@ -41,6 +41,28 @@ function sanitizeSpreadsheetRows(rows: Array<Record<string, string | number>>) {
   );
 }
 
+async function createXlsxBuffer(
+  rows: Array<Record<string, string | number>>,
+  sheetName: string,
+) {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet(sheetName);
+  const headers = Object.keys(rows[0] ?? {});
+
+  worksheet.columns = headers.map((header) => ({
+    header,
+    key: header,
+    width: Math.min(Math.max(header.length + 4, 14), 32),
+  }));
+
+  for (const row of sanitizeSpreadsheetRows(rows)) {
+    worksheet.addRow(row);
+  }
+
+  worksheet.getRow(1).font = { bold: true };
+  return Buffer.from(await workbook.xlsx.writeBuffer());
+}
+
 export class FinanceExportService {
   async exportStatements(
     actor: FinanceActorContext,
@@ -77,16 +99,11 @@ export class FinanceExportService {
     }
 
     if (format === "xlsx") {
-      const workbook = XLSX.utils.book_new();
-      const worksheet = XLSX.utils.json_to_sheet(sanitizeSpreadsheetRows(rows));
-
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Statements");
-
       return {
         contentType:
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         fileName: "financial-statements.xlsx",
-        body: Buffer.from(XLSX.write(workbook, { bookType: "xlsx", type: "buffer" })),
+        body: await createXlsxBuffer(rows, "Statements"),
       };
     }
 
@@ -154,16 +171,11 @@ export class FinanceExportService {
     }
 
     if (format === "xlsx") {
-      const workbook = XLSX.utils.book_new();
-      const worksheet = XLSX.utils.json_to_sheet(sanitizeSpreadsheetRows(rows));
-
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Royalty Report");
-
       return {
         contentType:
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         fileName: `royalty-report-${reportId}.xlsx`,
-        body: Buffer.from(XLSX.write(workbook, { bookType: "xlsx", type: "buffer" })),
+        body: await createXlsxBuffer(rows, "Royalty Report"),
       };
     }
 

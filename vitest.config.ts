@@ -11,6 +11,9 @@ export default defineConfig({
   test: {
     environment: "node",
     globals: true,
+    // Finance repository tests can legitimately wait for the shared DB mock
+    // setup when the suite runs in parallel on constrained local machines.
+    testTimeout: 15_000,
     include: ["src/**/*.test.ts"],
   },
 });

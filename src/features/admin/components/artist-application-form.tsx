@@ -17,8 +17,6 @@ export function ArtistApplicationForm() {
 
   useEffect(() => {
     if (selectedArtist || stageName.trim().length < 2) {
-      setResults([]);
-      setSearchError(null);
       return;
     }
 

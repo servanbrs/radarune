@@ -144,8 +144,10 @@ function LeaderCard({
 }
 
 export default async function HypePage() {
-  const session = await resolveWithin(authSessionService.getOptionalSession());
-  const tenant = await resolveWithin(tenantContextService.resolveFromRequest());
+  const [session, tenant] = await Promise.all([
+    resolveWithin(authSessionService.getOptionalSession()),
+    resolveWithin(tenantContextService.resolveFromRequest()),
+  ]);
   const feed = await resolveWithin(
     session
       ? discoverService.getFeed(undefined, tenant?.id)
