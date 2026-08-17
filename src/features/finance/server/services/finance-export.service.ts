@@ -1,6 +1,6 @@
 import "server-only";
-import ExcelJS from "exceljs";
 import { PDFDocument, StandardFonts } from "pdf-lib";
+import writeXlsxFile, { type SheetData } from "write-excel-file/node";
 import { formatMinorMoney } from "@/features/finance/lib/formatters";
 import { financialStatementService } from "@/features/finance/server/services/financial-statement.service";
 import { royaltyEngineService } from "@/features/finance/server/services/royalty-engine.service";
@@ -45,22 +45,25 @@ async function createXlsxBuffer(
   rows: Array<Record<string, string | number>>,
   sheetName: string,
 ) {
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet(sheetName);
   const headers = Object.keys(rows[0] ?? {});
+  const sanitizedRows = sanitizeSpreadsheetRows(rows);
+  const sheetData: SheetData = headers.length
+    ? [
+        headers.map((header) => ({ value: header, fontWeight: "bold" })),
+        ...sanitizedRows.map((row) => headers.map((header) => row[header] ?? "")),
+      ]
+    : [[{ value: "No data", fontWeight: "bold" }]];
 
-  worksheet.columns = headers.map((header) => ({
-    header,
-    key: header,
-    width: Math.min(Math.max(header.length + 4, 14), 32),
-  }));
+  const buffer = await writeXlsxFile(sheetData, {
+    sheet: sheetName,
+    columns: headers.length
+      ? headers.map((header) => ({
+          width: Math.min(Math.max(header.length + 4, 14), 32),
+        }))
+      : [{ width: 14 }],
+  }).toBuffer();
 
-  for (const row of sanitizeSpreadsheetRows(rows)) {
-    worksheet.addRow(row);
-  }
-
-  worksheet.getRow(1).font = { bold: true };
-  return Buffer.from(await workbook.xlsx.writeBuffer());
+  return Buffer.from(buffer);
 }
 
 export class FinanceExportService {
