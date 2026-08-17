@@ -29,7 +29,7 @@ export function ImportSourceCreateForm() {
       const runResponse = await fetch(`/api/admin/import-sources/${created.id}/run`, { method: "POST" });
       const result = await runResponse.json().catch(() => null);
       setMessage(runResponse.ok && result?.success
-        ? `${result.importedCount ?? 0} yeni içerik alındı, ${result.duplicateCount ?? 0} tekrar kayıt atlandı.`
+        ? `${(result.importedCount ?? 0) + (result.pendingReviewCount ?? 0)} yeni içerik alındı${result.pendingReviewCount ? ` (${result.pendingReviewCount} moderasyon bekliyor)` : ""}, ${result.duplicateCount ?? 0} tekrar kayıt atlandı${result.skippedCount ? `, ${result.skippedCount} içerik filtrelendi` : ""}${result.failedCount ? `, ${result.failedCount} içerikte hata oluştu` : ""}.`
         : result?.error ?? result?.message ?? "Import çalıştırılamadı.");
     } catch {
       setMessage("Import sunucusuna ulaşılamadı.");
