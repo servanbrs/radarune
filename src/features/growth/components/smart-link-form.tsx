@@ -1,6 +1,8 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- Smart Link artist images are user-managed external URLs. */
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type Platform = {
   platform: string;
@@ -28,6 +30,7 @@ type SmartLinkFormProps = {
 const platformOptions = ["SPOTIFY", "APPLE_MUSIC", "YOUTUBE_MUSIC", "YOUTUBE", "DEEZER", "AMAZON_MUSIC", "TIDAL", "SOUNDCLOUD", "TIKTOK", "INSTAGRAM", "CUSTOM"];
 
 export function SmartLinkForm({ artists, initial, redirectTo = "/smart-links" }: SmartLinkFormProps) {
+  const router = useRouter();
   const [artistId, setArtistId] = useState(initial?.artistId ?? artists[0]?.id ?? "");
   const [title, setTitle] = useState(initial?.title ?? "");
   const [slug, setSlug] = useState(initial?.slug ?? "");
@@ -61,7 +64,7 @@ export function SmartLinkForm({ artists, initial, redirectTo = "/smart-links" }:
       const response = await fetch(`/api/growth/smart-links${initial ? `?id=${encodeURIComponent(initial.id)}` : ""}`, { method: initial ? "PUT" : "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ artistId, title, slug, description: description || undefined, seoTitle: seoTitle || undefined, seoDescription: seoDescription || undefined, coverImageUrl: coverImageUrl || undefined, active, platforms: platforms.filter((item) => item.url.trim()).map((item, index) => ({ ...item, sortOrder: index, active: true })) }) });
       const data = await response.json() as { error?: string };
       if (!response.ok) throw new Error(data.error ?? "Smart Link kaydedilemedi.");
-      window.location.assign(redirectTo);
+      router.push(redirectTo);
     } catch (error) { setMessage(error instanceof Error ? error.message : "Smart Link kaydedilemedi."); setBusy(false); }
   }
 
@@ -69,7 +72,7 @@ export function SmartLinkForm({ artists, initial, redirectTo = "/smart-links" }:
     if (!initial || !window.confirm("Bu Smart Link silinsin mi? Bu işlem geri alınamaz.")) return;
     setBusy(true);
     const response = await fetch(`/api/growth/smart-links?id=${encodeURIComponent(initial.id)}`, { method: "DELETE" });
-    if (response.ok) window.location.assign(redirectTo); else { setMessage("Smart Link silinemedi."); setBusy(false); }
+    if (response.ok) router.push(redirectTo); else { setMessage("Smart Link silinemedi."); setBusy(false); }
   }
 
   const selectedArtist = artists.find((artist) => artist.id === artistId);

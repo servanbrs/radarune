@@ -15,6 +15,7 @@ import { releaseValidatorService } from "@/features/releases/server/services/rel
 import { notificationService } from "@/features/admin/server/services/notification.service";
 import { webhookEndpointService } from "@/features/platform/server/services/webhook-endpoint.service";
 import { sendTemplatedEmail } from "@/features/email/server/email-settings.service";
+import { resolveAndAttachExternalLink } from "@/features/integrations/server/services/external-link-resolution.service";
 
 export class ReleaseService {
   async listReleases(actor: ReleaseActor) {
@@ -187,10 +188,41 @@ export class ReleaseService {
       }
     });
 
+    const linkWarnings: string[] = [];
+    if (parsed.data.tracks) {
+      const savedTracks = await prisma.track.findMany({
+        where: { organizationId: actor.organizationId, releaseId },
+        select: { id: true, trackNumber: true, discNumber: true, sourceUrl: true },
+      });
+
+      for (const inputTrack of parsed.data.tracks) {
+        const savedTrack = inputTrack.id
+          ? savedTracks.find((track) => track.id === inputTrack.id)
+          : savedTracks.find(
+              (track) =>
+                track.trackNumber === inputTrack.trackNumber &&
+                track.discNumber === inputTrack.discNumber &&
+                track.sourceUrl === (inputTrack.sourceUrl ?? null),
+            );
+
+        if (!savedTrack) continue;
+        const resolved = await resolveAndAttachExternalLink({
+          organizationId: actor.organizationId,
+          releaseId,
+          trackId: savedTrack.id,
+          sourceUrl: inputTrack.sourceUrl,
+        });
+        if (resolved.warning) {
+          linkWarnings.push(`${inputTrack.title}: ${resolved.warning}`);
+        }
+      }
+    }
+
     return {
       success: true as const,
       data: {
         id: releaseId,
+        linkWarnings,
       },
     };
   }
@@ -220,9 +252,19 @@ export class ReleaseService {
       input: parsed.data,
     });
 
+    const linkResult = await resolveAndAttachExternalLink({
+      organizationId: actor.organizationId,
+      releaseId,
+      trackId: track.id,
+      sourceUrl: parsed.data.sourceUrl,
+    });
+
     return {
       success: true as const,
-      data: track,
+      data: {
+        ...track,
+        linkWarning: linkResult.warning,
+      },
     };
   }
 
@@ -342,7 +384,7 @@ export class ReleaseService {
   }
 
   async submitForReview(actor: ReleaseActor, releaseId: string) {
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const release = await releaseRepository.findDetailById(releaseId, tx);
       if (!release) {
         return {
@@ -424,6 +466,37 @@ export class ReleaseService {
         data: submitted,
       };
     });
+
+    if (!result.success) return result;
+
+    const linkWarnings = await this.resolveReleaseLinks(actor, releaseId);
+    return {
+      success: true as const,
+      data: {
+        ...result.data,
+        linkWarnings,
+      },
+    };
+  }
+
+  private async resolveReleaseLinks(actor: ReleaseActor, releaseId: string) {
+    const tracks = await prisma.track.findMany({
+      where: { organizationId: actor.organizationId, releaseId },
+      select: { id: true, title: true, sourceUrl: true },
+      orderBy: [{ discNumber: "asc" }, { trackNumber: "asc" }],
+    });
+
+    const warnings: string[] = [];
+    for (const track of tracks) {
+      const result = await resolveAndAttachExternalLink({
+        organizationId: actor.organizationId,
+        releaseId,
+        trackId: track.id,
+        sourceUrl: track.sourceUrl ?? undefined,
+      });
+      if (result.warning) warnings.push(`${track.title}: ${result.warning}`);
+    }
+    return warnings;
   }
 
   private firstZodError(error: { flatten: () => { fieldErrors: Record<string, string[] | undefined> } }) {

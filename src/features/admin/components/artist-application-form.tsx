@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- Provider artist images are arbitrary remote URLs. */
 
 import Link from "next/link";
 import { useEffect, useState } from "react";

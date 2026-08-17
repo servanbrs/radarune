@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { socialService } from "@/features/growth/server/services/social.service";

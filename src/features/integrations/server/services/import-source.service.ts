@@ -18,6 +18,7 @@ import { spotifyProviderService } from "@/features/integrations/server/adapters/
 import { youtubeProviderService } from "@/features/integrations/server/adapters/youtube-provider.service";
 import { importRepository } from "@/features/integrations/server/repositories/import.repository";
 import { integrationCredentialService } from "@/features/integrations/server/services/integration-credential.service";
+import { youtubeAdminCredentialService } from "@/features/integrations/server/services/youtube-admin-credential.service";
 import { prisma } from "@/server/prisma/prisma";
 import type { FinanceActorContext } from "@/features/finance/server/services/finance-access.service";
 
@@ -31,6 +32,21 @@ function providerForType(type: ImportSourceCreateInput["type"]): ExternalProvide
 
 function providerImportEnabled(provider: ExternalProviderKey) {
   return provider === "YOUTUBE" ? env.YOUTUBE_IMPORT_ENABLED : env.SPOTIFY_IMPORT_ENABLED;
+}
+
+/**
+ * YouTube credentials were historically saved by a dedicated admin service
+ * with its own encryption envelope. Read that record first, then fall back to
+ * the shared credential resolver for environment-backed and newer records.
+ * This keeps existing installations active after the credential services were
+ * unified without asking the administrator to enter the API key again.
+ */
+async function runtimeProviderCredentials(organizationId: string, provider: ExternalProviderKey) {
+  if (provider === "YOUTUBE") {
+    const apiKey = await youtubeAdminCredentialService.getApiKey(organizationId);
+    if (apiKey) return { apiKey };
+  }
+  return integrationCredentialService.runtime(organizationId, provider);
 }
 
 function sourceReference(type: ImportSourceCreateInput["type"], rawUrl: string): SourceReference | null {
@@ -111,7 +127,7 @@ export class ImportSourceService {
       throw new Error("Desteklenmeyen import bağlantısı. YouTube kanal için /channel/UC…, /@handle, /user/… veya /c/…; playlist için ?list=… kullanın. Spotify kaynaklarında /artist/, /playlist/ veya /album/ bağlantısı gerekir.");
     }
 
-    const credentials = await integrationCredentialService.runtime(actor.organizationId, provider);
+    const credentials = await runtimeProviderCredentials(actor.organizationId, provider);
     const configuration = provider === "YOUTUBE"
       ? youtubeProviderService.validateConfiguration(credentials?.apiKey)
       : spotifyProviderService.validateConfiguration(credentials ?? undefined);
@@ -175,7 +191,7 @@ export class ImportSourceService {
     // being deleted and recreated.
     const providerKey = source.provider;
     if (!providerKey) throw new Error("Import provider bilgisi eksik.");
-    const credentials = await integrationCredentialService.runtime(organizationId, providerKey);
+    const credentials = await runtimeProviderCredentials(organizationId, providerKey);
     const configuration = providerKey === "YOUTUBE"
       ? youtubeProviderService.validateConfiguration(credentials?.apiKey)
       : spotifyProviderService.validateConfiguration(credentials ?? undefined);

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- Smart Link profile images are user-managed external URLs. */
 import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";

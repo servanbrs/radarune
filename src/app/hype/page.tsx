@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- Chart artwork may use provider or runtime storage URLs. */
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
@@ -60,7 +61,7 @@ export const metadata: Metadata = {
 
 function artworkUrl(item: DiscoverFeedItem) {
   if (item.sourceType === "RADARUNE" && item.releaseId) {
-    return `/api/public/v1/releases/${item.releaseId}/artwork`;
+    return `/api/public/v1/releases/${item.releaseId}/artwork?v=2`;
   }
 
   return item.thumbnailUrl;

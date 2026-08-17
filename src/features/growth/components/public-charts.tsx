@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- Chart artwork can come from provider URLs. */
 
 import {
   ArrowUpRight,

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- Landing artwork may be served from runtime storage/provider URLs. */
 import Link from "next/link";
 import { ArrowUpRight, Check, CircleDot, Compass, Gauge, Headphones, Layers3, ShieldCheck } from "lucide-react";
 import type { PublicDiscoverCandidate } from "@/features/growth/server/services/discover.service";

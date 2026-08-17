@@ -1884,6 +1884,7 @@ model Track {
   audioUploadId        String?
   durationMs           Int?
   lyrics               String?                  @db.Text
+  sourceUrl            String?                  @db.VarChar(1024)
   previewStartSeconds  Int?
   createdAt            DateTime                 @default(now())
   updatedAt            DateTime                 @updatedAt

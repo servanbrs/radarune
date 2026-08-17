@@ -97,6 +97,7 @@ type InitialRelease = {
     instrumental: boolean;
     previouslyReleased: boolean;
     isrc: string | null;
+    sourceUrl: string | null;
     audioUploadId?: string | null;
     lyrics: string | null;
     previewStartSeconds: number | null;
@@ -381,6 +382,11 @@ export function ReleaseWizard({
       return false;
     }
 
+    const linkWarnings = result.data?.linkWarnings as string[] | undefined;
+    if (linkWarnings?.length) {
+      toast.warning(linkWarnings.join("\n"));
+    }
+
     return true;
   }
 
@@ -647,6 +653,13 @@ export function ReleaseWizard({
         return;
       }
 
+      const tracksSaved = await savePayload(targetReleaseId, {
+        tracks: form.getValues().tracks,
+      });
+      if (!tracksSaved) {
+        return;
+      }
+
       const serverValid = await validateOnServer(targetReleaseId);
       if (!serverValid) {
         return;
@@ -666,6 +679,10 @@ export function ReleaseWizard({
         return;
       }
 
+      const linkWarnings = result.data?.linkWarnings as string[] | undefined;
+      if (linkWarnings?.length) {
+        toast.warning(linkWarnings.join("\n"));
+      }
       toast.success("Yayın Radarune incelemesine gönderildi.");
       router.push(`/releases/${targetReleaseId}`);
       router.refresh();
@@ -1385,6 +1402,7 @@ function toFormDefaults(
           instrumental: track.instrumental,
           previouslyReleased: track.previouslyReleased,
           isrc: track.isrc ?? "",
+          sourceUrl: track.sourceUrl ?? "",
           lyrics: track.lyrics ?? "",
           previewStartSeconds: track.previewStartSeconds ?? 0,
           artists: track.artists.length
@@ -1409,6 +1427,7 @@ function toFormDefaults(
             instrumental: false,
             previouslyReleased: false,
             isrc: "",
+            sourceUrl: "",
             lyrics: "",
             previewStartSeconds: 0,
             artists: [

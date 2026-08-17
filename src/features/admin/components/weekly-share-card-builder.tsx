@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- Share cards accept runtime/provider artwork URLs. */
 
 import { useMemo, useState } from "react";
 import { Check, Clock3, Send, Sparkles, X } from "lucide-react";

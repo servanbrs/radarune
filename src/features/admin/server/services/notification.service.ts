@@ -35,8 +35,14 @@ export class NotificationService {
         // Moderators are platform-wide reviewers, so their notification is
         // intentionally global even when the event belongs to one workspace.
         if (member.systemRole === "MODERATOR") {
-          const { organizationId: _organizationId, ...globalInput } = input;
-          return this.create({ ...globalInput, userId: member.id });
+          return this.create({
+            type: input.type,
+            title: input.title,
+            message: input.message,
+            userId: member.id,
+            ...(input.entityType ? { entityType: input.entityType } : {}),
+            ...(input.entityId ? { entityId: input.entityId } : {}),
+          });
         }
         return this.create({ ...input, userId: member.id });
       }),

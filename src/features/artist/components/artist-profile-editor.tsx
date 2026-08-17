@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- Artist profile artwork is user-managed and may be remote. */
 
 import { ChangeEvent, FormEvent, useState } from "react";
 import Link from "next/link";

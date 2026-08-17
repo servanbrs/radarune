@@ -5,8 +5,27 @@ import { storageService } from "@/features/storage/server/services/storage.servi
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
-    const track = await prisma.track.findFirst({ where: { id, release: { status: { in: ["APPROVED", "DISTRIBUTED", "LIVE"] } } }, select: { audioUploadId: true, uploads: { select: { id: true, storageKey: true, mimeType: true, byteSize: true, fileName: true }, where: { status: "READY" } } } });
-    const upload = track?.uploads.find((entry) => entry.id === track.audioUploadId) ?? track?.uploads[0];
+    const track = await prisma.track.findFirst({
+      where: { id, release: { status: { in: ["APPROVED", "DISTRIBUTED", "LIVE"] } } },
+      select: { audioUploadId: true },
+    });
+    if (!track) return Response.json({ error: "Parça bulunamadı." }, { status: 404 });
+
+    // Ses dosyasını doğrudan audioUploadId üzerinden bul. Böylece eski
+    // yayınlarda trackId relation'ı eksik olsa bile yerel oynatıcı çalışır.
+    const upload =
+      (track.audioUploadId
+        ? await prisma.upload.findFirst({
+            where: { id: track.audioUploadId, kind: "AUDIO", status: "READY" },
+            select: { id: true, storageKey: true, mimeType: true, byteSize: true, fileName: true },
+          })
+        : null) ??
+      (await prisma.upload.findFirst({
+        where: { trackId: id, kind: "AUDIO", status: "READY" },
+        orderBy: { createdAt: "desc" },
+        select: { id: true, storageKey: true, mimeType: true, byteSize: true, fileName: true },
+      }));
+
     if (!upload) return Response.json({ error: "Ses dosyası bulunamadı." }, { status: 404 });
     const size = Number(upload.byteSize);
     const range = parseRange(request.headers.get("range"), size);

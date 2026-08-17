@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- Public artwork is served through a runtime API route. */
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DiscoverArtistFollowButton } from "@/features/growth/components/discover-artist-follow-button";

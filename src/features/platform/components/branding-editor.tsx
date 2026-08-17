@@ -1,8 +1,9 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- Branding assets are runtime-uploaded URLs. */
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -45,9 +46,9 @@ export function BrandingEditor() {
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const { register, reset, setValue, watch, handleSubmit, formState: { isSubmitting, errors } } = useForm<BrandingFormInput, unknown, BrandingUpdateInput>({ resolver: zodResolver(brandingUpdateSchema), defaultValues: { brandName: "", legalName: null, logoUrl: null, faviconUrl: null, supportEmail: null } });
-  const logoUrl = watch("logoUrl");
-  const faviconUrl = watch("faviconUrl");
+  const { control, register, reset, setValue, handleSubmit, formState: { isSubmitting, errors } } = useForm<BrandingFormInput, unknown, BrandingUpdateInput>({ resolver: zodResolver(brandingUpdateSchema), defaultValues: { brandName: "", legalName: null, logoUrl: null, faviconUrl: null, supportEmail: null } });
+  const logoUrl = useWatch({ control, name: "logoUrl" });
+  const faviconUrl = useWatch({ control, name: "faviconUrl" });
   useEffect(() => { let active = true; void fetch("/api/admin/site-builder/branding").then(async (response) => { if (!response.ok) throw new Error("Marka ayarları yüklenemedi."); const value: unknown = await response.json(); if (active && value && typeof value === "object") { const branding = value as Partial<BrandingUpdateInput>; reset({ brandName: branding.brandName?.trim() || "Radarune", legalName: branding.legalName ?? null, logoUrl: branding.logoUrl ?? null, faviconUrl: branding.faviconUrl ?? null, supportEmail: branding.supportEmail ?? null, ...(isRecord(branding.socialLinks) ? { socialLinks: branding.socialLinks } : {}), ...(isRecord(branding.seoDefaults) ? { seoDefaults: branding.seoDefaults } : {}) }); applyFavicon(branding.faviconUrl); } }).catch((error: unknown) => { if (active) setMessage(error instanceof Error ? error.message : "Marka ayarları yüklenemedi."); }).finally(() => { if (active) setLoading(false); }); return () => { active = false; }; }, [reset]);
   const save = async (input: BrandingUpdateInput) => { const response = await fetch("/api/admin/site-builder/branding", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(input) }); const result: unknown = await response.json().catch(() => null); if (!response.ok) { const error = result && typeof result === "object" && "error" in result && typeof result.error === "string" ? result.error : "Marka ayarları kaydedilemedi."; throw new Error(error); } applyFavicon(input.faviconUrl); setMessage("Marka ayarları kaydedildi. Site simgesi güncelleniyor…"); router.refresh(); setTimeout(() => window.location.reload(), 250); };
   const fieldError = (field: keyof BrandingUpdateInput) => { const error = errors[field]; return typeof error?.message === "string" ? <span className="text-xs font-normal text-red-600">{error.message}</span> : null; };

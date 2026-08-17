@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- Artwork URLs come from private storage and are not known at build time. */
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { Button } from "@/components/ui/button";

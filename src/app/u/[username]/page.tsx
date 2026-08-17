@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- Profile and playlist artwork may be external user-managed URLs. */
 import type { Metadata } from "next";
 import Link from "next/link";
 import { permanentRedirect, notFound } from "next/navigation";
