@@ -2934,7 +2934,9 @@ model ExternalMediaSource {
   provider           ExternalMediaProvider
   externalId         String
   externalUrl        String                @db.VarChar(1024)
-  normalizedUrl      String                @db.VarChar(768)
+  // Keep the tenant-scoped unique key below MySQL's 3072-byte utf8mb4 limit:
+  // organizationId (191) + normalizedUrl (512) = 703 characters × 4 bytes.
+  normalizedUrl      String                @db.VarChar(512)
   embedUrl           String?               @db.VarChar(1024)
   title              String
   artistName         String?

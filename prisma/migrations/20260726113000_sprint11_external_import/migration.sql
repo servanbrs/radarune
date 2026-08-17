@@ -5,7 +5,7 @@ CREATE TABLE `ExternalMediaSource` (
     `provider` ENUM('YOUTUBE', 'SPOTIFY') NOT NULL,
     `externalId` VARCHAR(191) NOT NULL,
     `externalUrl` VARCHAR(1024) NOT NULL,
-    `normalizedUrl` VARCHAR(768) NOT NULL,
+    `normalizedUrl` VARCHAR(512) NOT NULL,
     `embedUrl` VARCHAR(1024) NULL,
     `title` VARCHAR(191) NOT NULL,
     `artistName` VARCHAR(191) NULL,
