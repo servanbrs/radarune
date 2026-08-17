@@ -4,31 +4,76 @@ import { artistProfileUpdateSchema } from "@/features/artist/schemas/artist-prof
 import { auditLogService } from "@/features/finance/server/services/audit-log.service";
 import { prisma } from "@/server/prisma/prisma";
 
-const editableTeamRoles = new Set(["OWNER", "MANAGER", "EDITOR"]);
+const editableTeamRoles = ["OWNER", "MANAGER", "EDITOR"] as const;
+
+type ArtistEditorActor = {
+  organizationId: string;
+  userId: string;
+  systemRole: string;
+};
+
+type ArtistEditorTarget = ArtistEditorActor & {
+  artistId: string;
+};
+
+function editableArtistScope(input: ArtistEditorActor): Prisma.ArtistWhereInput {
+  const isPlatformAdmin = input.systemRole === "ADMIN" || input.systemRole === "SUPER_ADMIN";
+
+  return {
+    organizationId: input.organizationId,
+    ...(isPlatformAdmin
+      ? {}
+      : {
+          OR: [
+            { ownerUserId: input.userId },
+            {
+              teamMembers: {
+                some: {
+                  userId: input.userId,
+                  role: { in: [...editableTeamRoles] },
+                },
+              },
+            },
+          ],
+        }),
+  };
+}
+
+function editableArtistWhere(input: ArtistEditorTarget): Prisma.ArtistWhereInput {
+  return { id: input.artistId, ...editableArtistScope(input) };
+}
 
 export class ArtistProfileService {
-  async get(organizationId: string, artistId: string) {
-    return prisma.artist.findFirst({ where: { id: artistId, organizationId }, include: { teamMembers: { select: { userId: true, role: true } } } });
+  async getEditable(input: ArtistEditorTarget) {
+    return prisma.artist.findFirst({
+      where: editableArtistWhere(input),
+      include: { teamMembers: { select: { userId: true, role: true } } },
+    });
   }
 
-  async assertEditable(input: { organizationId: string; userId: string; systemRole: string; artistId: string }) {
-    const artist = await prisma.artist.findFirst({ where: { id: input.artistId, organizationId: input.organizationId }, include: { teamMembers: { where: { userId: input.userId }, select: { role: true } } } });
-    if (!artist) throw new Error("Sanatçı bulunamadı.");
-    const isPlatformAdmin = input.systemRole === "ADMIN" || input.systemRole === "SUPER_ADMIN";
-    const isOwner = artist.ownerUserId === input.userId;
-    const teamRole = artist.teamMembers[0]?.role;
-    if (!isPlatformAdmin && !isOwner && (!teamRole || !editableTeamRoles.has(teamRole))) throw new Error("Bu sanatçı profilini düzenleme yetkiniz yok.");
+  async listEditableIds(input: ArtistEditorActor) {
+    const artists = await prisma.artist.findMany({
+      where: editableArtistScope(input),
+      select: { id: true },
+    });
+    return artists.map((artist) => artist.id);
+  }
+
+  async assertEditable(input: ArtistEditorTarget) {
+    const artist = await prisma.artist.findFirst({
+      where: editableArtistWhere(input),
+      select: { id: true },
+    });
+    if (!artist) throw new Error("Bu sanatçı profilini düzenleme yetkiniz yok.");
   }
 
   async update(input: { organizationId: string; userId: string; systemRole: string; artistId: string; data: unknown }) {
     const parsed = artistProfileUpdateSchema.parse(input.data);
     return prisma.$transaction(async (client) => {
-      const artist = await client.artist.findFirst({ where: { id: input.artistId, organizationId: input.organizationId }, include: { teamMembers: { where: { userId: input.userId }, select: { role: true } } } });
-      if (!artist) throw new Error("Sanatçı bulunamadı.");
-      const isPlatformAdmin = input.systemRole === "ADMIN" || input.systemRole === "SUPER_ADMIN";
-      const isOwner = artist.ownerUserId === input.userId;
-      const teamRole = artist.teamMembers[0]?.role;
-      if (!isPlatformAdmin && !isOwner && (!teamRole || !editableTeamRoles.has(teamRole))) throw new Error("Bu sanatçı profilini düzenleme yetkiniz yok.");
+      const artist = await client.artist.findFirst({
+        where: editableArtistWhere(input),
+      });
+      if (!artist) throw new Error("Bu sanatçı profilini düzenleme yetkiniz yok.");
 
       if (parsed.slug && parsed.slug !== artist.slug) {
         const duplicate = await client.artist.findFirst({ where: { organizationId: input.organizationId, slug: parsed.slug, id: { not: artist.id } }, select: { id: true } });

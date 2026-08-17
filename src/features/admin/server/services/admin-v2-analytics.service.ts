@@ -1,6 +1,7 @@
 import "server-only";
 
 import { Prisma } from "@/generated/prisma/client";
+import { hashPrivacyValue } from "@/features/growth/server/security.server";
 import { prisma } from "@/server/prisma/prisma";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -23,6 +24,19 @@ function maskIpAddress(value: string | null) {
   }
   const parts = value.split(".");
   return parts.length === 4 ? `${parts[0]}.${parts[1]}.xxx.xxx` : "Maskeli IP";
+}
+
+function countryLabel(value: string | null) {
+  if (!value) return "Bilinmiyor";
+  const code = value.trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(code)) return value;
+
+  try {
+    const name = new Intl.DisplayNames(["tr"], { type: "region" }).of(code);
+    return name && name !== code ? `${name} (${code})` : code;
+  } catch {
+    return code;
+  }
 }
 
 function buildDailySeries(dates: Date[], numberOfDays: number) {
@@ -346,6 +360,31 @@ export class AdminV2AnalyticsService {
       (user) => user.createdAt >= sevenDaysAgo,
     ).length;
 
+    const locationHashes = Array.from(new Set(activeSessions
+      .map((session) => session.ipAddress ? hashPrivacyValue(session.ipAddress) : null)
+      .filter((value): value is string => Boolean(value))));
+    const activeLocations = locationHashes.length
+      ? await prisma.smartLinkView.findMany({
+          where: {
+            organizationId,
+            ipHash: { in: locationHashes },
+            OR: [{ country: { not: null } }, { city: { not: null } }],
+          },
+          orderBy: { createdAt: "desc" },
+          take: 250,
+          select: { ipHash: true, country: true, city: true },
+        })
+      : [];
+    const locationByIpHash = new Map<string, { country: string; city: string }>();
+    for (const location of activeLocations) {
+      if (!locationByIpHash.has(location.ipHash)) {
+        locationByIpHash.set(location.ipHash, {
+          country: countryLabel(location.country),
+          city: location.city ?? "Bilinmiyor",
+        });
+      }
+    }
+
     const royaltyByCountry = new Map(
       royaltyCountryRaw.map((country) => [
         country.countryCode,
@@ -402,6 +441,12 @@ export class AdminV2AnalyticsService {
           email: session.user.email,
           role: session.user.systemRole,
           ipAddress: maskIpAddress(session.ipAddress),
+          country: session.ipAddress
+            ? locationByIpHash.get(hashPrivacyValue(session.ipAddress))?.country ?? "Bilinmiyor"
+            : "Bilinmiyor",
+          city: session.ipAddress
+            ? locationByIpHash.get(hashPrivacyValue(session.ipAddress))?.city ?? "Bilinmiyor"
+            : "Bilinmiyor",
           userAgent: session.userAgent ?? "Cihaz bilgisi yok",
           updatedAt: session.updatedAt.toISOString(),
         })),

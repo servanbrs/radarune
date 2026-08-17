@@ -184,7 +184,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
           />
         </section>
 
-        <section className="mt-5 grid gap-5 xl:grid-cols-[minmax(320px,.72fr)_minmax(0,1.28fr)]">
+        <section className="mt-5 grid gap-5 xl:grid-cols-[minmax(280px,.55fr)_minmax(0,1.45fr)]">
           <article className="rounded-[28px] border border-white/[0.08] bg-[#151c2d] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.2)] sm:p-6">
             <SectionHeading
               eyebrow="Kullanıcı analizi"
@@ -337,7 +337,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
               <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/[0.06] bg-[#1b2438] p-3" key={session.id}>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{session.name}</p>
-                  <p className="truncate text-xs text-white/45">{session.email} · {session.ipAddress}</p>
+                  <p className="truncate text-xs text-white/45">{session.email} · {session.city}, {session.country}</p>
                 </div>
                 <span className="shrink-0 rounded-full bg-emerald-300/10 px-2 py-1 text-[10px] font-semibold text-emerald-300">Aktif</span>
               </div>

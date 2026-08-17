@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { releasePublicPath } from "@/features/releases/lib/release-url";
@@ -29,6 +30,8 @@ type Result = {
 };
 
 export function GlobalSearch() {
+  const pathname = usePathname();
+  const adminTheme = pathname.startsWith("/admin") || pathname.startsWith("/moderator");
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<Result | null>(null);
   const [loading, setLoading] = useState(false);
@@ -72,11 +75,11 @@ export function GlobalSearch() {
     !result.imported.length;
   return (
     <div className="relative hidden w-full xl:block">
-      <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.07] px-3 py-2 shadow-inner shadow-black/10">
-        <Search className="h-4 w-4 text-white/55" />
+      <div className={`flex items-center gap-2 rounded-xl border px-3 py-2 shadow-inner shadow-black/10 transition focus-within:ring-2 ${adminTheme ? "border-[#d6a85f]/25 bg-[#18243a] focus-within:border-[#d6a85f]/55 focus-within:ring-[#d6a85f]/15" : "border-white/10 bg-white/[0.07] focus-within:border-emerald-300/40 focus-within:ring-emerald-300/10"}`}>
+        <Search className={`h-4 w-4 ${adminTheme ? "text-[#e5bd7b]" : "text-white/55"}`} />
         <input
           aria-label="Şarkı veya sanatçı ara"
-          className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/40"
+          className={`min-w-0 flex-1 bg-transparent text-sm text-white outline-none ${adminTheme ? "placeholder:text-[#b7c2d0]/65" : "placeholder:text-white/40"}`}
           onChange={(e) => {
             setQuery(e.target.value);
             setOpen(true);
@@ -88,7 +91,7 @@ export function GlobalSearch() {
         {query ? (
           <button
             aria-label="Aramayı temizle"
-            className="text-white/55 transition hover:text-white"
+            className={`transition hover:text-white ${adminTheme ? "text-[#e5bd7b]/75" : "text-white/55"}`}
             onClick={() => {
               setQuery("");
               setOpen(false);
@@ -100,7 +103,7 @@ export function GlobalSearch() {
         ) : null}
       </div>
       {open && query.length > 1 ? (
-        <div className="absolute left-0 right-0 top-12 z-[60] max-h-96 overflow-y-auto rounded-2xl border border-white/10 bg-[#10201d] p-2 text-white shadow-2xl">
+        <div className={`absolute left-0 right-0 top-12 z-[60] max-h-96 overflow-y-auto rounded-2xl border p-2 text-white shadow-2xl ${adminTheme ? "border-[#d6a85f]/20 bg-[#10162a]" : "border-white/10 bg-[#10201d]"}`}>
           {loading ? (
             <p className="p-3 text-sm text-white/55">Aranıyor…</p>
           ) : result?.error ? (

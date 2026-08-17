@@ -1,5 +1,5 @@
 import "server-only";
-import { Prisma } from "@/generated/prisma/client";
+import { Prisma, type ArtistTeamRole } from "@/generated/prisma/client";
 import { prisma } from "@/server/prisma/prisma";
 import type { DatabaseClient } from "@/server/prisma/database-client";
 import type {
@@ -8,6 +8,23 @@ import type {
 } from "@/features/growth/schemas/growth.schema";
 
 export class GrowthRepository {
+  private managedArtistWhere(userId: string): Prisma.ArtistWhereInput {
+    const roles: ArtistTeamRole[] = ["OWNER", "MANAGER", "EDITOR"];
+    return {
+      OR: [
+        { ownerUserId: userId },
+        {
+          teamMembers: {
+            some: {
+              userId,
+              role: { in: roles },
+            },
+          },
+        },
+      ],
+    };
+  }
+
   async findArtistAccess(organizationId: string, userId: string, artistId: string) {
     return prisma.artist.findFirst({
       where: {
@@ -116,17 +133,38 @@ export class GrowthRepository {
     });
   }
 
-  async listSmartLinks(organizationId: string) {
+  async listSmartLinks(organizationId: string, userId: string, allowAll = false) {
     return prisma.smartLink.findMany({
-      where: { organizationId },
+      where: {
+        organizationId,
+        ...(!allowAll
+          ? {
+              OR: [
+                { ownerUserId: userId },
+                { artist: this.managedArtistWhere(userId) },
+              ],
+            }
+          : {}),
+      },
       orderBy: { createdAt: "desc" },
       include: { artist: true, release: true, platforms: true, _count: { select: { views: true, clicks: true } } },
     });
   }
 
-  async findSmartLinkById(organizationId: string, id: string) {
+  async findSmartLinkById(organizationId: string, id: string, userId: string, allowAll = false) {
     return prisma.smartLink.findFirst({
-      where: { id, organizationId },
+      where: {
+        id,
+        organizationId,
+        ...(!allowAll
+          ? {
+              OR: [
+                { ownerUserId: userId },
+                { artist: this.managedArtistWhere(userId) },
+              ],
+            }
+          : {}),
+      },
       include: {
         artist: true,
         release: true,
@@ -142,6 +180,7 @@ export class GrowthRepository {
     visitorHash: string;
     ipHash: string;
     country?: string;
+    city?: string;
     userAgent?: string;
     referrer?: string;
     utmSource?: string;
@@ -155,6 +194,7 @@ export class GrowthRepository {
         visitorHash: input.visitorHash,
         ipHash: input.ipHash,
         country: input.country ?? null,
+        city: input.city ?? null,
         device: input.userAgent?.slice(0, 120) ?? null,
         browser: input.userAgent?.slice(0, 120) ?? null,
         referrer: input.referrer ?? null,
@@ -271,17 +311,38 @@ export class GrowthRepository {
     });
   }
 
-  async listPreSaves(organizationId: string) {
+  async listPreSaves(organizationId: string, userId: string, allowAll = false) {
     return prisma.preSaveCampaign.findMany({
-      where: { organizationId },
+      where: {
+        organizationId,
+        ...(!allowAll
+          ? {
+              OR: [
+                { ownerUserId: userId },
+                { artist: this.managedArtistWhere(userId) },
+              ],
+            }
+          : {}),
+      },
       orderBy: { createdAt: "desc" },
       include: { artist: true, release: true },
     });
   }
 
-  async findPreSaveById(organizationId: string, id: string) {
+  async findPreSaveById(organizationId: string, id: string, userId: string, allowAll = false) {
     return prisma.preSaveCampaign.findFirst({
-      where: { id, organizationId },
+      where: {
+        id,
+        organizationId,
+        ...(!allowAll
+          ? {
+              OR: [
+                { ownerUserId: userId },
+                { artist: this.managedArtistWhere(userId) },
+              ],
+            }
+          : {}),
+      },
       include: {
         artist: true,
         release: true,

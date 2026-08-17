@@ -38,4 +38,39 @@ describe("external provider adapters", () => {
     expect(result.success).toBe(true);
     if (result.success) expect(result.data.playable).toBe(true);
   });
+
+  it("YouTube Shorts içeriklerini başlık, açıklama veya etiket üzerinden reddeder", () => {
+    for (const field of [
+      { title: "Yeni şarkı #shorts" },
+      { title: "Yeni şarkı", description: "Daha fazlası: /shorts/" },
+      { title: "Yeni şarkı", tags: ["shorts"] },
+    ]) {
+      const result = youtubeProviderService.normalizeMetadata({
+        id: "short-video",
+        snippet: { categoryId: "10", channelTitle: "Sanatçı", ...field },
+        status: { privacyStatus: "public", embeddable: true },
+      });
+      expect(result.success).toBe(false);
+      if (!result.success) expect(result.message).toContain("Shorts");
+    }
+  });
+
+  it("YouTube kategorisi Music olmayan içerikleri reddeder", () => {
+    const result = youtubeProviderService.normalizeMetadata({
+      id: "non-music-video",
+      snippet: { categoryId: "24", title: "Komedi videosu", channelTitle: "Kanal" },
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.message).toContain("müzik kategorisinde");
+  });
+
+  it("Shorts olmayan Music videosunu içe aktarır", () => {
+    const result = youtubeProviderService.normalizeMetadata({
+      id: "music-video",
+      snippet: { categoryId: "10", title: "Yeni şarkı - Official Audio", channelTitle: "Sanatçı" },
+      contentDetails: { duration: "PT3M12S" },
+      status: { privacyStatus: "public", embeddable: true },
+    });
+    expect(result.success).toBe(true);
+  });
 });

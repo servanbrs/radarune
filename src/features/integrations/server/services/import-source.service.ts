@@ -60,7 +60,10 @@ function sourceReference(type: ImportSourceCreateInput["type"], rawUrl: string):
     // provider identity so the import source is not rejected unnecessarily.
     const pathname = url.pathname.replace(/\/+$/, "");
     const channelMatch = /^\/channel\/([^/]+)(?:\/.*)?$/.exec(pathname);
-    if (type === "YOUTUBE_PLAYLIST" && playlistId) return { provider: "YOUTUBE", externalId: playlistId };
+    if (type === "YOUTUBE_PLAYLIST" && playlistId) {
+      const seedVideoId = url.searchParams.get("v");
+      return { provider: "YOUTUBE", externalId: playlistId.startsWith("RD") && seedVideoId ? `mix:${playlistId}:${seedVideoId}` : playlistId };
+    }
     if (type === "YOUTUBE_CHANNEL" && channelMatch?.[1]) return { provider: "YOUTUBE", externalId: channelMatch[1] };
     if (type === "YOUTUBE_CHANNEL") {
       const handleMatch = /^\/@([^/]+)(?:\/.*)?$/.exec(pathname);
@@ -124,7 +127,7 @@ export class ImportSourceService {
     const sourceUrl = parsed.url || (searchType ? `search://${parsed.type.toLowerCase()}?q=${encodeURIComponent(parsed.query ?? parsed.name)}` : "");
     const reference = sourceUrl ? sourceReference(parsed.type, searchType ? (parsed.query ?? parsed.name) : sourceUrl) : null;
     if (!provider || !reference) {
-      throw new Error("Desteklenmeyen import bağlantısı. YouTube kanal için /channel/UC…, /@handle, /user/… veya /c/…; playlist için ?list=… kullanın. Spotify kaynaklarında /artist/, /playlist/ veya /album/ bağlantısı gerekir.");
+      throw new Error("Desteklenmeyen import bağlantısı. YouTube kanal için /channel/UC…, /@handle, /user/… veya /c/…; playlist/Mix için ?list=… içeren watch veya playlist bağlantısı kullanın. Spotify kaynaklarında /artist/, /playlist/ veya /album/ bağlantısı gerekir.");
     }
 
     const credentials = await runtimeProviderCredentials(actor.organizationId, provider);
@@ -341,7 +344,9 @@ export class ImportSourceService {
           detailItems.push(...(details.data.items ?? []));
         }
         const detected = youtubeProviderService.detectNewVideos(detailItems, source.lastCheckedAt ?? undefined);
-        return detected.success ? { ...detected, data: detected.data.slice(0, maxItems) } : detected;
+        if (!detected.success) return detected;
+        const unique = [...new Map(detected.data.map((item) => [item.externalId, item])).values()];
+        return { ...detected, data: unique.slice(0, maxItems) };
       };
 
       if (source.type === "YOUTUBE_SEARCH") {
@@ -354,9 +359,13 @@ export class ImportSourceService {
         const collected = await collectYouTubePages((pageToken) => youtubeProviderService.listChannelVideosByReference(source.providerExternalId!, pageToken, credentials?.apiKey));
         return collected.success ? resolveYouTubeMetadata(collected.data) : collected;
       }
-      // A YouTube Mix is exposed by the Data API as a playlist (`list=RD…`),
-      // so it intentionally follows this same paginated path.
-      const collected = await collectYouTubePages((pageToken) => youtubeProviderService.listPlaylistVideos(source.providerExternalId!, pageToken, credentials?.apiKey));
+      // RD Mix lists may reject playlistItems.list; fall back to the copied
+      // seed video so a valid watch+list link still imports useful content.
+      const [playlistId, seedVideoId] = source.providerExternalId!.startsWith("mix:")
+        ? source.providerExternalId!.split(":").slice(1)
+        : [source.providerExternalId!, null];
+      const collected = await collectYouTubePages((pageToken) => youtubeProviderService.listPlaylistVideos(playlistId, pageToken, credentials?.apiKey));
+      if (!collected.success && seedVideoId) return resolveYouTubeMetadata([{ id: seedVideoId }]);
       return collected.success ? resolveYouTubeMetadata(collected.data) : collected;
     }
 
@@ -471,7 +480,19 @@ export class ImportSourceService {
       if (requested) return requested.id;
     }
     const name = importedArtistName(metadata);
-    const existing = await client.artist.findFirst({ where: { organizationId, name }, select: { id: true, profileImageUrl: true, youtubeProfileUrl: true, spotifyProfileUrl: true } });
+    const normalizeName = (value: string) => value
+      .replace(/\s+-\s+Topic$/i, "")
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLocaleLowerCase("tr-TR")
+      .replace(/ı/g, "i")
+      .replace(/[^a-z0-9]+/g, "")
+      .trim();
+    const normalizedName = normalizeName(name);
+    const existing = (await client.artist.findMany({
+      where: { organizationId },
+      select: { id: true, name: true, profileImageUrl: true, youtubeProfileUrl: true, spotifyProfileUrl: true },
+    })).find((artist) => normalizeName(artist.name) === normalizedName);
     const profileData = metadata.provider === "YOUTUBE"
       ? { youtubeProfileUrl: metadata.externalUrl }
       : { spotifyProfileUrl: metadata.externalUrl };

@@ -6,14 +6,15 @@ import { createSmartLinkSchema, type CreateSmartLinkInput, updateSmartLinkSchema
 import { growthRepository } from "@/features/growth/server/repositories/growth.repository";
 import type { FinanceActorContext } from "@/features/finance/server/services/finance-access.service";
 import { prisma } from "@/server/prisma/prisma";
+import { canAccessAdmin } from "@/features/admin/server/admin-context";
 
 export class SmartLinkService {
   async list(actor: FinanceActorContext) {
-    return growthRepository.listSmartLinks(actor.organizationId);
+    return growthRepository.listSmartLinks(actor.organizationId, actor.userId, canAccessAdmin(actor));
   }
 
   async getById(actor: FinanceActorContext, id: string) {
-    return growthRepository.findSmartLinkById(actor.organizationId, id);
+    return growthRepository.findSmartLinkById(actor.organizationId, id, actor.userId, canAccessAdmin(actor));
   }
 
   async create(actor: FinanceActorContext, input: CreateSmartLinkInput) {
@@ -51,7 +52,7 @@ export class SmartLinkService {
 
   async update(actor: FinanceActorContext, id: string, input: CreateSmartLinkInput) {
     const parsed = updateSmartLinkSchema.parse(input);
-    const current = await growthRepository.findSmartLinkById(actor.organizationId, id);
+    const current = await growthRepository.findSmartLinkById(actor.organizationId, id, actor.userId, canAccessAdmin(actor));
     if (!current) throw new Error("Smart Link bulunamadı.");
     const artist = await growthRepository.findArtistAccess(actor.organizationId, actor.userId, parsed.artistId);
     if (!artist) throw new Error("Bu sanatçı için Smart Link düzenleme yetkiniz yok.");
@@ -70,6 +71,8 @@ export class SmartLinkService {
   }
 
   async remove(actor: FinanceActorContext, id: string) {
+    const current = await this.getById(actor, id);
+    if (!current) throw new Error("Smart Link bulunamadı.");
     const result = await growthRepository.deleteSmartLink(actor.organizationId, id);
     if (result.count !== 1) throw new Error("Smart Link bulunamadı.");
     await auditLogService.create({ organizationId: actor.organizationId, actorUserId: actor.userId, action: "SMART_LINK_DELETED", entityType: "SmartLink", entityId: id });

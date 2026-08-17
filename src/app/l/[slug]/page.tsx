@@ -27,6 +27,15 @@ function platformLinkHref(slug: string, platformId: string, platform: string) {
   return `/l/${slug}/go/${platformId}?${params.toString()}`;
 }
 
+function normalizedGeoHeader(value: string | null) {
+  if (!value) return undefined;
+  try {
+    return decodeURIComponent(value).trim().slice(0, 100) || undefined;
+  } catch {
+    return value.trim().slice(0, 100) || undefined;
+  }
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const smartLink = await growthRepository.findSmartLinkBySlug(slug);
@@ -54,11 +63,15 @@ export default async function SmartLinkPublicPage({ params, searchParams }: { pa
   const country = ["cf-ipcountry", "x-vercel-ip-country", "x-country-code", "x-forwarded-country"]
     .map((key) => headerList.get(key)?.trim().toUpperCase())
     .find((value) => value && /^[A-Z]{2}$/.test(value));
+  const city = ["cf-ipcity", "x-vercel-ip-city", "x-city"]
+    .map((key) => normalizedGeoHeader(headerList.get(key)))
+    .find(Boolean);
   await smartLinkAnalyticsService.recordView({
     organizationId: smartLink.organizationId,
     smartLinkId: smartLink.id,
     ip: headerList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "0.0.0.0",
     ...(country ? { country } : {}),
+    ...(city ? { city } : {}),
     ...(userAgent ? { userAgent } : {}),
     ...(referrer ? { referrer } : {}),
     ...(utmSource ? { utmSource } : {}),

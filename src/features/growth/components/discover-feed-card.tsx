@@ -268,11 +268,6 @@ export function DiscoverFeedCard({
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/5 to-black/20" />
           ) : null}
 
-          <div className="absolute left-5 top-5 z-10 inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/60 px-3 py-2 text-xs font-semibold text-white backdrop-blur-xl">
-            <span className="flex size-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(52,211,153,0.75)]" />
-            {playing ? "Otomatik oynatılıyor" : "Oynatmak için dokun"}
-          </div>
-
           {item.provider === "YOUTUBE" ? (
             <button
               aria-label={muted ? "Sesi aç" : "Sesi kapat"}

@@ -47,7 +47,7 @@ export default async function ArtistsPage() {
               </p>
             ) : (
               artists.map((artist) => (
-                <Link className="group block rounded-[1.5rem] border bg-white/70 p-5 transition hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" href={`/dashboard/artists/${artist.id}/profile`} key={artist.id}>
+                <Link className="group block rounded-[1.5rem] border bg-white/70 p-5 transition hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" href={`/artist/${artist.slug}`} key={artist.id}>
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <h3 className="text-lg font-semibold">{artist.name}</h3>
@@ -63,7 +63,7 @@ export default async function ArtistsPage() {
                   <p className="mt-2 text-sm text-muted">
                     Label bağlantısı: {artist._count.labelLinks}
                   </p>
-                  <span className="mt-4 inline-flex items-center text-sm font-semibold text-accent">Profili görüntüle →</span>
+                  <span className="mt-4 inline-flex items-center text-sm font-semibold text-accent">Herkese açık profili görüntüle →</span>
                 </Link>
               ))
             )}

@@ -4,9 +4,14 @@ import { artistProfileService } from "@/features/artist/server/services/artist-p
 
 export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { organization } = await authSessionService.getDashboardContext();
+    const { organization, user } = await authSessionService.getDashboardContext();
     const { id } = await context.params;
-    const artist = await artistProfileService.get(organization.organization.id, id);
+    const artist = await artistProfileService.getEditable({
+      organizationId: organization.organization.id,
+      userId: user.id,
+      systemRole: user.systemRole,
+      artistId: id,
+    });
     if (!artist) return NextResponse.json({ error: "Sanatçı bulunamadı." }, { status: 404 });
     return NextResponse.json(artist);
   } catch (error) {

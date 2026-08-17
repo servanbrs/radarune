@@ -2,10 +2,21 @@ import Link from "next/link";
 import { ArrowUpRight, ExternalLink, Pencil, Sparkles } from "lucide-react";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { artistService } from "@/features/artist/server/services/artist.service";
+import { artistProfileService } from "@/features/artist/server/services/artist-profile.service";
 
 export default async function ArtistProfilePage() {
-  const { organization } = await authSessionService.getDashboardContext();
-  const artists = await artistService.listByOrganizationId(organization.organization.id);
+  const { organization, user } = await authSessionService.getDashboardContext();
+  const organizationId = organization.organization.id;
+  const [allArtists, editableArtistIds] = await Promise.all([
+    artistService.listByOrganizationId(organizationId),
+    artistProfileService.listEditableIds({
+      organizationId,
+      userId: user.id,
+      systemRole: user.systemRole,
+    }),
+  ]);
+  const editableArtistIdSet = new Set(editableArtistIds);
+  const artists = allArtists.filter((artist) => editableArtistIdSet.has(artist.id));
   return (
     <main className="page-shell">
       <section className="relative overflow-hidden rounded-[2rem] border border-black/10 bg-[#0a1715] p-6 text-white shadow-[0_24px_90px_rgba(4,15,13,0.18)] md:p-8">

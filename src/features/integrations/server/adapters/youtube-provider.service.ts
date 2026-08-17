@@ -12,6 +12,8 @@ type YouTubeItem = {
   id?: string | { videoId?: string; channelId?: string };
   snippet?: {
     title?: string;
+    description?: string;
+    tags?: string[];
     channelTitle?: string;
     publishedAt?: string;
     categoryId?: string;
@@ -51,10 +53,16 @@ function videoId(item: YouTubeItem): string | null {
 }
 
 function isShortVideo(item: YouTubeItem) {
-  // The Data API does not expose a dedicated `isShorts` field. Shorts are
-  // reliably marked in titles/descriptions by YouTube, so reject those
-  // markers while keeping ordinary short music tracks (single releases).
-  return /(^|[\s#])shorts?(?=\b|[\s#]|$)/i.test(item.snippet?.title ?? "");
+  // The Data API does not expose a dedicated `isShorts` field. In an API
+  // response the reliable signals are the explicit Shorts markers creators
+  // put in the title, description or tags. Do not use duration as a proxy:
+  // legitimate music singles and teasers can also be under three minutes.
+  const searchableText = [
+    item.snippet?.title ?? "",
+    item.snippet?.description ?? "",
+    ...(item.snippet?.tags ?? []),
+  ].join(" ");
+  return /(^|[\s#/_-])shorts?(?=\b|[\s#/_-]|$)/i.test(searchableText);
 }
 
 export class YouTubeProviderService implements ExternalProviderAdapter {
@@ -176,9 +184,10 @@ export class YouTubeProviderService implements ExternalProviderAdapter {
     if (isShortVideo(item)) {
       return this.normalizeError(new Error("YouTube Shorts içerikleri içe aktarılmaz."));
     }
-    // YouTube category 10 is Music. Do not import general entertainment,
-    // vlog or gaming videos into Radarune's music discovery catalog.
-    if (item.snippet?.categoryId && item.snippet.categoryId !== "10") {
+    // YouTube category 10 is Music. The category is required here because
+    // search/playlist sources can contain non-music videos even when the
+    // source was created as a music import.
+    if (item.snippet?.categoryId !== "10") {
       return this.normalizeError(new Error("Bu YouTube içeriği müzik kategorisinde değil."));
     }
     const id = videoId(item);

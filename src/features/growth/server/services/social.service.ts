@@ -148,6 +148,10 @@ export class SocialService {
     return socialRepository.findPlaylistByIdForViewer(id, userId);
   }
 
+  async getOwnedPlaylistById(userId: string, id: string) {
+    return socialRepository.findOwnedPlaylistById(id, userId);
+  }
+
   async report(actor: FinanceActorContext, input: unknown) {
     const parsed = contentReportSchema.parse(input);
     return socialRepository.reportContent({

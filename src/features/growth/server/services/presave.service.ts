@@ -12,14 +12,15 @@ import {
 import { growthRepository } from "@/features/growth/server/repositories/growth.repository";
 import type { FinanceActorContext } from "@/features/finance/server/services/finance-access.service";
 import { prisma } from "@/server/prisma/prisma";
+import { canAccessAdmin } from "@/features/admin/server/admin-context";
 
 export class PreSaveService {
   async list(actor: FinanceActorContext) {
-    return growthRepository.listPreSaves(actor.organizationId);
+    return growthRepository.listPreSaves(actor.organizationId, actor.userId, canAccessAdmin(actor));
   }
 
   async getById(actor: FinanceActorContext, id: string) {
-    return growthRepository.findPreSaveById(actor.organizationId, id);
+    return growthRepository.findPreSaveById(actor.organizationId, id, actor.userId, canAccessAdmin(actor));
   }
 
   async create(actor: FinanceActorContext, input: CreatePreSaveCampaignInput) {

@@ -5,6 +5,7 @@ import { dashboardService } from "@/features/dashboard/server/services/dashboard
 import { labelService } from "@/features/label/server/services/label.service";
 import { rbacService } from "@/features/authorization/server/rbac";
 import { releaseAccessService } from "@/features/releases/server/services/release-access.service";
+import { artistProfileService } from "@/features/artist/server/services/artist-profile.service";
 
 export default async function DashboardPage() {
   const { organization, user } =
@@ -21,17 +22,20 @@ export default async function DashboardPage() {
     name: user.name,
   };
 
-  const [labels, artists, dashboard, manageableArtistIds] = await Promise.all([
+  const [labels, allArtists, dashboard, manageableArtistIds, editableArtistIds] = await Promise.all([
     labelService.listByOrganizationId(organizationId),
     artistService.listByOrganizationId(organizationId),
     dashboardService.getDashboard(organizationId),
     releaseAccessService.listManageableArtistIds(actor),
+    artistProfileService.listEditableIds(actor),
   ]);
+  const editableArtistIdSet = new Set(editableArtistIds);
+  const artists = allArtists.filter((artist) => editableArtistIdSet.has(artist.id));
 
   return (
     <DashboardOverview
       artists={artists}
-      artistsCount={artists.length}
+      artistsCount={allArtists.length}
       canManageArtists={rbacService.hasPermission(organization.role, "artist:update")}
       data={dashboard}
       labelsCount={labels.length}

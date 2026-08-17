@@ -27,9 +27,9 @@ type Props = {
 };
 
 export function AdminWorldMap({ countries }: Props) {
-  const projection = geoNaturalEarth1().fitSize([1000, 500], {
-    type: "Sphere",
-  } as never);
+  const projection = geoNaturalEarth1()
+    .scale(185)
+    .translate([500, 250]);
   const path = geoPath(projection);
   const geography = feature(world as never, world.objects.countries as never) as unknown as {
     features: Array<Feature<Geometry, GeoJsonProperties>>;
@@ -41,8 +41,8 @@ export function AdminWorldMap({ countries }: Props) {
   );
 
   return (
-    <div className="relative mt-6 overflow-hidden rounded-[22px] border border-white/10 bg-[#101b19]">
-      <svg aria-label="Gerçek dünya ülke aktivite haritası" className="block h-auto w-full" viewBox="0 0 1000 500" role="img">
+    <div className="relative mt-6 overflow-hidden rounded-[22px] border border-white/10 bg-[#101827]">
+      <svg aria-label="Gerçek dünya ülke aktivite haritası" className="block h-[360px] w-full sm:h-[430px]" preserveAspectRatio="xMidYMid meet" viewBox="0 0 1000 500" role="img">
         <path d={path({ type: "Sphere" }) ?? undefined} fill="#132320" stroke="#39504b" strokeWidth="2" />
         {geography.features.map((country, index) => {
           const code = isoNumeric[String(country.id ?? "")];
@@ -58,10 +58,10 @@ export function AdminWorldMap({ countries }: Props) {
             <path
               key={`country-${String(country.id ?? "unknown")}-${index}`}
               d={path(country) ?? undefined}
-              fill={activity ? `rgba(52, 211, 153, ${intensity})` : "#263633"}
-              stroke="#405650"
+              fill={activity ? `rgba(214, 168, 95, ${intensity})` : "#263247"}
+              stroke="#536078"
               strokeWidth="0.7"
-              className="transition-colors hover:fill-emerald-300"
+              className="transition-colors hover:fill-[#e5bd7b]"
             >
               <title>{countryLabel + activityLabel}</title>
             </path>

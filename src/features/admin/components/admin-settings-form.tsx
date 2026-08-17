@@ -47,7 +47,7 @@ function getNumberValue(
 }
 
 const inputClassName =
-  "mt-2 w-full rounded-xl border border-line bg-white px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/10";
+  "mt-2 w-full rounded-xl border border-line bg-surface-strong px-4 py-3 text-sm text-foreground outline-none placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/10";
 
 export function AdminSettingsForm({
   settings,
@@ -429,7 +429,7 @@ export function AdminSettingsForm({
       </section>
 
       <section className="panel sticky bottom-3 z-20 grid gap-4 p-4 sm:grid-cols-[1fr_auto] sm:items-end">
-        <label className="text-sm font-medium">
+        <label className="text-sm font-medium text-foreground">
           Değişiklik sebebi
           <input
             className={inputClassName}

@@ -4,9 +4,14 @@ import { artistProfileService } from "@/features/artist/server/services/artist-p
 import { ArtistProfileEditor } from "@/features/artist/components/artist-profile-editor";
 
 export default async function ArtistProfileEditorPage({ params }: { params: Promise<{ id: string }> }) {
-  const { organization } = await authSessionService.getDashboardContext();
+  const { organization, user } = await authSessionService.getDashboardContext();
   const { id } = await params;
-  const artist = await artistProfileService.get(organization.organization.id, id);
+  const artist = await artistProfileService.getEditable({
+    organizationId: organization.organization.id,
+    userId: user.id,
+    systemRole: user.systemRole,
+    artistId: id,
+  });
   if (!artist) notFound();
   return <ArtistProfileEditor artist={artist} />;
 }

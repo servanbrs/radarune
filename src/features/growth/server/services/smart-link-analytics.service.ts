@@ -8,6 +8,7 @@ export class SmartLinkAnalyticsService {
     smartLinkId: string;
     ip: string;
     country?: string;
+    city?: string;
     userAgent?: string;
     referrer?: string;
     utmSource?: string;
@@ -23,6 +24,7 @@ export class SmartLinkAnalyticsService {
       ipHash,
       ...(input.userAgent ? { userAgent: input.userAgent } : {}),
       ...(input.country ? { country: input.country } : {}),
+      ...(input.city ? { city: input.city } : {}),
       ...(input.referrer ? { referrer: input.referrer } : {}),
       ...(input.utmSource ? { utmSource: input.utmSource } : {}),
       ...(input.utmMedium ? { utmMedium: input.utmMedium } : {}),
