@@ -278,7 +278,7 @@ export function SystemHealthDashboard({
   useEffect(() => {
     const intervalId = window.setInterval(() => {
       void refresh();
-    }, 30_000);
+    }, 5 * 60 * 1000);
 
     return () => {
       window.clearInterval(intervalId);

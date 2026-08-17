@@ -8,6 +8,14 @@ import {
 
 const emptyToUndefined = (value: unknown) => (value === "" ? undefined : value);
 
+const sourceUrlSchema = z.preprocess(
+  emptyToUndefined,
+  z.string().trim().max(1024, "Bağlantı çok uzun.").url("Geçerli bir bağlantı girin.").refine(
+    (value) => value.startsWith("https://"),
+    "Yalnızca HTTPS bağlantıları kullanılabilir.",
+  ).optional(),
+);
+
 export const isrcSchema = z
   .preprocess(emptyToUndefined, z.string().regex(/^[A-Z]{2}[A-Z0-9]{3}[0-9]{7}$/, "ISRC biçimi geçerli değil. Örnek: TRABC2400001").optional());
 
@@ -39,6 +47,7 @@ export const trackInputSchema = z
     isrc: isrcSchema,
     durationMs: z.coerce.number().int().positive().optional(),
     lyrics: z.preprocess(emptyToUndefined, z.string().max(20000).optional()),
+    sourceUrl: sourceUrlSchema,
     previewStartSeconds: z.coerce.number().int().min(0).optional(),
     artists: z.array(releaseArtistInputSchema).min(1, "Her parçada en az bir sanatçı olmalıdır."),
     contributors: z.array(contributorInputSchema).default([]),

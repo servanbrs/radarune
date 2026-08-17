@@ -139,11 +139,11 @@ export class YouTubeProviderService implements ExternalProviderAdapter {
     }, apiKeyOverride);
   }
 
-  async getVideo(videoIdValue: string) {
+  async getVideo(videoIdValue: string, apiKeyOverride?: string) {
     return this.request("videos", {
       part: "snippet,contentDetails,status",
       id: videoIdValue,
-    });
+    }, apiKeyOverride);
   }
 
   async getVideos(videoIds: string[], apiKeyOverride?: string) {

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- Artist images may be hosted by external providers. */
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";

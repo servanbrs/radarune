@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- Public artwork is served through a runtime API route. */
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -50,7 +51,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${track.title} · ${artists || "Radarune"} | Radarune`,
     description: `${artists || "Radarune sanatçısı"} tarafından yayınlanan ${track.title} şarkısını Radarune'da dinle.`,
     alternates: { canonical: `/track/${track.id}` },
-    openGraph: { title: `${track.title} | Radarune`, description: `${artists || "Radarune"} · Radarune'da dinle`, images: [`/api/public/v1/releases/${track.release.id}/artwork`] },
+    openGraph: { title: `${track.title} | Radarune`, description: `${artists || "Radarune"} · Radarune'da dinle`, images: [`/api/public/v1/releases/${track.release.id}/artwork?v=2`] },
   };
 }
 
@@ -66,7 +67,7 @@ export default async function PublicTrackPage({ params }: Props) {
         <section className="overflow-hidden rounded-[2.4rem] bg-[#071612] text-white shadow-[0_30px_100px_rgba(4,24,20,0.25)]">
           <div className="grid gap-8 p-6 sm:p-10 md:grid-cols-[minmax(240px,360px)_1fr] md:items-center">
             <div className="aspect-square overflow-hidden rounded-[2rem] bg-[#142521] shadow-2xl">
-              {track.release.artworkUploadId ? <img alt={`${track.title} kapak görseli`} className="size-full object-cover" src={`/api/public/v1/releases/${track.release.id}/artwork`} /> : <div className="grid size-full place-items-center text-white/45">Kapak görseli yok</div>}
+              {track.release.artworkUploadId ? <img alt={`${track.title} kapak görseli`} className="size-full object-cover" src={`/api/public/v1/releases/${track.release.id}/artwork?v=2`} /> : <div className="grid size-full place-items-center text-white/45">Kapak görseli yok</div>}
             </div>
             <div className="min-w-0">
               <p className="text-xs font-black uppercase tracking-[0.25em] text-[#54e7c2]">RADARUNE ŞARKI SAYFASI</p>

@@ -99,6 +99,10 @@ const releaseDetailInclude = {
         },
       },
       uploads: true,
+      externalMediaSources: {
+        orderBy: { updatedAt: "desc" as const },
+        take: 1,
+      },
       validationIssues: {
         where: {
           resolvedAt: null,
@@ -557,6 +561,7 @@ export class ReleaseRepository {
       isrc: input.isrc ?? null,
       durationMs: input.durationMs ?? null,
       lyrics: input.lyrics ?? null,
+      sourceUrl: input.sourceUrl ?? null,
       previewStartSeconds: input.previewStartSeconds ?? null,
     };
   }

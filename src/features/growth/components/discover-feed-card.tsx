@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Heart,
   Maximize2,
@@ -91,11 +92,12 @@ export function DiscoverFeedCard({
   const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(inlinePlaying);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const router = useRouter();
 
   const artworkUrl =
     item.thumbnailUrl ||
     (item.releaseId
-      ? `/api/public/v1/releases/${item.releaseId}/artwork`
+      ? `/api/public/v1/releases/${item.releaseId}/artwork?v=2`
       : null);
 
   const youtubeId = useMemo(
@@ -138,7 +140,7 @@ export function DiscoverFeedCard({
 
   async function likeItem() {
     if (!isAuthenticated) {
-      window.location.assign("/sign-in?next=/discover");
+      router.push("/sign-in?next=/discover");
       return;
     }
 

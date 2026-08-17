@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- Provider artist images are arbitrary remote URLs. */
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -27,7 +28,7 @@ export function ArtistApplicationForm() {
       try {
         const endpoint = provider === "spotify" ? "/api/integrations/spotify/artists" : "/api/integrations/artists/search";
         const response = await fetch(`${endpoint}?query=${encodeURIComponent(stageName.trim())}${provider === "spotify" ? "" : `&provider=${provider}`}`, { cache: "no-store", signal: controller.signal });
-        const payload = (await response.json()) as { items?: ExternalArtist[]; error?: string };
+        const payload = (await response.json()) as { items?: ExternalArtist[]; error?: string; code?: string };
         if (!response.ok) throw new Error(payload.error ?? "Spotify sanatçıları aranamadı.");
         setResults(payload.items ?? []);
       } catch (error) {

@@ -276,7 +276,7 @@ const getRadaruneMostLiked = unstable_cache(
         thumbnailUrl:
           item.thumbnailUrl ??
           (item.releaseId
-            ? `/api/public/v1/releases/${item.releaseId}/artwork`
+            ? `/api/public/v1/releases/${item.releaseId}/artwork?v=2`
             : null),
         externalUrl: item.externalUrl,
         embedUrl: item.embedUrl,
@@ -346,7 +346,7 @@ const getRadaruneMostDiscussed = unstable_cache(
         thumbnailUrl:
           item.thumbnailUrl ??
           (item.releaseId
-            ? `/api/public/v1/releases/${item.releaseId}/artwork`
+            ? `/api/public/v1/releases/${item.releaseId}/artwork?v=2`
             : null),
         externalUrl: item.externalUrl,
         embedUrl: item.embedUrl,
@@ -409,7 +409,7 @@ const getRadaruneNewReleases = unstable_cache(
           thumbnailUrl:
             item.thumbnailUrl ??
             (item.releaseId
-              ? `/api/public/v1/releases/${item.releaseId}/artwork`
+              ? `/api/public/v1/releases/${item.releaseId}/artwork?v=2`
               : null),
           externalUrl: item.externalUrl,
           embedUrl: item.embedUrl,

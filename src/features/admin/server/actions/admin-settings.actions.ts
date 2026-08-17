@@ -133,6 +133,21 @@ export async function updateAdminSettingsAction(
       reason,
     },
     {
+      key: "REWARD_EMAIL_VERIFICATION_REQUIRED",
+      value: getBoolean(formData, "rewardEmailVerificationRequired"),
+      reason,
+    },
+    {
+      key: "REWARD_MIN_ACTIVE_DAYS",
+      value: Math.round(getNumber(formData, "rewardMinActiveDays")),
+      reason,
+    },
+    {
+      key: "REWARD_REAL_INTERACTION_REQUIRED",
+      value: getBoolean(formData, "rewardRealInteractionRequired"),
+      reason,
+    },
+    {
       key: "MAINTENANCE_MODE_ENABLED",
       value: getBoolean(
         formData,

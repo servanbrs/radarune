@@ -13,6 +13,12 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     ".radarune-backups/**",
+    ".backups/**",
+    ".discover-backup-*/**",
+    ".growth-header-backup-*/**",
+    ".lists-v2-backup-*/**",
+    ".youtube-admin-credential-backup-*/**",
+    ".youtube-typescript-fix-*/**",
   ]),
 ]);
 

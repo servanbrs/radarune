@@ -51,6 +51,17 @@ export function TrackEditor({
         <Field htmlFor={`tracks.${index}.isrc`} label="ISRC">
           <Input id={`tracks.${index}.isrc`} {...register(`tracks.${index}.isrc`)} />
         </Field>
+        <Field htmlFor={`tracks.${index}.sourceUrl`} label="Müzik bağlantısı">
+          <Input
+            id={`tracks.${index}.sourceUrl`}
+            placeholder="YouTube, Spotify, Apple Music veya Deezer"
+            type="url"
+            {...register(`tracks.${index}.sourceUrl`)}
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            YouTube/Spotify yapılandırılmışsa metadata ve oynatma otomatik bağlanır; diğer izinli linkler güvenli şekilde saklanır.
+          </p>
+        </Field>
         <Field htmlFor={`tracks.${index}.primaryArtist`} label="Primary artist">
           <Select id={`tracks.${index}.primaryArtist`} {...register(`tracks.${index}.artists.0.artistId`)}>
             <option value="">Sanatçı seç</option>

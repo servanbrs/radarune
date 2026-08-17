@@ -170,6 +170,13 @@ if (!parsedEnv.success) {
 
 export const env = parsedEnv.data;
 
+/**
+ * Webhook payload secrets use the shared platform key by default. A separate
+ * key is supported for installations that need to isolate webhook ciphertext,
+ * but whichever key is selected must remain stable after deployment.
+ */
+export const platformEncryptionKey = env.ENCRYPTION_KEY ?? env.WEBHOOK_ENCRYPTION_KEY;
+
 const productionUrl = (value: string | undefined) => {
   if (!value) return false;
   try {
@@ -188,6 +195,7 @@ export function getProductionEnvironmentIssues(): string[] {
   for (const [key, value] of Object.entries({
     ENCRYPTION_KEY: env.ENCRYPTION_KEY,
     CONFIGURATION_ENCRYPTION_KEY: env.CONFIGURATION_ENCRYPTION_KEY ?? env.ENCRYPTION_KEY,
+    WEBHOOK_ENCRYPTION_KEY: platformEncryptionKey,
     SESSION_ENCRYPTION_KEY: env.SESSION_ENCRYPTION_KEY ?? env.BETTER_AUTH_SECRET,
     INTERNAL_WORKER_SECRET: env.INTERNAL_WORKER_SECRET ?? env.CRON_SECRET,
     CRON_SECRET: env.CRON_SECRET,

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- Public artwork is served through a runtime API route. */
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
@@ -50,7 +51,7 @@ export default async function PublicReleaseSlugPage({ params }: { params: Promis
         <section className="overflow-hidden rounded-[2rem] border border-black/[0.08] bg-white/85 shadow-xl backdrop-blur-xl">
           <div className="grid gap-7 p-6 sm:p-9 md:grid-cols-[260px_minmax(0,1fr)] md:items-center">
             <div className="aspect-square overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-200 to-slate-900 shadow-lg">
-              {release.artworkUploadId ? <img alt={`${release.title} kapak görseli`} className="size-full object-cover" src={`/api/public/v1/releases/${release.id}/artwork`} /> : <div className="grid size-full place-items-center text-sm text-white/70">Kapak görseli yok</div>}
+              {release.artworkUploadId ? <img alt={`${release.title} kapak görseli`} className="size-full object-cover" src={`/api/public/v1/releases/${release.id}/artwork?v=2`} /> : <div className="grid size-full place-items-center text-sm text-white/70">Kapak görseli yok</div>}
             </div>
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-700">Radarune yayın</p>

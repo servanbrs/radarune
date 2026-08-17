@@ -1,15 +1,14 @@
 import "server-only";
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
-import { env } from "@/lib/env";
+import { platformEncryptionKey } from "@/lib/env";
 
 const IV_LENGTH = 12;
 
 function getKey() {
-  const source = env.ENCRYPTION_KEY ?? env.WEBHOOK_ENCRYPTION_KEY;
-  if (!source) {
+  if (!platformEncryptionKey) {
     throw new Error("Platform şifreleme anahtarı yapılandırılmamış.");
   }
-  return createHash("sha256").update(source).digest();
+  return createHash("sha256").update(platformEncryptionKey).digest();
 }
 
 export function encryptPlatformSecret(value: string) {

@@ -28,7 +28,13 @@ type SpotifyArtist = {
   popularity?: number;
 };
 
-type SpotifyResponse = { items?: SpotifyTrack[]; tracks?: { items?: Array<{ track?: SpotifyTrack }> }; artists?: { items?: SpotifyArtist[] } };
+type SpotifyResponse = {
+  items?: Array<SpotifyTrack | { track?: SpotifyTrack }>;
+  next?: string | null;
+  total?: number;
+  tracks?: { items?: Array<{ track?: SpotifyTrack } | SpotifyTrack> };
+  artists?: { items?: SpotifyArtist[] };
+};
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -102,11 +108,11 @@ export class SpotifyProviderService implements ExternalProviderAdapter {
   }
 
   async getArtist(id: string, credentialsOverride?: { clientId?: string; clientSecret?: string }) { return this.getResource(`artists/${encodeURIComponent(id)}`, credentialsOverride); }
-  async getArtistAlbums(id: string, credentialsOverride?: { clientId?: string; clientSecret?: string }) { return this.getResource(`artists/${encodeURIComponent(id)}/albums?limit=50`, credentialsOverride); }
+  async getArtistAlbums(id: string, credentialsOverride?: { clientId?: string; clientSecret?: string }, offset = 0) { return this.getResource(`artists/${encodeURIComponent(id)}/albums?limit=50&offset=${offset}`, credentialsOverride); }
   async getAlbum(id: string, credentialsOverride?: { clientId?: string; clientSecret?: string }) { return this.getResource(`albums/${encodeURIComponent(id)}`, credentialsOverride); }
   async getTrack(id: string, credentialsOverride?: { clientId?: string; clientSecret?: string }) { return this.getResource(`tracks/${encodeURIComponent(id)}`, credentialsOverride); }
   async getPlaylist(id: string, credentialsOverride?: { clientId?: string; clientSecret?: string }) { return this.getResource(`playlists/${encodeURIComponent(id)}`, credentialsOverride); }
-  async listPlaylistTracks(id: string, credentialsOverride?: { clientId?: string; clientSecret?: string }) { return this.getResource(`playlists/${encodeURIComponent(id)}/tracks?limit=100`, credentialsOverride); }
+  async listPlaylistTracks(id: string, credentialsOverride?: { clientId?: string; clientSecret?: string }, offset = 0) { return this.getResource(`playlists/${encodeURIComponent(id)}/tracks?limit=100&offset=${offset}`, credentialsOverride); }
 
   async searchTracks(query: string, credentialsOverride?: { clientId?: string; clientSecret?: string }) {
     return this.getResource(`search?q=${encodeURIComponent(query)}&type=track&limit=50`, credentialsOverride);

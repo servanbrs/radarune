@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowDown,
   ChevronLeft,
@@ -32,7 +33,7 @@ function artworkUrl(item: DiscoverFeedItem | null) {
   if (!item) return null;
 
   if (item.sourceType === "RADARUNE" && item.releaseId) {
-    return `/api/public/v1/releases/${item.releaseId}/artwork`;
+    return `/api/public/v1/releases/${item.releaseId}/artwork?v=2`;
   }
 
   return item.thumbnailUrl;
@@ -56,6 +57,7 @@ export function DiscoverFeedClient({
   });
 
   const dragStart = useRef<number | null>(null);
+  const router = useRouter();
 
   const dragStartY = useRef<number | null>(null);
   const randomizedOnEntry = useRef(false);
@@ -148,7 +150,7 @@ export function DiscoverFeedClient({
     if (!activeItem) return;
 
     if (!isAuthenticated) {
-      window.location.assign("/sign-in?next=/discover");
+      router.push("/sign-in?next=/discover");
       return;
     }
 
@@ -257,10 +259,8 @@ export function DiscoverFeedClient({
   }
 
   function playItem(item: DiscoverFeedItem) {
-    /*
-     * Alt web player kaldırıldı.
-     * Oynatma yalnızca keşfet kartındaki iframe üzerinden yapılır.
-     */
+    // Video olmayan Radarune yayınları kart içindeki yerel audio oynatıcıdan
+    // çalınır; YouTube/Spotify içerikleri ise kendi embed oynatıcısını açar.
     setInlinePlayingId(item.id);
 
     if (item.trackId) {
