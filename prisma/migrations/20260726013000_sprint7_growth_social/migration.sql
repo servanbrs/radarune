@@ -49,7 +49,7 @@ CREATE TABLE `SmartLinkPlatform` (
 
     INDEX `SmartLinkPlatform_organizationId_platform_idx`(`organizationId`, `platform`),
     INDEX `SmartLinkPlatform_smartLinkId_sortOrder_idx`(`smartLinkId`, `sortOrder`),
-    UNIQUE INDEX `SmartLinkPlatform_smartLinkId_platform_url_key`(`smartLinkId`, `platform`, `url`),
+    UNIQUE INDEX `SmartLinkPlatform_smartLinkId_platform_url_key`(`smartLinkId`, `platform`, `url`(512)),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
