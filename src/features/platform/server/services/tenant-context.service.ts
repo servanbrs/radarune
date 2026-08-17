@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { headers } from "next/headers";
 import { unstable_cache } from "next/cache";
 import { auth } from "@/features/authentication/server/auth";
@@ -24,26 +25,49 @@ const getCachedDefaultTenant = () =>
     { revalidate: 60 },
   )();
 
-export class TenantContextService {
-  async resolveFromRequest() {
-    const headerList = await headers();
-    const host = normalizeHost(headerList.get("x-forwarded-host") ?? headerList.get("host"));
-    if (host) {
-      const byHost = await getCachedTenantByHost(host);
-      if (byHost) return byHost;
-    }
+// `unstable_cache` caches completed results, but concurrent requests can still
+// start the same slow database query before the first one finishes. Keep one
+// in-flight lookup per key so a slow database never turns one page visit into
+// a burst of identical pool consumers.
+const inFlightLookups = new Map<string, Promise<unknown>>();
 
-    // Local development has no tenant host header. Use the first active
-    // workspace so branding (especially the uploaded favicon) remains visible
-    // at localhost without requiring a signed-in session.
-    if (!host && process.env.NODE_ENV !== "production") {
-      return getCachedDefaultTenant();
-    }
+function shareInFlight<T>(key: string, lookup: () => Promise<T>) {
+  const existing = inFlightLookups.get(key) as Promise<T> | undefined;
+  if (existing) return existing;
 
-    const session = await auth.api.getSession({ headers: headerList });
-    if (!session) return null;
+  const pending = lookup().finally(() => {
+    if (inFlightLookups.get(key) === pending) inFlightLookups.delete(key);
+  });
+  inFlightLookups.set(key, pending);
+  return pending;
+}
+
+const resolveTenantForRequest = cache(async () => {
+  const headerList = await headers();
+  const host = normalizeHost(headerList.get("x-forwarded-host") ?? headerList.get("host"));
+
+  if (host) {
+    const byHost = await shareInFlight(`host:${host}`, () => getCachedTenantByHost(host));
+    if (byHost) return byHost;
+  }
+
+  // Local development has no tenant host header. Use the first active
+  // workspace so branding remains visible without a signed-in session.
+  if (!host && process.env.NODE_ENV !== "production") {
+    return shareInFlight("default", getCachedDefaultTenant);
+  }
+
+  const session = await auth.api.getSession({ headers: headerList });
+  if (!session) return null;
+  return shareInFlight(`membership:${session.user.id}`, async () => {
     const membership = await tenantRepository.findByMembership(session.user.id);
     return membership?.organization ?? null;
+  });
+});
+
+export class TenantContextService {
+  async resolveFromRequest() {
+    return resolveTenantForRequest();
   }
 
   async requireForRequest() {

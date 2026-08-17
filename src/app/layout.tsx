@@ -101,6 +101,20 @@ const getCachedSeoSettings = (organizationId?: string) =>
     { revalidate: 60 },
   )();
 
+const seoInFlight = new Map<string, Promise<Awaited<ReturnType<typeof getCachedSeoSettings>>>>();
+
+function getSharedSeoSettings(organizationId?: string) {
+  const key = organizationId ?? "default";
+  const existing = seoInFlight.get(key);
+  if (existing) return existing;
+
+  const pending = getCachedSeoSettings(organizationId).finally(() => {
+    if (seoInFlight.get(key) === pending) seoInFlight.delete(key);
+  });
+  seoInFlight.set(key, pending);
+  return pending;
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   let tenant: Awaited<ReturnType<typeof tenantContextService.resolveFromRequest>> = null;
   try {
@@ -138,7 +152,7 @@ export async function generateMetadata(): Promise<Metadata> {
   // temporarily unreachable. Tenant-specific SEO values are an enhancement;
   // the safe defaults still produce valid metadata and allow deployment.
   try {
-    const seo = await getCachedSeoSettings(organizationId);
+    const seo = await getSharedSeoSettings(organizationId);
     titleValue = seo.title;
     descriptionValue = seo.description;
     verificationValue = seo.verification;
