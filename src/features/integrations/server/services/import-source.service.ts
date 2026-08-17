@@ -251,10 +251,14 @@ export class ImportSourceService {
         : null;
       let duplicateCount = 0;
       let importedCount = 0;
+      let pendingReviewCount = 0;
       let failedCount = 0;
       let skippedCount = 0;
       for (const item of youtubeMetadata) {
-        const reviewableYouTubeCollection = source.type === "YOUTUBE_CHANNEL" || source.type === "YOUTUBE_PLAYLIST";
+        // Search results are intentionally review-only and may contain artists
+        // that do not exist in Radarune yet. They must reach moderation so an
+        // admin can review them and create/link the right artist profile.
+        const reviewableYouTubeCollection = source.type === "YOUTUBE_CHANNEL" || source.type === "YOUTUBE_PLAYLIST" || source.type === "YOUTUBE_SEARCH";
         if (source.provider === "YOUTUBE" && !this.isEligibleYouTubeItem(item, eligibleArtistIds, source.artistId, reviewableYouTubeCollection)) {
           skippedCount += 1;
           continue;
@@ -262,15 +266,16 @@ export class ImportSourceService {
         const result = await this.processItem(organizationId, source.id, run.id, source.artistId, source.createdByUserId, source.requiresReview || !source.autoPublish || !source.ownershipVerified || !item.playable || !item.embeddable, item);
         if (result === "DUPLICATE") duplicateCount += 1;
         else if (result === "IMPORTED") importedCount += 1;
+        else if (result === "PENDING_REVIEW") pendingReviewCount += 1;
         else if (result === "FAILED") failedCount += 1;
       }
 
       await prisma.$transaction(async (client) => {
         await importRepository.finishRun(run.id, { status: failedCount > 0 ? "PARTIAL" : "SUCCEEDED", completedAt: new Date(), detectedCount: youtubeMetadata.length, duplicateCount, importedCount, failedCount }, client);
         await client.importSource.update({ where: { id: source.id }, data: { status: "ACTIVE", lastCheckedAt: new Date(), lastSuccessAt: new Date(), lastError: null } });
-        await auditLogService.create({ organizationId, actorUserId, action: "IMPORT_RUN_COMPLETED", entityType: "ImportSource", entityId: source.id, metadata: { detectedCount: youtubeMetadata.length, duplicateCount, importedCount, failedCount, skippedCount } }, client);
+        await auditLogService.create({ organizationId, actorUserId, action: "IMPORT_RUN_COMPLETED", entityType: "ImportSource", entityId: source.id, metadata: { detectedCount: youtubeMetadata.length, duplicateCount, importedCount, pendingReviewCount, failedCount, skippedCount } }, client);
       });
-      return { success: true as const, detectedCount: youtubeMetadata.length, duplicateCount, importedCount, failedCount, skippedCount };
+      return { success: true as const, detectedCount: youtubeMetadata.length, duplicateCount, importedCount, pendingReviewCount, failedCount, skippedCount };
     } finally {
       await importRepository.releaseSource(organizationId, sourceId, lockToken);
     }
