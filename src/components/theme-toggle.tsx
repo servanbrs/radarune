@@ -1,16 +1,27 @@
 "use client";
 
 import { Moon, Sun } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function ThemeToggle({ dark: darkVariant = false }: { dark?: boolean } = {}) {
-  const [dark, setDark] = useState(() => {
-    if (typeof window === "undefined") return false;
-
-    return localStorage.getItem("theme") === "dark";
-  });
+  // Keep the first render identical on the server and client. Reading
+  // localStorage during render makes the icon/aria-label differ at hydration.
+  const [dark, setDark] = useState(false);
+  const hydrated = useRef(false);
 
   useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const storedTheme = localStorage.getItem("theme") === "dark";
+      hydrated.current = true;
+      setDark(storedTheme);
+      document.documentElement.dataset.theme = storedTheme ? "dark" : "light";
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated.current) return;
     document.documentElement.dataset.theme = dark ? "dark" : "light";
     localStorage.setItem("theme", dark ? "dark" : "light");
   }, [dark]);
