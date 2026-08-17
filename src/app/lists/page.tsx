@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
 import {
   ArrowDown,
   Globe2,
@@ -23,6 +24,20 @@ export const metadata: Metadata = {
   alternates: { canonical: "/lists" },
   openGraph: { title: "Müzik Listeleri | Radarune", description: "Türkiye, global ve Radarune topluluğunun yükselen müzik listelerini keşfet.", url: "/lists", type: "website" },
 };
+
+const getPublicOrganizationId = unstable_cache(
+  async () => {
+    const organization = await prisma.organization.findFirst({
+      where: { tenantStatus: "ACTIVE" },
+      orderBy: { createdAt: "asc" },
+      select: { id: true },
+    });
+
+    return organization?.id ?? null;
+  },
+  ["public-lists-organization-id"],
+  { revalidate: 60, tags: ["public-charts"] },
+);
 
 const quickLinks = [
   {
@@ -80,20 +95,7 @@ export default async function ListsPage() {
   }
 
   if (!organizationId) {
-    const publicOrganization =
-      await prisma.organization.findFirst({
-        where: {
-          tenantStatus: "ACTIVE",
-        },
-        orderBy: {
-          createdAt: "asc",
-        },
-        select: {
-          id: true,
-        },
-      });
-
-    organizationId = publicOrganization?.id ?? null;
+    organizationId = await getPublicOrganizationId();
   }
 
   const sections = organizationId

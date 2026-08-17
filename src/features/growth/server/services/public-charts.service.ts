@@ -127,17 +127,27 @@ async function fetchYouTubePopular(
     params.set("regionCode", regionCode);
   }
 
+  // A slow provider must never hold the public /lists page open. The chart
+  // is optional; Radarune's own cached sections can render without it.
   const response = await fetch(
     `https://www.googleapis.com/youtube/v3/videos?${params.toString()}`,
     {
       headers: {
         Accept: "application/json",
       },
+      signal: AbortSignal.timeout(2_500),
       next: {
         revalidate: 1800,
       },
     },
-  );
+  ).catch((error) => {
+    console.warn("YouTube trendleri zaman aşımına uğradı:", error);
+    return null;
+  });
+
+  if (!response) {
+    return [];
+  }
 
   if (!response.ok) {
     console.error(
