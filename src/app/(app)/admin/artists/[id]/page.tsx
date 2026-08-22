@@ -7,24 +7,41 @@ import { prisma } from "@/server/prisma/prisma";
 export default async function AdminArtistDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { organization } = await authSessionService.getDashboardContext();
-  const [artist, users] = await Promise.all([prisma.artist.findFirst({
+  const artist = await prisma.artist.findFirst({
     where: { id, organizationId: organization.organization.id },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      type: true,
+      spotifyProfileUrl: true,
+      appleMusicProfileUrl: true,
       ownerUser: { select: { id: true, name: true, email: true } },
-      labelLinks: { include: { label: true } },
-      releaseArtistLinks: { include: { release: true }, take: 20 },
     },
-  }), prisma.user.findMany({
-    where: {
-      accountStatus: "ACTIVE",
-      memberships: { some: { organizationId: organization.organization.id, status: "ACTIVE" } },
-    },
-    select: { id: true, name: true, email: true },
-    orderBy: { name: "asc" },
-  })]);
+  });
   if (!artist) {
     notFound();
   }
+
+  // These are secondary details for the ownership form. They must not make
+  // the artist profile unusable when an older deployment has a temporary
+  // schema/connection problem in one of the related tables.
+  const [usersResult, labelsResult] = await Promise.allSettled([
+    prisma.user.findMany({
+      where: {
+        accountStatus: "ACTIVE",
+        memberships: { some: { organizationId: organization.organization.id, status: "ACTIVE" } },
+      },
+      select: { id: true, name: true, email: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.labelArtist.findMany({
+      where: { artistId: artist.id },
+      select: { id: true, label: { select: { name: true } } },
+      orderBy: { createdAt: "asc" },
+    }),
+  ]);
+  const users = usersResult.status === "fulfilled" ? usersResult.value : [];
+  const labelLinks = labelsResult.status === "fulfilled" ? labelsResult.value : [];
 
   return (
     <AdminShell title={artist.name} description="Sanatçı profili, sahip kullanıcı, label bağlantıları ve ilişkili yayınlar.">
@@ -53,7 +70,7 @@ export default async function AdminArtistDetailPage({ params }: { params: Promis
         <article className="panel p-6">
           <h2 className="text-lg font-semibold">Label bağlantıları</h2>
           <div className="mt-4 space-y-2 text-sm">
-            {artist.labelLinks.map((link) => <p key={link.id}>{link.label.name}</p>)}
+            {labelLinks.map((link) => <p key={link.id}>{link.label.name}</p>)}
           </div>
         </article>
       </section>
