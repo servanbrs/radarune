@@ -10,6 +10,8 @@ import { ArtistProfileShareButton } from "@/features/artist/components/artist-pr
 import { socialRepository } from "@/features/growth/server/repositories/social.repository";
 import { ArtistMediaPlayer } from "@/features/artist/components/artist-media-player";
 import { releasePublicPath } from "@/features/releases/lib/release-url";
+import { getRequestLocale } from "@/lib/i18n-server";
+import { ArtistProfileViewTracker } from "@/features/growth/components/artist-profile-view-tracker";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -27,10 +29,12 @@ export default async function ArtistPublicPage({ params }: { params: Promise<{ s
     notFound();
   }
   const session = await authSessionService.getOptionalSession();
+  const locale = await getRequestLocale();
   const initialFollowing = session ? await socialRepository.isFollowing(session.user.id, artist.id) : false;
 
   return (
-    <PublicGrowthShell currentUser={session ? { name: session.user.name } : null}>
+    <PublicGrowthShell currentUser={session ? { name: session.user.name } : null} locale={locale}>
+      <ArtistProfileViewTracker artistId={artist.id} />
       <StructuredData data={{ "@context": "https://schema.org", "@type": artist.type === "SOLO" ? "Person" : "MusicGroup", name: artist.name, url: `https://radarune.com/artist/${artist.slug}`, image: artist.profileImageUrl ?? artist.coverImageUrl ?? undefined, description: artist.seoDescription ?? artist.shortBiography ?? undefined, sameAs: [artist.spotifyProfileUrl, artist.appleMusicProfileUrl, artist.youtubeProfileUrl, artist.instagramProfileUrl, artist.tiktokProfileUrl, artist.websiteUrl].filter((value): value is string => Boolean(value)) }} />
       <section className="panel overflow-hidden p-0">
         <div className="relative min-h-64 overflow-hidden bg-surface-strong p-8 md:p-12">
@@ -39,7 +43,7 @@ export default async function ArtistPublicPage({ params }: { params: Promise<{ s
             <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-3xl border border-line bg-surface text-3xl font-semibold text-accent">
               {artist.profileImageUrl ? <div className="h-full w-full bg-cover bg-center" style={{ backgroundImage: `url(${artist.profileImageUrl})` }} /> : artist.name.slice(0, 1).toUpperCase()}
             </div>
-            <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="text-xs uppercase tracking-[0.24em] text-accent">Radarune artist channel</p><span className="inline-flex items-center gap-1 rounded-full bg-emerald-300/15 px-2.5 py-1 text-[10px] font-bold text-emerald-800"><span className="size-1.5 rounded-full bg-emerald-500" />{artist.publicStats.verified ? "Doğrulanmış sanatçı" : "Radarune sanatçı profili"}</span></div><h1 className="mt-2 text-4xl font-semibold md:text-5xl">{artist.name}</h1><p className="mt-2 text-sm text-muted">{artist.type === "SOLO" ? "Solo sanatçı" : artist.type} · herkese açık sanatçı kanalı</p><div className="mt-4 flex flex-wrap gap-2"><DiscoverArtistFollowButton artistId={artist.id} initialFollowing={initialFollowing} isAuthenticated={Boolean(session)} /><ArtistProfileShareButton slug={artist.slug} /></div></div>
+            <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="text-xs uppercase tracking-[0.24em] text-accent">Radarune artist channel</p><span className="inline-flex items-center gap-1 rounded-full bg-emerald-300/15 px-2.5 py-1 text-[10px] font-bold text-emerald-800"><span className="size-1.5 rounded-full bg-emerald-500" />{artist.publicStats.verified ? "Doğrulanmış sanatçı" : "Radarune sanatçı profili"}</span></div><h1 className="mt-2 text-4xl font-semibold md:text-5xl">{artist.name}</h1><p className="mt-2 text-sm text-muted">{artist.type === "SOLO" ? "Solo sanatçı" : artist.type} · herkese açık sanatçı kanalı</p><div className="mt-4 flex flex-wrap gap-2"><DiscoverArtistFollowButton artistId={artist.id} initialFollowing={initialFollowing} isAuthenticated={Boolean(session)} /><ArtistProfileShareButton slug={artist.slug} />{session && (artist.ownerUserId === session.user.id || artist.createdByUserId === session.user.id) ? <Link className="inline-flex items-center rounded-xl border border-line px-3 py-2 text-xs font-semibold hover:border-accent" href={`/artist-profile/analytics?artistId=${encodeURIComponent(artist.id)}`}>Kanal analizleri</Link> : null}</div></div>
           </div>
         </div>
         <nav aria-label="Sanatçı kanalı" className="flex gap-1 overflow-x-auto border-b border-line px-6 py-3 md:px-10"><a className="shrink-0 rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background" href="#releases">Yayınlar</a><a className="shrink-0 rounded-xl px-4 py-2 text-sm font-semibold text-muted hover:bg-surface-strong" href="#about">Hakkında</a><a className="shrink-0 rounded-xl px-4 py-2 text-sm font-semibold text-muted hover:bg-surface-strong" href="#links">Bağlantılar</a></nav>

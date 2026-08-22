@@ -125,6 +125,23 @@ export class ReleaseAccessService {
     }
   }
 
+  assertCanEditSupplementalRelease(
+    actor: ReleaseActor,
+    release: {
+      createdByUserId: string;
+      organizationId: string;
+      status: string;
+    },
+  ) {
+    this.assertCanViewRelease(actor, release);
+
+    if (this.canManageSubmitted(actor) || release.createdByUserId === actor.userId) {
+      return;
+    }
+
+    throw new Error("Bu yayının ek medya ve kodlarını düzenleme yetkiniz yok.");
+  }
+
   assertCanViewRelease(
     actor: ReleaseActor,
     release: {

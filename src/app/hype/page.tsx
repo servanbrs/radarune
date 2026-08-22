@@ -19,6 +19,8 @@ import {
   getCachedPublicDiscoverFeed,
 } from "@/features/growth/server/services/discover.service";
 import { tenantContextService } from "@/features/platform/server/services/tenant-context.service";
+import { getRequestLocale } from "@/lib/i18n-server";
+import { localize, normalizeLocale } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -84,9 +86,11 @@ function itemHref(item: DiscoverFeedItem) {
 function LeaderCard({
   item,
   rank,
+  locale = "tr-TR",
 }: {
   item: DiscoverFeedItem;
   rank: number;
+  locale?: string;
 }) {
   const image = artworkUrl(item);
 
@@ -113,7 +117,7 @@ function LeaderCard({
         </span>
         <div className="absolute inset-x-4 bottom-4">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-orange-200">
-            {rank === 1 ? "Haftanın zirvesi" : `İlk ${rank}`}
+            {rank === 1 ? localize(locale, { tr: "Haftanın zirvesi", en: "Top of the week", de: "Spitze der Woche" }) : `${localize(locale, { tr: "İlk", en: "Top", de: "Top" })} ${rank}`}
           </p>
           <Link
             className="mt-1 line-clamp-2 text-xl font-black tracking-[-0.04em] hover:text-orange-200 sm:text-2xl"
@@ -130,14 +134,14 @@ function LeaderCard({
       <div className="mt-4 flex items-center justify-between gap-3 text-sm">
         <span className="inline-flex items-center gap-1.5 text-orange-200">
           <Heart className="size-4 fill-current" />
-          {item.likeCount ?? 0} oy
+          {item.likeCount ?? 0} {localize(locale, { tr: "oy", en: "votes", de: "Stimmen" })}
         </span>
         {item.trackId ? <TrackPlayButton trackId={item.trackId} className="size-9 bg-white text-[#101817] hover:bg-orange-200" /> : null}
         <Link
           className="inline-flex items-center gap-1 font-bold text-emerald-300 hover:text-white"
           href={artistHref(item)}
         >
-          Profili aç <ArrowUpRight className="size-4" />
+          {localize(locale, { tr: "Profili aç", en: "Open profile", de: "Profil öffnen" })} <ArrowUpRight className="size-4" />
         </Link>
       </div>
     </article>
@@ -145,6 +149,7 @@ function LeaderCard({
 }
 
 export default async function HypePage() {
+  const locale = normalizeLocale(await getRequestLocale());
   const [session, tenant] = await Promise.all([
     resolveWithin(authSessionService.getOptionalSession()),
     resolveWithin(tenantContextService.resolveFromRequest()),
@@ -179,7 +184,7 @@ export default async function HypePage() {
   );
 
   return (
-    <PublicGrowthShell currentUser={currentUser}>
+    <PublicGrowthShell currentUser={currentUser} locale={locale}>
       <div className="min-w-0 overflow-hidden rounded-[2.4rem] bg-[#080f12] text-white shadow-[0_30px_100px_rgba(4,15,13,0.24)]">
         <section className="relative overflow-hidden px-5 py-10 sm:px-10 sm:py-14 lg:px-14">
           <div aria-hidden className="pointer-events-none absolute -left-24 -top-40 size-[480px] rounded-full bg-orange-400/20 blur-[110px]" />
@@ -190,18 +195,17 @@ export default async function HypePage() {
                 <Flame className="size-3.5" /> Radarune Hype
               </p>
               <h1 className="mt-6 max-w-3xl break-words text-4xl font-black tracking-[-0.06em] sm:text-7xl">
-                Zirvedekiler.
-                <span className="block text-orange-300">Herkes dinlemeden önce.</span>
+                {localize(locale, { tr: "Zirvedekiler.", en: "At the top.", de: "An der Spitze." })}
+                <span className="block text-orange-300">{localize(locale, { tr: "Herkes dinlemeden önce.", en: "Before everyone listens.", de: "Bevor alle zuhören." })}</span>
               </h1>
               <p className="mt-6 max-w-2xl text-base leading-7 text-white/55">
-                Oylar ve topluluk etkileşimi birlikte hesaplanır. En yüksek
-                Hype puanına sahip yayın 1. sıraya çıkar.
+                {localize(locale, { tr: "Oylar ve topluluk etkileşimi birlikte hesaplanır. En yüksek Hype puanına sahip yayın 1. sıraya çıkar.", en: "Votes and community engagement are combined. The release with the highest Hype score reaches number one.", de: "Stimmen und Community-Interaktionen werden kombiniert. Der Release mit dem höchsten Hype-Score landet auf Platz eins." })}
               </p>
             </div>
             <div className="grid grid-cols-3 gap-2 lg:min-w-[360px]">
-              <div className="rounded-2xl bg-white/[0.06] p-3"><p className="text-2xl font-black text-orange-300">{ranking.length}</p><p className="mt-1 text-[10px] uppercase tracking-wider text-white/40">Sıralanan</p></div>
-              <div className="rounded-2xl bg-white/[0.06] p-3"><p className="text-2xl font-black text-emerald-300">{artistCount}</p><p className="mt-1 text-[10px] uppercase tracking-wider text-white/40">Sanatçı</p></div>
-              <div className="rounded-2xl bg-white/[0.06] p-3"><p className="text-2xl font-black">{totalVotes}</p><p className="mt-1 text-[10px] uppercase tracking-wider text-white/40">Toplam oy</p></div>
+              <div className="rounded-2xl bg-white/[0.06] p-3"><p className="text-2xl font-black text-orange-300">{ranking.length}</p><p className="mt-1 text-[10px] uppercase tracking-wider text-white/40">{localize(locale, { tr: "Sıralanan", en: "Ranked", de: "Gerankt" })}</p></div>
+              <div className="rounded-2xl bg-white/[0.06] p-3"><p className="text-2xl font-black text-emerald-300">{artistCount}</p><p className="mt-1 text-[10px] uppercase tracking-wider text-white/40">{localize(locale, { tr: "Sanatçı", en: "Artists", de: "Künstler" })}</p></div>
+              <div className="rounded-2xl bg-white/[0.06] p-3"><p className="text-2xl font-black">{totalVotes}</p><p className="mt-1 text-[10px] uppercase tracking-wider text-white/40">{localize(locale, { tr: "Toplam oy", en: "Total votes", de: "Stimmen gesamt" })}</p></div>
             </div>
           </div>
         </section>
@@ -209,26 +213,26 @@ export default async function HypePage() {
         <section className="relative border-t border-white/10 bg-[#f5f8f6] px-4 py-8 text-[#101817] sm:px-8 sm:py-10">
           <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.22em] text-orange-700">Top 3 / Liderlik tablosu</p>
-              <h2 className="mt-2 text-3xl font-black tracking-[-0.05em]">Bu haftanın yıldızları</h2>
+              <p className="text-xs font-bold uppercase tracking-[0.22em] text-orange-700">{localize(locale, { tr: "Top 3 / Liderlik tablosu", en: "Top 3 / Leaderboard", de: "Top 3 / Rangliste" })}</p>
+              <h2 className="mt-2 text-3xl font-black tracking-[-0.05em]">{localize(locale, { tr: "Bu haftanın yıldızları", en: "This week’s stars", de: "Die Stars der Woche" })}</h2>
             </div>
-            <span className="inline-flex items-center gap-2 text-xs font-semibold text-[#74807b]"><Sparkles className="size-4 text-orange-600" />Oy + etkileşim skoru</span>
+            <span className="inline-flex items-center gap-2 text-xs font-semibold text-[#74807b]"><Sparkles className="size-4 text-orange-600" />{localize(locale, { tr: "Oy + etkileşim skoru", en: "Votes + engagement score", de: "Stimmen + Engagement-Score" })}</span>
           </div>
 
           {leaders.length ? (
             <div className="grid gap-4 md:grid-cols-3">
-              {leaders.map((item, index) => <LeaderCard item={item} key={item.id} rank={index + 1} />)}
+              {leaders.map((item, index) => <LeaderCard item={item} key={item.id} locale={locale} rank={index + 1} />)}
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-black/15 p-8 text-sm text-[#74807b]">Hype sıralaması için henüz yeterli yayın verisi yok.</div>
+            <div className="rounded-2xl border border-dashed border-black/15 p-8 text-sm text-[#74807b]">{localize(locale, { tr: "Hype sıralaması için henüz yeterli yayın verisi yok.", en: "There are not enough releases for a Hype ranking yet.", de: "Für ein Hype-Ranking gibt es noch nicht genug Releases." })}</div>
           )}
 
           <div className="mt-10 flex items-end justify-between gap-4">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.22em] text-orange-700">Radarune global chart</p>
-              <h2 className="mt-2 text-3xl font-black tracking-[-0.05em]">İlk 100</h2>
+              <h2 className="mt-2 text-3xl font-black tracking-[-0.05em]">{localize(locale, { tr: "İlk 100", en: "Top 100", de: "Top 100" })}</h2>
             </div>
-            <span className="text-xs font-semibold text-[#74807b]">En çok oy ve etkileşim alanlar</span>
+            <span className="text-xs font-semibold text-[#74807b]">{localize(locale, { tr: "En çok oy ve etkileşim alanlar", en: "Most votes and engagement", de: "Die meisten Stimmen und Interaktionen" })}</span>
           </div>
 
           <div className="mt-5 overflow-hidden rounded-[1.5rem] border border-black/[0.07] bg-white shadow-[0_14px_40px_rgba(15,23,42,0.05)]">
@@ -247,7 +251,7 @@ export default async function HypePage() {
                 <Link aria-label={`${item.title} sanatçı profili`} className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-[#087d70] hover:bg-[#e9faf4]" href={artistHref(item)}><ArrowUpRight className="size-4" /></Link>
               </div>
             ))}
-            {!ranking.length ? <p className="p-8 text-sm text-[#74807b]">Henüz sıralanacak yayın bulunmuyor.</p> : null}
+            {!ranking.length ? <p className="p-8 text-sm text-[#74807b]">{localize(locale, { tr: "Henüz sıralanacak yayın bulunmuyor.", en: "There are no releases to rank yet.", de: "Es gibt noch keine Releases zum Ranken." })}</p> : null}
           </div>
         </section>
       </div>

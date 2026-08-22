@@ -13,9 +13,11 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/features/authentication/lib/auth-client";
+import { t } from "@/lib/i18n";
 
 type VerifyEmailOtpFormProps = {
   initialEmail: string;
+  locale: string;
 };
 
 const RESEND_SECONDS = 60;
@@ -24,7 +26,7 @@ function normalizeCode(value: string) {
   return value.replace(/\D/g, "").slice(0, 6);
 }
 
-export function VerifyEmailOtpForm({ initialEmail }: VerifyEmailOtpFormProps) {
+export function VerifyEmailOtpForm({ initialEmail, locale }: VerifyEmailOtpFormProps) {
   const router = useRouter();
 
   const [email, setEmail] = useState(initialEmail);
@@ -71,13 +73,13 @@ export function VerifyEmailOtpForm({ initialEmail }: VerifyEmailOtpFormProps) {
       });
 
       if (result.error) {
-        setError(result.error.message ?? "Doğrulama kodu gönderilemedi.");
+        setError(result.error.message ?? t(locale, "sendNewCode"));
         return;
       }
 
       setRemaining(RESEND_SECONDS);
 
-      setMessage("Yeni doğrulama kodu e-posta adresinize gönderildi.");
+      setMessage(t(locale, "sendNewCode"));
     });
   }
 
@@ -96,11 +98,11 @@ export function VerifyEmailOtpForm({ initialEmail }: VerifyEmailOtpFormProps) {
       });
 
       if (result.error) {
-        setError(result.error.message ?? "Kod doğrulanamadı.");
+        setError(result.error.message ?? t(locale, "verifyEmail"));
         return;
       }
 
-      setMessage("E-posta adresiniz doğrulandı. Yönlendiriliyorsunuz…");
+      setMessage(t(locale, "verifyEmail"));
 
       window.setTimeout(() => {
         router.replace("/dashboard");
@@ -110,26 +112,32 @@ export function VerifyEmailOtpForm({ initialEmail }: VerifyEmailOtpFormProps) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md">
-      <div className="rounded-[2rem] border border-line bg-surface p-6 shadow-2xl sm:p-8">
-        <div className="flex size-14 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+    <div className="auth-otp-shell mx-auto w-full max-w-md">
+      <div className={`auth-otp-card rounded-[2rem] border border-line bg-surface p-6 shadow-2xl sm:p-8${pending ? " is-pending" : ""}${error ? " has-error" : ""}`}>
+        <div className="auth-otp-icon flex size-14 items-center justify-center rounded-2xl bg-accent/10 text-accent">
           <MailCheck className="size-7" />
         </div>
 
         <p className="mt-6 text-xs font-semibold uppercase tracking-[0.22em] text-accent">
-          Hesap güvenliği
+          {t(locale, "accountSecurity")}
         </p>
 
         <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em]">
-          E-posta adresinizi doğrulayın
+          {t(locale, "verifyEmailTitle")}
         </h1>
 
         <p className="mt-3 text-sm leading-7 text-muted">
-          E-posta adresinize gönderilen altı haneli doğrulama kodunu girin.
+          {t(locale, "verifyEmailDescription")}
         </p>
 
+        <div aria-hidden="true" className="auth-otp-progress mt-6">
+          {Array.from({ length: 6 }, (_, index) => (
+            <span className={index < code.length ? "is-filled" : ""} key={index} />
+          ))}
+        </div>
+
         <label className="mt-7 grid gap-2 text-sm font-medium">
-          E-posta
+          {t(locale, "email")}
           <Input
             autoComplete="email"
             onChange={(event) => setEmail(event.target.value)}
@@ -139,10 +147,10 @@ export function VerifyEmailOtpForm({ initialEmail }: VerifyEmailOtpFormProps) {
         </label>
 
         <label className="mt-4 grid gap-2 text-sm font-medium">
-          Doğrulama kodu
+          {t(locale, "verificationCode")}
           <Input
             autoComplete="one-time-code"
-            className="h-14 text-center text-2xl font-semibold tracking-[0.35em]"
+            className="auth-otp-input h-14 text-center text-2xl font-semibold tracking-[0.35em]"
             inputMode="numeric"
             onChange={(event) => setCode(normalizeCode(event.target.value))}
             placeholder="000000"
@@ -175,7 +183,7 @@ export function VerifyEmailOtpForm({ initialEmail }: VerifyEmailOtpFormProps) {
             <ShieldCheck className="size-4" />
           )}
 
-          {pending ? "Doğrulanıyor…" : "E-postayı doğrula"}
+          {pending ? t(locale, "verifyEmailPending") : t(locale, "verifyEmail")}
         </Button>
 
         <Button
@@ -187,12 +195,11 @@ export function VerifyEmailOtpForm({ initialEmail }: VerifyEmailOtpFormProps) {
         >
           <RefreshCw className="size-4" />
 
-          {remaining > 0 ? `Tekrar gönder (${remaining})` : "Yeni kod gönder"}
+          {remaining > 0 ? `${t(locale, "resendCode")} (${remaining})` : t(locale, "sendNewCode")}
         </Button>
 
         <p className="mt-5 text-center text-xs leading-5 text-muted">
-          Kod 10 dakika geçerlidir. Beş yanlış denemeden sonra yeni kod
-          istemeniz gerekir.
+          {t(locale, "codeValidity")}
         </p>
       </div>
     </div>

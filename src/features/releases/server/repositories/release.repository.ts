@@ -2,7 +2,7 @@ import "server-only";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/server/prisma/prisma";
 import type { DatabaseClient } from "@/server/prisma/database-client";
-import type { CreateReleaseInput, TrackInput, UpdateReleaseInput } from "@/features/releases/schemas/release.schema";
+import type { CreateReleaseInput, ReleaseSupplementalUpdateInput, TrackInput, UpdateReleaseInput } from "@/features/releases/schemas/release.schema";
 import type { ReleaseValidationIssueInput } from "@/features/releases/server/services/release-validator.service";
 
 const releaseStatuses = new Set([
@@ -275,6 +275,33 @@ export class ReleaseRepository {
         id: true,
       },
     });
+  }
+
+  async updateSupplemental(releaseId: string, input: ReleaseSupplementalUpdateInput, client: DatabaseClient = prisma) {
+    const release = await client.release.findUnique({ where: { id: releaseId }, select: { id: true } });
+    if (!release) throw new Error("Yayın bulunamadı.");
+
+    const trackIds = input.tracks?.map((track) => track.id) ?? [];
+    if (new Set(trackIds).size !== trackIds.length) throw new Error("Aynı parça birden fazla kez gönderildi.");
+    if (trackIds.length > 0) {
+      const ownedTrackCount = await client.track.count({ where: { releaseId, id: { in: trackIds } } });
+      if (ownedTrackCount !== trackIds.length) throw new Error("Parça bu yayına ait değil.");
+    }
+
+    const updated = await client.release.update({
+      where: { id: releaseId },
+      data: {
+        ...(input.upc !== undefined ? { upc: input.upc ?? null } : {}),
+        ...(input.videoDistributionEnabled !== undefined ? { videoDistributionEnabled: input.videoDistributionEnabled } : {}),
+        ...(input.videoStores !== undefined ? { videoStores: input.videoStores } : {}),
+      },
+      select: { id: true, upc: true, videoDistributionEnabled: true, videoStores: true },
+    });
+
+    for (const track of input.tracks ?? []) {
+      await client.track.update({ where: { id: track.id }, data: { isrc: track.isrc ?? null } });
+    }
+    return updated;
   }
 
   async replaceReleaseArtists(releaseId: string, artists: UpdateReleaseInput["artists"], client: DatabaseClient = prisma) {

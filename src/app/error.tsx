@@ -13,7 +13,16 @@ export default function ErrorPage({
 }) {
   useEffect(() => {
     console.error(error);
-  }, [error]);
+
+    // One automatic recovery is useful for transient remote DB/network
+    // failures. The sessionStorage guard prevents a persistent outage from
+    // creating an infinite reload loop.
+    const retryKey = `radarune:error-retry:${error.digest ?? "unknown"}`;
+    if (window.sessionStorage.getItem(retryKey)) return;
+    window.sessionStorage.setItem(retryKey, "1");
+    const timer = window.setTimeout(() => reset(), 1200);
+    return () => window.clearTimeout(timer);
+  }, [error, reset]);
 
   return (
     <main className="grid min-h-[70vh] place-items-center bg-background px-4 py-16 text-foreground">

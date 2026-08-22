@@ -36,9 +36,9 @@ const defaults: Array<{ key: UpdateAdminSettingInput["key"]; value: string | boo
   { key: "SMTP_PASSWORD", value: "" },
   { key: "SMTP_FROM_EMAIL", value: "" },
   { key: "EMAIL_TEMPLATE_VERIFICATION_SUBJECT", value: "E-postanızı doğrulayın · {{platform}}" },
-  { key: "EMAIL_TEMPLATE_VERIFICATION_BODY", value: "Merhaba {{name}}, hesabınızı doğrulamak için bu bağlantıyı açın: {{url}}" },
+  { key: "EMAIL_TEMPLATE_VERIFICATION_BODY", value: "Merhaba {{name}},\n\nHesabınızı doğrulamak için bu bağlantıyı açın: {{url}}" },
   { key: "EMAIL_TEMPLATE_WELCOME_SUBJECT", value: "Radarune'e hoş geldiniz" },
-  { key: "EMAIL_TEMPLATE_WELCOME_BODY", value: "Merhaba {{name}}, Radarune hesabınız hazır." },
+  { key: "EMAIL_TEMPLATE_WELCOME_BODY", value: "Merhaba {{name}},\n\nRadarune hesabınız hazır." },
   { key: "EMAIL_TEMPLATE_PASSWORD_RESET_SUBJECT", value: "Şifrenizi yenileyin · {{platform}}" },
   { key: "EMAIL_TEMPLATE_PASSWORD_RESET_BODY", value: "Şifrenizi yenilemek için bu bağlantıyı açın: {{url}}" },
 ];

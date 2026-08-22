@@ -3,9 +3,11 @@ import { prisma } from "@/server/prisma/prisma";
 import { auditLogService } from "@/features/finance/server/services/audit-log.service";
 import {
   createReleaseSchema,
+  releaseSupplementalUpdateSchema,
   trackInputSchema,
   updateReleaseSchema,
   type CreateReleaseInput,
+  type ReleaseSupplementalUpdateInput,
   type TrackInput,
   type UpdateReleaseInput,
 } from "@/features/releases/schemas/release.schema";
@@ -227,6 +229,36 @@ export class ReleaseService {
     };
   }
 
+  async updateSupplemental(actor: ReleaseActor, releaseId: string, input: ReleaseSupplementalUpdateInput) {
+    const release = await releaseRepository.findDetailById(releaseId);
+    if (!release) return { success: false as const, message: "Yayın bulunamadı." };
+
+    releaseAccessService.assertCanEditSupplementalRelease(actor, release);
+    const parsed = releaseSupplementalUpdateSchema.safeParse(input);
+    if (!parsed.success) {
+      return { success: false as const, message: this.firstZodError(parsed.error) ?? "Ek yayın bilgileri geçerli değil." };
+    }
+
+    const data = await prisma.$transaction(async (tx) => {
+      const updated = await releaseRepository.updateSupplemental(releaseId, parsed.data, tx);
+      await auditLogService.create({
+        organizationId: actor.organizationId,
+        actorUserId: actor.userId,
+        action: "release.supplemental_update",
+        entityType: "Release",
+        entityId: releaseId,
+        metadata: {
+          upcChanged: parsed.data.upc !== undefined,
+          trackCodesChanged: parsed.data.tracks?.length ?? 0,
+          videoChanged: parsed.data.videoDistributionEnabled !== undefined || parsed.data.videoStores !== undefined,
+        },
+      }, tx);
+      return updated;
+    });
+
+    return { success: true as const, data };
+  }
+
   async upsertTrack(actor: ReleaseActor, releaseId: string, input: TrackInput) {
     const release = await releaseRepository.findDetailById(releaseId);
     if (!release) {
@@ -309,7 +341,7 @@ export class ReleaseService {
       };
     }
 
-    releaseAccessService.assertCanEditRelease(actor, release);
+    releaseAccessService.assertCanEditSupplementalRelease(actor, release);
 
     if (params.kind === "AUDIO" && (!params.trackId || !release.tracks.some((track) => track.id === params.trackId))) {
       return {

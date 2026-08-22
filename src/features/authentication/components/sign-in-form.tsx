@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/features/authentication/lib/auth-client";
+import { t } from "@/lib/i18n";
 import {
   type SignInFormValues,
   signInFormSchema,
@@ -19,10 +20,12 @@ export function SignInForm({
   facebookEnabled,
   googleEnabled,
   nextPath,
+  locale,
 }: {
   facebookEnabled: boolean;
   googleEnabled: boolean;
   nextPath: string;
+  locale: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -47,7 +50,7 @@ export function SignInForm({
       });
 
       if (result.error) {
-        setRootError(result.error.message ?? "E-posta veya şifre hatalı.");
+        setRootError(result.error.message ?? t(locale, "emailOrPasswordInvalid"));
         return;
       }
 
@@ -68,7 +71,7 @@ export function SignInForm({
         if (otpResult.error) {
           setRootError(
             otpResult.error.message ??
-              "Giriş kodu gönderilemedi. Lütfen yeniden deneyin.",
+              t(locale, "restartLogin"),
           );
           return;
         }
@@ -90,7 +93,7 @@ export function SignInForm({
       <Field
         error={form.formState.errors.email?.message}
         htmlFor="sign-in-email"
-        label="E-posta"
+        label={t(locale, "email")}
       >
         <Input
           autoComplete="email"
@@ -104,12 +107,12 @@ export function SignInForm({
       <Field
         error={form.formState.errors.password?.message}
         htmlFor="sign-in-password"
-        label="Şifre"
+        label={t(locale, "password")}
       >
         <Input
           autoComplete="current-password"
           id="sign-in-password"
-          placeholder="Şifrenizi girin"
+          placeholder={t(locale, "passwordPlaceholder")}
           type="password"
           {...form.register("password")}
         />
@@ -122,7 +125,7 @@ export function SignInForm({
       ) : null}
 
       <Button className="mt-2 w-full" disabled={isPending} type="submit">
-        {isPending ? "Giriş yapılıyor…" : "Giriş yap"}
+        {isPending ? t(locale, "signInPending") : t(locale, "login")}
       </Button>
 
       {googleEnabled ? (
@@ -137,13 +140,13 @@ export function SignInForm({
           type="button"
           variant="secondary"
         >
-          Google ile devam et
+          {t(locale, "googleContinue")}
         </Button>
       ) : null}
 
       {facebookEnabled ? (
         <Button className="w-full" onClick={() => void authClient.signIn.social({ provider: "facebook", callbackURL: nextPath })} type="button" variant="secondary">
-          Facebook ile devam et
+          {t(locale, "facebookContinue")}
         </Button>
       ) : null}
 
@@ -151,7 +154,7 @@ export function SignInForm({
         className="text-sm font-medium text-muted hover:text-foreground"
         href="/sign-up"
       >
-        Hesabınız yok mu? Kayıt olun.
+        {t(locale, "accountMissing")}
       </Link>
     </form>
   );

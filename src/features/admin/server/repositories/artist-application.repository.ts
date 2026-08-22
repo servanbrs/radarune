@@ -40,6 +40,7 @@ export class ArtistApplicationRepository {
     spotifyArtistUrl?: string;
     appleMusicArtistUrl?: string;
     youtubeChannelUrl?: string;
+    documentReference?: string;
     socialLinks?: Record<string, string>;
   }, client: DatabaseClient = prisma) {
     return client.artistApplication.create({
@@ -52,6 +53,7 @@ export class ArtistApplicationRepository {
         spotifyArtistUrl: input.spotifyArtistUrl || null,
         appleMusicArtistUrl: input.appleMusicArtistUrl || null,
         youtubeChannelUrl: input.youtubeChannelUrl || null,
+        documentReference: input.documentReference || null,
         socialLinks: input.socialLinks ?? Prisma.JsonNull,
         statusHistory: {
           create: {

@@ -4,6 +4,7 @@ import nodemailer from "nodemailer";
 
 import { env } from "@/lib/env";
 import { prisma } from "@/server/prisma/prisma";
+import { formatCustomerEmailCopy } from "@/features/email/lib/email-copy";
 import { configurationResolver } from "@/features/configuration/server/configuration-resolver.service";
 import {
   decryptPlatformSecret,
@@ -71,16 +72,16 @@ const fallback: EmailSettings = {
     "Bu e-posta Radarune hesap güvenliği ve bildirim sistemi tarafından gönderildi.",
   verificationSubject: "Radarune e-posta doğrulama kodunuz",
   verificationBody:
-    "Merhaba {{name}}, Radarune hesabınızı doğrulamak için aşağıdaki güvenlik kodunu kullanın.",
+    "Merhaba {{name}},\n\nRadarune hesabınızı doğrulamak için aşağıdaki güvenlik kodunu kullanın.",
   welcomeSubject: "Radarune'e hoş geldiniz",
   welcomeBody:
-    "Merhaba {{name}}, Radarune hesabınız başarıyla oluşturuldu. Yeni müzikleri keşfetmeye ve yayınlarınızı yönetmeye başlayabilirsiniz.",
+    "Merhaba {{name}},\n\nRadarune hesabınız başarıyla oluşturuldu. Yeni müzikleri keşfetmeye ve yayınlarınızı yönetmeye başlayabilirsiniz.",
   passwordResetSubject: "Radarune şifre yenileme talebi",
   passwordResetBody:
-    "Merhaba {{name}}, Radarune şifrenizi yenilemek için aşağıdaki bağlantıyı kullanın.",
+    "Merhaba {{name}},\n\nRadarune şifrenizi yenilemek için aşağıdaki bağlantıyı kullanın.",
   signInSubject: "Radarune giriş güvenlik kodunuz",
   signInBody:
-    "Merhaba {{name}}, Radarune hesabınıza giriş yapmak için aşağıdaki güvenlik kodunu kullanın.",
+    "Merhaba {{name}},\n\nRadarune hesabınıza giriş yapmak için aşağıdaki güvenlik kodunu kullanın.",
 };
 
 function normalizeProvider(value: string) {
@@ -487,7 +488,12 @@ export function renderEmailTemplate(input: {
 
   const subject = replaceVariables(data.subject, variables);
 
-  const body = replaceVariables(data.body, variables);
+  const renderedBody = replaceVariables(data.body, variables);
+  const body = ["verification", "welcome", "passwordReset", "signIn"].includes(
+    input.template,
+  )
+    ? formatCustomerEmailCopy(renderedBody)
+    : renderedBody;
 
   const safeBody = escapeHtml(body).replaceAll("\n", "<br />");
 

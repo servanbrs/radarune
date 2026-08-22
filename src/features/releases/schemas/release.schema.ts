@@ -132,6 +132,16 @@ export const updateReleaseSchema = releaseDraftBaseSchema.omit({ tracks: true })
   tracks: z.array(trackInputSchema).optional(),
 });
 
+export const releaseSupplementalUpdateSchema = z.object({
+  upc: upcSchema,
+  videoDistributionEnabled: z.boolean().optional(),
+  videoStores: z.array(z.string().trim().min(1).max(80)).max(20).optional(),
+  tracks: z.array(z.object({
+    id: z.string().min(1),
+    isrc: isrcSchema,
+  })).max(500).optional(),
+});
+
 export const uploadMetadataSchema = z.object({
   kind: z.enum(["AUDIO", "ARTWORK"]),
 });
@@ -139,4 +149,5 @@ export const uploadMetadataSchema = z.object({
 export type ReleaseDraftInput = z.infer<typeof releaseDraftSchema>;
 export type CreateReleaseInput = z.infer<typeof createReleaseSchema>;
 export type UpdateReleaseInput = z.infer<typeof updateReleaseSchema>;
+export type ReleaseSupplementalUpdateInput = z.infer<typeof releaseSupplementalUpdateSchema>;
 export type TrackInput = z.infer<typeof trackInputSchema>;

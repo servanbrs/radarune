@@ -38,6 +38,7 @@ describe("ArtistProfileService editor access", () => {
         organizationId: "org_1",
         OR: [
           { ownerUserId: "user_1" },
+          { createdByUserId: "user_1", ownerUserId: null },
           {
             teamMembers: {
               some: {

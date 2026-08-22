@@ -35,6 +35,7 @@ export const artistApplicationActionSchema = z.object({
   action: z.enum(["START_REVIEW", "APPROVE", "REJECT", "REQUEST_REVISION"]),
   reason: z.string().trim().max(2000).optional(),
   adminNotes: z.string().trim().max(4000).optional(),
+  verificationConfirmed: z.boolean().optional().default(false),
 });
 
 export const createArtistApplicationSchema = z.object({
@@ -73,6 +74,26 @@ export const createArtistApplicationSchema = z.object({
     (value) => (value === "" ? undefined : value),
     z.string().url("iTunes bağlantısı geçerli değil.").optional(),
   ),
+  documentReference: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().url("Doğrulama kanıtı geçerli bir bağlantı olmalıdır.").optional(),
+  ),
+}).superRefine((data, context) => {
+  const proof = [
+    data.spotifyArtistUrl,
+    data.appleMusicArtistUrl,
+    data.youtubeChannelUrl,
+    data.deezerArtistUrl,
+    data.itunesArtistUrl,
+    data.documentReference,
+  ].some(Boolean);
+  if (!proof) {
+    context.addIssue({
+      code: "custom",
+      path: ["documentReference"],
+      message: "Başvuruyu göndermek için en az bir doğrulama kanıtı bağlantısı ekleyin.",
+    });
+  }
 });
 
 export const releaseModerationActionSchema = z.object({

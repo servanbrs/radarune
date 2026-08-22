@@ -2,6 +2,9 @@ import { Readable } from "node:stream";
 import { prisma } from "@/server/prisma/prisma";
 import { storageService } from "@/features/storage/server/services/storage.service";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
@@ -16,18 +19,21 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     const upload =
       (track.audioUploadId
         ? await prisma.upload.findFirst({
-            where: { id: track.audioUploadId, kind: "AUDIO", status: "READY" },
+            where: { id: track.audioUploadId, kind: "AUDIO", status: { in: ["READY", "PENDING"] } },
             select: { id: true, storageKey: true, mimeType: true, byteSize: true, fileName: true },
           })
         : null) ??
       (await prisma.upload.findFirst({
-        where: { trackId: id, kind: "AUDIO", status: "READY" },
+        where: { trackId: id, kind: "AUDIO", status: { in: ["READY", "PENDING"] } },
         orderBy: { createdAt: "desc" },
         select: { id: true, storageKey: true, mimeType: true, byteSize: true, fileName: true },
       }));
 
     if (!upload) return Response.json({ error: "Ses dosyası bulunamadı." }, { status: 404 });
     const size = Number(upload.byteSize);
+    if (!Number.isSafeInteger(size) || size <= 0) {
+      return Response.json({ error: "Ses dosyasının boyutu geçersiz." }, { status: 422 });
+    }
     const range = parseRange(request.headers.get("range"), size);
     const start = range?.start ?? 0;
     const end = range?.end ?? size - 1;

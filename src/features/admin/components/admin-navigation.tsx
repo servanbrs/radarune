@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   Activity,
@@ -128,11 +129,30 @@ export const adminNavigationGroups: AdminNavGroup[] = [
   },
 ];
 
-export function AdminNavigation({ systemRole }: { systemRole: string }) {
+export function AdminNavigation({ systemRole, unreadSupportTickets = 0 }: { systemRole: string; unreadSupportTickets?: number }) {
   const pathname = usePathname();
+  const [supportUnread, setSupportUnread] = useState(unreadSupportTickets);
   const groups = systemRole === "MODERATOR"
     ? adminNavigationGroups.map((group) => ({ ...group, items: group.items.filter((item) => moderatorPaths.has(item.href)) })).filter((group) => group.items.length > 0)
     : adminNavigationGroups;
+
+  useEffect(() => {
+    let active = true;
+    const refresh = () => {
+      void fetch("/api/support/unread", { cache: "no-store" })
+        .then((response) => response.ok ? response.json() as Promise<{ unread?: number }> : null)
+        .then((payload) => {
+          if (active && payload && typeof payload.unread === "number") setSupportUnread(payload.unread);
+        })
+        .catch(() => undefined);
+    };
+    refresh();
+    const interval = window.setInterval(refresh, 15_000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, []);
 
   return (
     <nav aria-label="Admin menüsü" className="grid gap-2">
@@ -178,6 +198,7 @@ export function AdminNavigation({ systemRole }: { systemRole: string }) {
                   >
                     <ItemIcon className={`size-4 shrink-0 ${isCurrent ? "text-[#17120b]" : "text-white/55 group-hover/item:text-[#d6a85f]"}`} />
                     <span className="truncate">{item.label}</span>
+                    {item.href === "/admin/support" && supportUnread > 0 ? <span aria-label={`${supportUnread} okunmamış destek talebi`} className="ml-auto min-w-5 rounded-full bg-[#d6a85f] px-1.5 py-0.5 text-center text-[9px] font-bold text-[#17120b]">{supportUnread > 99 ? "99+" : supportUnread}</span> : null}
                     {item.badge ? <span className="ml-auto rounded-full bg-white/10 px-1.5 py-0.5 text-[9px]">{item.badge}</span> : null}
                   </Link>
                 );

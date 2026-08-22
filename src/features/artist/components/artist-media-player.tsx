@@ -1,7 +1,8 @@
 "use client";
 
-import { Pause, Play, Volume2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { ExternalLink, Play, Volume2 } from "lucide-react";
+import { useState } from "react";
+import { PublicTrackPlayer } from "@/features/growth/components/public-track-player";
 
 type ArtistMedia = {
   id: string;
@@ -13,36 +14,88 @@ type ArtistMedia = {
   trackId: string | null;
 };
 
+function providerName(provider: string) {
+  return provider === "YOUTUBE" ? "YouTube" : provider === "SPOTIFY" ? "Spotify" : provider;
+}
+
 export function ArtistMediaPlayer({ items }: { items: ArtistMedia[] }) {
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [playing, setPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(items[0]?.id ?? null);
   const active = items.find((item) => item.id === activeId) ?? null;
   const isLocal = Boolean(active?.trackId);
-
-  useEffect(() => {
-    if (!audioRef.current || !isLocal) return;
-    if (playing) void audioRef.current.play().catch(() => setPlaying(false));
-    else audioRef.current.pause();
-  }, [isLocal, playing]);
 
   if (!items.length) return null;
 
   function select(item: ArtistMedia) {
     if (activeId !== item.id) {
       setActiveId(item.id);
-      setPlaying(true);
-    } else {
-      setPlaying((value) => !value);
     }
   }
 
   return (
-    <section aria-label="Sanatçı yayın oynatıcı" className="mt-8">
-      <div className="mb-4"><h2 className="text-xl font-semibold">Radarune içinde dinle</h2><p className="mt-1 text-sm text-muted">YouTube ve Spotify içerikleri sanatçı sayfasından ayrılmadan oynatılır.</p></div>
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)]">
-        <div className="grid gap-2">{items.map((item) => <button className={`flex items-center gap-3 rounded-2xl border p-3 text-left transition ${activeId === item.id ? "border-accent bg-accent/10" : "border-line bg-surface-strong hover:border-accent/50"}`} key={item.id} onClick={() => select(item)} type="button">{item.thumbnailUrl ? <span className="size-14 shrink-0 rounded-xl bg-cover bg-center" style={{ backgroundImage: `url(${item.thumbnailUrl})` }} /> : <span className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent"><Volume2 className="size-5" /></span>}<span className="min-w-0 flex-1"><span className="block truncate font-semibold">{item.title}</span><span className="mt-1 block text-xs text-muted">{item.provider === "YOUTUBE" ? "YouTube" : "Spotify"}{item.trackId ? " · Radarune audio" : " · site içi embed"}</span></span>{activeId === item.id && playing ? <Pause className="size-4 shrink-0 text-accent" /> : <Play className="size-4 shrink-0 text-accent" />}</button>)}</div>
-        <div className="relative min-h-56 overflow-hidden rounded-3xl border border-line bg-[#101817]">{active ? <>{active.embedUrl && !isLocal ? <iframe allow="autoplay; encrypted-media; picture-in-picture" className="absolute inset-0 size-full" src={`${active.embedUrl}${active.embedUrl.includes("?") ? "&" : "?"}autoplay=${playing ? "1" : "0"}`} title={active.title} /> : active.thumbnailUrl ? <div className="absolute inset-0 bg-cover bg-center opacity-70" style={{ backgroundImage: `url(${active.thumbnailUrl})` }} /> : null}{isLocal && active.trackId ? <audio className="absolute inset-x-4 bottom-4 z-10 w-[calc(100%-2rem)]" controls onEnded={() => setPlaying(false)} preload="none" ref={audioRef} src={`/api/public/v1/tracks/${active.trackId}/stream`} /> : null}<div className="absolute inset-x-4 top-4 z-10 flex items-center justify-between"><span className="rounded-full bg-black/55 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur">{playing ? "Oynatılıyor" : "Hazır"}</span><button aria-label={playing ? "Durdur" : "Oynat"} className="flex size-10 items-center justify-center rounded-full bg-white text-black" onClick={() => setPlaying((value) => !value)} type="button">{playing ? <Pause className="size-4" /> : <Play className="size-4 fill-current" />}</button></div><div className="absolute inset-x-4 bottom-16 z-10"><p className="truncate text-lg font-bold text-white drop-shadow">{active.title}</p><p className="mt-1 text-xs text-white/65">{active.provider === "YOUTUBE" ? "YouTube" : "Spotify"} · Radarune player</p></div></> : <div className="flex h-full min-h-56 items-center justify-center px-6 text-center text-sm text-white/50">Bir yayın seç; oynatma burada başlayacak.</div>}</div>
+    <section aria-label="Sanatçı medya oynatıcı" className="mt-8">
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-semibold">Radarune içinde dinle</h2>
+          <p className="mt-1 text-sm text-muted">Videoyu veya sesi sanatçı sayfasından ayrılmadan oynat.</p>
+        </div>
+        <span className="text-xs font-medium text-muted">{items.length} içerik</span>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.25fr)]">
+        <div className="max-h-[34rem] space-y-2 overflow-y-auto rounded-3xl border border-line bg-surface p-2">
+          {items.map((item) => {
+            const selected = activeId === item.id;
+            return (
+              <button
+                className={`flex w-full items-center gap-3 rounded-2xl border p-2.5 text-left transition ${selected ? "border-accent bg-accent/10 shadow-sm" : "border-transparent bg-surface-strong hover:border-line hover:bg-background"}`}
+                key={item.id}
+                onClick={() => select(item)}
+                type="button"
+              >
+                {item.thumbnailUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- provider thumbnails are arbitrary remote URLs.
+                  <img alt="" className="size-12 shrink-0 rounded-xl object-cover" src={item.thumbnailUrl} />
+                ) : (
+                  <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-accent/10 text-accent"><Volume2 className="size-5" /></span>
+                )}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold">{item.title}</span>
+                  <span className="mt-1 block text-xs text-muted">{providerName(item.provider)}{item.trackId ? " · Radarune ses" : " · video embed"}</span>
+                </span>
+                {selected && item.trackId ? <span className="grid size-8 shrink-0 place-items-center rounded-full bg-foreground text-background"><Play className="size-3.5 fill-current" /></span> : null}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="overflow-hidden rounded-3xl border border-line bg-[#101817] shadow-sm">
+          {active ? (
+            <>
+              <div className="aspect-video w-full bg-black">
+                {active.embedUrl && !isLocal ? (
+                  <iframe allow="autoplay; encrypted-media; picture-in-picture; fullscreen" className="size-full" src={active.embedUrl} title={active.title} />
+                ) : active.thumbnailUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- provider thumbnails are arbitrary remote URLs.
+                  <img alt="" className="size-full object-cover opacity-80" src={active.thumbnailUrl} />
+                ) : (
+                  <div className="grid size-full place-items-center text-white/60"><Volume2 className="size-8" /></div>
+                )}
+              </div>
+              <div className="space-y-3 p-4 text-white">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{active.title}</p>
+                    <p className="mt-1 text-xs text-white/55">{providerName(active.provider)} · Radarune player</p>
+                  </div>
+                  <a aria-label={`${active.title} kaynağını aç`} className="grid size-9 shrink-0 place-items-center rounded-full bg-white/10 text-white/80 transition hover:bg-white/20" href={active.externalUrl} rel="noreferrer" target="_blank"><ExternalLink className="size-4" /></a>
+                </div>
+                {isLocal && active.trackId ? <PublicTrackPlayer compact title={active.title} trackId={active.trackId} /> : <p className="text-xs text-white/55">Ses, oynatıcının kendi kontrol çubuğundan açılıp kapatılabilir.</p>}
+              </div>
+            </>
+          ) : (
+            <div className="grid aspect-video place-items-center px-6 text-center text-sm text-white/55">Bir içerik seç; oynatma burada başlayacak.</div>
+          )}
+        </div>
       </div>
     </section>
   );

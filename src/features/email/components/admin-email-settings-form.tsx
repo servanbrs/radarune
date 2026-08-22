@@ -7,6 +7,7 @@ import {
   saveEmailSettingsAction,
   testEmailSettingsAction,
 } from "@/features/email/server/actions/email-settings.actions";
+import { formatCustomerEmailCopy } from "@/features/email/lib/email-copy";
 
 type InitialSettings = {
   provider: string;
@@ -116,7 +117,7 @@ export function AdminEmailSettingsForm({
           </h1>
 
           <p style="margin:20px 0;color:#53625f;font-size:15px;line-height:1.8;">
-            ${escapeHtml(bodies[template]).replaceAll("\n", "<br />")}
+            ${escapeHtml(formatCustomerEmailCopy(bodies[template])).replaceAll("\n", "<br />")}
           </p>
 
           ${

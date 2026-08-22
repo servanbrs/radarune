@@ -11,6 +11,7 @@ import { releaseDeliveryRepository } from "@/features/distribution-hub/server/re
 import { releaseIntelligenceService } from "@/features/intelligence/server/services/release-intelligence.service";
 import { DiscoverCommentForm } from "@/features/growth/components/discover-comment-form";
 import { DiscoverLikeButton } from "@/features/growth/components/discover-like-button";
+import { ArtistChannelLikeButton } from "@/features/growth/components/artist-channel-like-button";
 import { ReleaseTrackRow } from "@/features/releases/components/release-track-row";
 import { releaseIdTokenFromSlug, releasePublicPath } from "@/features/releases/lib/release-url";
 import { prisma } from "@/server/prisma/prisma";
@@ -71,6 +72,26 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
   if (!release) {
     notFound();
   }
+  const releaseArtistIds = release.artists.map((artist) => artist.artistId);
+  const channelActors = releaseArtistIds.length
+    ? await prisma.artist.findMany({
+        where: {
+          organizationId: organization.organization.id,
+          id: { in: releaseArtistIds },
+          ...(actor.systemRole === "ADMIN" || actor.systemRole === "SUPER_ADMIN"
+            ? {}
+            : {
+                OR: [
+                  { ownerUserId: user.id },
+                  { createdByUserId: user.id, ownerUserId: null },
+                  { teamMembers: { some: { userId: user.id, role: { in: ["OWNER", "MANAGER", "EDITOR"] } } } },
+                ],
+              }),
+        },
+        select: { id: true, name: true, slug: true },
+        orderBy: { name: "asc" },
+      })
+    : [];
   const artworkUpload = release.uploads.find((upload) => upload.id === release.artworkUploadId);
 
   return (
@@ -130,14 +151,14 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
             <h2 className="text-xl font-semibold">Parçalar</h2>
             <p className="mt-1 text-sm text-muted">Yayın detayından dinleyin, oy verin ve yorumları takip edin.</p>
           </div>
-          <div className="flex items-center gap-3 text-sm text-muted"><span>{engagement[0]} oy</span><span>{engagement[1]} yorum</span><DiscoverLikeButton releaseId={release.id} /></div>
+          <div className="flex flex-wrap items-center justify-end gap-3 text-sm text-muted"><span>{engagement[0]} oy</span><span>{engagement[1]} yorum</span><DiscoverLikeButton releaseId={release.id} /><ArtistChannelLikeButton actors={channelActors} releaseId={release.id} /></div>
         </div>
         <div className="mt-5 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface-strong">
           {release.tracks.map((track) => (
             <ReleaseTrackRow audioUploadId={track.audioUploadId} artists={track.artists.map((artist) => artist.artist.name).join(", ")} isrc={track.isrc} key={track.id} number={track.trackNumber} title={track.title} />
           ))}
         </div>
-        <DiscoverCommentForm releaseId={release.id} isAuthenticated />
+        <DiscoverCommentForm channelActors={channelActors} releaseId={release.id} isAuthenticated />
       </section>
 
       <section className="rounded-3xl border border-line bg-surface p-6">

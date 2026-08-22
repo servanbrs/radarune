@@ -137,6 +137,7 @@ export const likeSchema = z.object({
   releaseId: z.string().min(1).optional(),
   trackId: z.string().min(1).optional(),
   externalMediaId: z.string().min(1).optional(),
+  artistId: z.string().min(1).optional(),
 }).refine((value) => [value.releaseId, value.trackId, value.externalMediaId].filter(Boolean).length === 1, {
   message: "Tek bir içerik seçilmelidir.",
 });
@@ -148,6 +149,7 @@ export const createCommentSchema = z.object({
   playlistId: z.string().min(1).optional(),
   storyId: z.string().min(1).optional(),
   parentCommentId: z.string().min(1).optional(),
+  artistId: z.string().min(1).optional(),
   content: z.string().trim().min(2).max(2000).transform(stripHtml),
 });
 

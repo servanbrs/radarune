@@ -6,6 +6,7 @@ import { notificationService } from "@/features/admin/server/services/notificati
 import { releaseStateService, type ReleaseStatusValue } from "@/features/admin/server/services/release-state.service";
 import { distributionPayloadService } from "@/features/distribution-hub/server/services/distribution-payload.service";
 import { distributionJobService } from "@/features/distribution-hub/server/services/distribution-job.service";
+import { distributionProviderConfigurationService } from "@/features/distribution-hub/server/services/provider-configuration.service";
 import { auditLogService } from "@/features/finance/server/services/audit-log.service";
 import { releaseRepository } from "@/features/releases/server/repositories/release.repository";
 import { releaseValidatorService } from "@/features/releases/server/services/release-validator.service";
@@ -82,7 +83,7 @@ export class ReleaseModerationService {
   }
 
   private async approveRelease(actor: FinanceActorContext, releaseId: string) {
-    return prisma.$transaction(async (tx) => {
+    const updated = await prisma.$transaction(async (tx) => {
       const release = await adminReleaseRepository.findById(releaseId, tx);
       if (!release || release.organizationId !== actor.organizationId) {
         throw new Error("Yayın bulunamadı.");
@@ -131,6 +132,16 @@ export class ReleaseModerationService {
         tx,
       );
 
+      await notificationService.notifyArtistFollowers(
+        {
+          organizationId: actor.organizationId,
+          artistIds: release.artists.map((releaseArtist) => releaseArtist.artistId),
+          releaseId: release.id,
+          releaseTitle: release.title,
+        },
+        tx,
+      );
+
       await auditLogService.create(
         {
           organizationId: actor.organizationId,
@@ -144,6 +155,63 @@ export class ReleaseModerationService {
 
       return updated;
     });
+
+    // ONErpm automation is intentionally a two-step flow: approval creates the
+    // preparation job, while the final submission remains a human action after
+    // the operator reviews the filled form and the uploaded assets.
+    try {
+      const oneRpmConfiguration = await distributionProviderConfigurationService.getRuntimeConfiguration(
+        actor.organizationId,
+        "ONE_RPM",
+      );
+
+      if (oneRpmConfiguration?.isEnabled && oneRpmConfiguration.publicMetadata.mode === "AUTOMATION") {
+        const job = await distributionJobService.createJobForApprovedRelease(actor, {
+          releaseId,
+          provider: "ONE_RPM",
+        });
+
+        if (job.success) {
+          await notificationService.create({
+            organizationId: actor.organizationId,
+            userId: actor.userId,
+            type: "RELEASE_QUEUED_FOR_DISTRIBUTION",
+            title: "ONErpm hazırlığı kuyruğa alındı",
+            message: "Onaylanan yayın için ONErpm formu ve dosya aktarımı hazırlanacak. Son gönderim kontrolünüzden sonra yapılır.",
+            entityType: "DistributionJob",
+            entityId: job.data.id,
+          });
+        } else {
+          await auditLogService.create({
+            organizationId: actor.organizationId,
+            actorUserId: actor.userId,
+            action: "distribution.onerpm.queue_failed",
+            entityType: "Release",
+            entityId: releaseId,
+            metadata: { message: job.message },
+          });
+        }
+      }
+    } catch (error) {
+      // Approval must not be reported as failed if the optional automation
+      // queue is temporarily unavailable. The audit trail remains best effort.
+      try {
+        await auditLogService.create({
+          organizationId: actor.organizationId,
+          actorUserId: actor.userId,
+          action: "distribution.onerpm.queue_failed",
+          entityType: "Release",
+          entityId: releaseId,
+          metadata: {
+            message: error instanceof Error ? error.message : "ONErpm kuyruğu oluşturulamadı.",
+          },
+        });
+      } catch {
+        // Do not turn a successful moderation action into a user-facing error.
+      }
+    }
+
+    return updated;
   }
 
   private async requestRevision(

@@ -8,6 +8,7 @@ import { maskSensitiveValue } from "@/features/finance/lib/formatters";
 import { auditLogService } from "@/features/finance/server/services/audit-log.service";
 import { rbacService } from "@/features/authorization/server/rbac";
 import type { FinanceActorContext } from "@/features/finance/server/services/finance-access.service";
+import { getOneRpmSessionStatus } from "@/features/distribution-automation/server/onerpm-session.service";
 
 function parseStoredCredentials(value: string | null | undefined) {
   if (!value) {
@@ -226,6 +227,33 @@ export class DistributionProviderConfigurationService {
         success: false as const,
         message: "Provider yapılandırması bulunamadı.",
       };
+    }
+
+    if (provider === "ONE_RPM" && configuration.publicMetadata.mode === "AUTOMATION") {
+      const session = await getOneRpmSessionStatus();
+      const success = session.status === "CONNECTED";
+      await distributionProviderConfigurationRepository.recordHealthCheck({
+        organizationId: actor.organizationId,
+        providerConfigurationId: configuration.id,
+        provider,
+        environment: configuration.environment,
+        success,
+        responseTimeMs: 0,
+        ...(success
+          ? {}
+          : {
+              errorCode: "SESSION_REQUIRED",
+              errorMessage: "ONErpm manuel oturumu bağlı değil veya süresi dolmuş.",
+            }),
+      });
+
+      return success
+        ? { success: true as const, data: { checkedAt: new Date() } }
+        : {
+            success: false as const,
+            message:
+              "ONErpm oturumu bağlı değil. Sunucuda manuel giriş ve 2FA tamamlandıktan sonra tekrar deneyin.",
+          };
     }
 
     const adapter = distributionProviderRegistry.getAdapter(provider);

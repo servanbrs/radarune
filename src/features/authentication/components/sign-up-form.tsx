@@ -9,12 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/features/authentication/lib/auth-client";
+import { t } from "@/lib/i18n";
 import {
   type SignUpFormValues,
   signUpFormSchema,
 } from "@/features/authentication/schemas/auth-form.schema";
 
-export function SignUpForm({ facebookEnabled, googleEnabled }: { facebookEnabled: boolean; googleEnabled: boolean }) {
+export function SignUpForm({ facebookEnabled, googleEnabled, locale }: { facebookEnabled: boolean; googleEnabled: boolean; locale: string }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [rootError, setRootError] = useState<string | null>(null);
@@ -40,7 +41,7 @@ export function SignUpForm({ facebookEnabled, googleEnabled }: { facebookEnabled
       });
 
       if (result.error) {
-        setRootError(result.error.message ?? "Hesap oluşturulamadı.");
+        setRootError(result.error.message ?? t(locale, "signUpError"));
         return;
       }
 
@@ -52,7 +53,7 @@ export function SignUpForm({ facebookEnabled, googleEnabled }: { facebookEnabled
       if (otpResult.error) {
         setRootError(
           otpResult.error.message ??
-            "Hesap oluşturuldu ancak doğrulama kodu gönderilemedi.",
+            t(locale, "accountCreatedOtpFailed"),
         );
         return;
       }
@@ -67,7 +68,7 @@ export function SignUpForm({ facebookEnabled, googleEnabled }: { facebookEnabled
       <Field
         error={form.formState.errors.name?.message}
         htmlFor="sign-up-name"
-        label="Ad soyad"
+        label={t(locale, "name")}
       >
         <Input
           autoComplete="name"
@@ -85,16 +86,16 @@ export function SignUpForm({ facebookEnabled, googleEnabled }: { facebookEnabled
         />
         <span>
           <Link className="font-medium text-foreground underline" href="/terms">
-            Kullanım koşullarını
+            {locale === "de-DE" ? "Nutzungsbedingungen" : locale === "en-US" ? "terms of use" : "Kullanım koşullarını"}
           </Link>{" "}
           ve{" "}
           <Link
             className="font-medium text-foreground underline"
             href="/privacy"
           >
-            gizlilik politikasını
+          {locale === "de-DE" ? "Datenschutzerklärung" : locale === "en-US" ? "privacy policy" : "gizlilik politikasını"}
           </Link>{" "}
-          kabul ediyorum.
+          {locale === "de-DE" ? " akzeptiere ich." : locale === "en-US" ? " I accept." : " kabul ediyorum."}
           {form.formState.errors.acceptTerms?.message ? (
             <span className="mt-1 block text-xs text-danger">
               {form.formState.errors.acceptTerms.message}
@@ -106,7 +107,7 @@ export function SignUpForm({ facebookEnabled, googleEnabled }: { facebookEnabled
       <Field
         error={form.formState.errors.email?.message}
         htmlFor="sign-up-email"
-        label="E-posta"
+        label={t(locale, "email")}
       >
         <Input
           autoComplete="email"
@@ -118,14 +119,14 @@ export function SignUpForm({ facebookEnabled, googleEnabled }: { facebookEnabled
 
       <Field
         error={form.formState.errors.password?.message}
-        hint="En az 6 karakter kullanın."
+        hint={t(locale, "passwordHint")}
         htmlFor="sign-up-password"
-        label="Şifre"
+        label={t(locale, "password")}
       >
         <Input
           autoComplete="new-password"
           id="sign-up-password"
-          placeholder="Güçlü bir şifre oluşturun"
+          placeholder={locale === "de-DE" ? "Ein starkes Passwort erstellen" : locale === "en-US" ? "Create a strong password" : "Güçlü bir şifre oluşturun"}
           type="password"
           {...form.register("password")}
         />
@@ -134,12 +135,12 @@ export function SignUpForm({ facebookEnabled, googleEnabled }: { facebookEnabled
       <Field
         error={form.formState.errors.confirmPassword?.message}
         htmlFor="sign-up-confirm-password"
-        label="Şifre tekrarı"
+        label={t(locale, "confirmPassword")}
       >
         <Input
           autoComplete="new-password"
           id="sign-up-confirm-password"
-          placeholder="Şifrenizi tekrar girin"
+          placeholder={t(locale, "confirmPasswordPlaceholder")}
           type="password"
           {...form.register("confirmPassword")}
         />
@@ -152,7 +153,7 @@ export function SignUpForm({ facebookEnabled, googleEnabled }: { facebookEnabled
       ) : null}
 
       <Button className="mt-2 w-full" disabled={isPending} type="submit">
-        {isPending ? "Hesap oluşturuluyor..." : "Hesap oluştur"}
+        {isPending ? t(locale, "signUpPending") : t(locale, "createAccount")}
       </Button>
 
       {googleEnabled ? (
@@ -167,13 +168,13 @@ export function SignUpForm({ facebookEnabled, googleEnabled }: { facebookEnabled
           type="button"
           variant="secondary"
         >
-          Google ile kayıt ol
+          {t(locale, "googleSignUp")}
         </Button>
       ) : null}
 
       {facebookEnabled ? (
         <Button className="w-full" onClick={() => void authClient.signIn.social({ provider: "facebook", callbackURL: "/dashboard" })} type="button" variant="secondary">
-          Facebook ile kayıt ol
+          {t(locale, "facebookSignUp")}
         </Button>
       ) : null}
 
@@ -181,7 +182,7 @@ export function SignUpForm({ facebookEnabled, googleEnabled }: { facebookEnabled
         className="text-sm font-medium text-muted hover:text-foreground"
         href="/sign-in"
       >
-        Zaten hesabınız var mı? Giriş yapın.
+        {t(locale, "alreadyHaveAccount")}
       </Link>
     </form>
   );

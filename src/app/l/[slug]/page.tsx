@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { PublicGrowthShell } from "@/features/growth/components/public-shell";
 import { growthRepository } from "@/features/growth/server/repositories/growth.repository";
 import { smartLinkAnalyticsService } from "@/features/growth/server/services/smart-link-analytics.service";
+import { getRequestLocale } from "@/lib/i18n-server";
 
 function utmSourceForPlatform(platform: string) {
   switch (platform) {
@@ -53,6 +54,7 @@ export default async function SmartLinkPublicPage({ params, searchParams }: { pa
   if (!smartLink || !smartLink.active) {
     notFound();
   }
+  const locale = await getRequestLocale();
 
   const headerList = await headers();
   const userAgent = headerList.get("user-agent") ?? undefined;
@@ -80,7 +82,7 @@ export default async function SmartLinkPublicPage({ params, searchParams }: { pa
   });
 
   return (
-    <PublicGrowthShell>
+    <PublicGrowthShell locale={locale}>
       <section className="rounded-[2rem] border border-white/70 bg-white/80 p-8 text-center shadow-xl backdrop-blur">
         <div className="mx-auto flex items-center justify-center gap-4">
           <div aria-label="Sanatçı profil fotoğrafı" className="grid size-20 shrink-0 place-items-center overflow-hidden rounded-full border-4 border-white bg-emerald-100 text-2xl font-black text-emerald-800 shadow-lg">{smartLink.artist.profileImageUrl ? <img alt={`${smartLink.artist.name} profil fotoğrafı`} className="size-full object-cover" src={smartLink.artist.profileImageUrl} /> : smartLink.artist.name.slice(0, 1).toUpperCase()}</div>

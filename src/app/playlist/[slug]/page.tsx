@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { PublicGrowthShell } from "@/features/growth/components/public-shell";
 import { socialRepository } from "@/features/growth/server/repositories/social.repository";
+import { getRequestLocale } from "@/lib/i18n-server";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -16,8 +17,9 @@ export default async function PublicPlaylistPage({ params }: { params: Promise<{
   if (!playlist) {
     notFound();
   }
+  const locale = await getRequestLocale();
   return (
-    <PublicGrowthShell>
+    <PublicGrowthShell locale={locale}>
       <section className="rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-xl">
         <div><p className="text-xs font-bold uppercase tracking-[0.2em] text-accent">Radarune playlist</p><h1 className="mt-2 text-4xl font-semibold">{playlist.name}</h1><p className="mt-2 text-sm text-muted">{playlist.ownerUser.name} · {playlist.tracks.length} parça · Herkese açık</p></div>
         <div className="mt-6 space-y-3">

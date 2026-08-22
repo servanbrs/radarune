@@ -16,17 +16,21 @@ import type {
   PublicChartTrack,
 } from "@/features/growth/server/services/public-charts.service";
 import { TrackPlayButton } from "@/features/growth/components/track-play-button";
+import { localize } from "@/lib/i18n";
 
 type PublicChartsProps = {
   sections: PublicChartSection[];
+  locale?: string;
 };
 
 function ChartTrackCard({
   item,
   rank,
+  locale = "tr-TR",
 }: {
   item: PublicChartTrack;
   rank: number;
+  locale?: string;
 }) {
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -54,12 +58,12 @@ function ChartTrackCard({
           {isEmbed && embedUrl ? <iframe allow="autoplay; encrypted-media; picture-in-picture" className="absolute inset-0 size-full" src={`${embedUrl}${embedUrl.includes("?") ? "&" : "?"}autoplay=${playing ? "1" : "0"}&playsinline=1&rel=0`} title={item.title} /> : null}
           {item.thumbnailUrl ? (
             <Link
-              aria-label={`${item.title} şarkı sayfasını aç`}
+              aria-label={`${item.title} ${localize(locale, { tr: "şarkı sayfasını aç", en: "open song page", de: "Songseite öffnen" })}`}
               className={`${isEmbed || playing ? "hidden" : "block h-full w-full"}`}
               href={item.trackId ? `/track/${item.trackId}` : item.releaseId ? `/release/${item.releaseId}` : item.externalUrl}
             >
               <img
-                alt={`${item.title} kapak görseli`}
+                alt={`${item.title} ${localize(locale, { tr: "kapak görseli", en: "cover artwork", de: "Coverbild" })}`}
                 className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                 loading="lazy"
                 src={item.thumbnailUrl}
@@ -78,7 +82,7 @@ function ChartTrackCard({
           </span>
 
           <span className="absolute bottom-3 right-3 inline-flex size-11 items-center justify-center rounded-full bg-white text-black shadow-lg transition group-hover:scale-105">
-            <button aria-label={playing ? "Durdur" : "Radarune içinde oynat"} className="inline-flex size-full items-center justify-center rounded-full" onClick={togglePlayback} type="button">
+            <button aria-label={playing ? localize(locale, { tr: "Durdur", en: "Pause", de: "Pausieren" }) : localize(locale, { tr: "Radarune içinde oynat", en: "Play in Radarune", de: "In Radarune abspielen" })} className="inline-flex size-full items-center justify-center rounded-full" onClick={togglePlayback} type="button">
               {playing ? <span className="size-3 rounded-sm bg-black" /> : <Play className="ml-0.5 size-4 fill-current" />}
             </button>
           </span>
@@ -105,7 +109,7 @@ function ChartTrackCard({
               {item.metricLabel}
             </p>
 
-            {item.externalUrl ? <a aria-label="Kaynağı yeni sekmede aç" className="rounded-full p-1 text-black/35 transition hover:bg-black/5 hover:text-[#087d70]" href={item.externalUrl} rel="noreferrer" target="_blank" onClick={(event) => event.stopPropagation()}><ArrowUpRight className="size-4" /></a> : null}
+            {item.externalUrl ? <a aria-label={localize(locale, { tr: "Kaynağı yeni sekmede aç", en: "Open source in new tab", de: "Quelle in neuem Tab öffnen" })} className="rounded-full p-1 text-black/35 transition hover:bg-black/5 hover:text-[#087d70]" href={item.externalUrl} rel="noreferrer" target="_blank" onClick={(event) => event.stopPropagation()}><ArrowUpRight className="size-4" /></a> : null}
             {isLocalTrack ? <TrackPlayButton trackId={item.trackId!} className="size-8 bg-[#087d70] text-white hover:bg-[#055d54]" /> : null}
           </div>
         </div>
@@ -116,8 +120,10 @@ function ChartTrackCard({
 
 function ChartRow({
   section,
+  locale = "tr-TR",
 }: {
   section: PublicChartSection;
+  locale?: string;
 }) {
   const rowRef = useRef<HTMLDivElement | null>(null);
 
@@ -150,7 +156,7 @@ function ChartRow({
 
         <div className="hidden shrink-0 items-center gap-2 sm:flex">
           <button
-            aria-label="Önceki şarkılar"
+            aria-label={localize(locale, { tr: "Önceki şarkılar", en: "Previous songs", de: "Vorherige Songs" })}
             className="inline-flex size-10 items-center justify-center rounded-full border border-black/10 bg-white text-black/55 transition hover:bg-black hover:text-white"
             onClick={() => scroll("left")}
             type="button"
@@ -159,7 +165,7 @@ function ChartRow({
           </button>
 
           <button
-            aria-label="Sonraki şarkılar"
+            aria-label={localize(locale, { tr: "Sonraki şarkılar", en: "Next songs", de: "Nächste Songs" })}
             className="inline-flex size-10 items-center justify-center rounded-full border border-black/10 bg-white text-black/55 transition hover:bg-black hover:text-white"
             onClick={() => scroll("right")}
             type="button"
@@ -178,6 +184,7 @@ function ChartRow({
             <ChartTrackCard
               item={item}
               key={item.id}
+              locale={locale}
               rank={index + 1}
             />
           ))}
@@ -188,13 +195,11 @@ function ChartRow({
             <Music2 className="mx-auto size-7 text-[#087d70]" />
 
             <p className="mt-3 text-sm font-bold text-black">
-              Bu liste henüz hazırlanamadı
+              {localize(locale, { tr: "Bu liste henüz hazırlanamadı", en: "This chart is not ready yet", de: "Diese Liste ist noch nicht bereit" })}
             </p>
 
             <p className="mt-1 max-w-md text-xs leading-5 text-black/45">
-              YouTube API anahtarını admin entegrasyon
-              ayarlarından veya YOUTUBE_API_KEY ortam
-              değişkeninden kontrol edin.
+              {localize(locale, { tr: "YouTube API anahtarını admin entegrasyon ayarlarından veya YOUTUBE_API_KEY ortam değişkeninden kontrol edin.", en: "Check the YouTube API key in admin integrations or the YOUTUBE_API_KEY environment variable.", de: "Prüfe den YouTube-API-Schlüssel in den Admin-Integrationen oder die Umgebungsvariable YOUTUBE_API_KEY." })}
             </p>
           </div>
         </div>
@@ -202,11 +207,11 @@ function ChartRow({
 
       <footer className="mt-1 flex items-center justify-between border-t border-black/5 pt-4">
         <p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-black/35">
-          Kaynak: {section.sourceLabel}
+          {localize(locale, { tr: "Kaynak:", en: "Source:", de: "Quelle:" })} {section.sourceLabel}
         </p>
 
         <p className="text-xs text-black/35">
-          {section.tracks.length} içerik
+          {section.tracks.length} {localize(locale, { tr: "içerik", en: "items", de: "Inhalte" })}
         </p>
       </footer>
     </section>
@@ -215,11 +220,12 @@ function ChartRow({
 
 export function PublicCharts({
   sections,
+  locale = "tr-TR",
 }: PublicChartsProps) {
   return (
     <div className="grid gap-6">
       {sections.map((section) => (
-        <ChartRow key={section.id} section={section} />
+        <ChartRow key={section.id} section={section} locale={locale} />
       ))}
     </div>
   );

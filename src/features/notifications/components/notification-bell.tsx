@@ -10,9 +10,11 @@ import {
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
+import { localize, normalizeLocale, type Locale } from "@/lib/i18n";
 
 type NotificationItem = {
   id: string;
@@ -28,14 +30,14 @@ type NotificationResponse = {
   unread?: number;
 };
 
-function formatNotificationDate(value: string) {
+function formatNotificationDate(value: string, locale: Locale) {
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
     return "";
   }
 
-  return new Intl.DateTimeFormat("tr-TR", {
+  return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "short",
     hour: "2-digit",
@@ -43,8 +45,23 @@ function formatNotificationDate(value: string) {
   }).format(date);
 }
 
-export function NotificationBell() {
+export function NotificationBell({ locale = "tr-TR" }: { locale?: string }) {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const activeLocale = normalizeLocale(locale);
+  const copy = useMemo(() => ({
+    title: localize(activeLocale, { tr: "Bildirimler", en: "Notifications", de: "Benachrichtigungen" }),
+    loginRequired: localize(activeLocale, { tr: "Bildirimleri görmek için giriş yapmalısınız.", en: "You must sign in to view notifications.", de: "Bitte melden Sie sich an, um Benachrichtigungen zu sehen." }),
+    loadError: localize(activeLocale, { tr: "Bildirimler alınamadı.", en: "Notifications could not be loaded.", de: "Benachrichtigungen konnten nicht geladen werden." }),
+    updateError: localize(activeLocale, { tr: "Bildirimler güncellenemedi.", en: "Notifications could not be updated.", de: "Benachrichtigungen konnten nicht aktualisiert werden." }),
+    unread: (count: number) => localize(activeLocale, { tr: `${count} okunmamış bildirim`, en: `${count} unread notification${count === 1 ? "" : "s"}`, de: `${count} ungelesene Benachrichtigung${count === 1 ? "" : "en"}` }),
+    empty: localize(activeLocale, { tr: "Yeni bildirim bulunmuyor", en: "No new notifications", de: "Keine neuen Benachrichtigungen" }),
+    refresh: localize(activeLocale, { tr: "Bildirimleri yenile", en: "Refresh notifications", de: "Benachrichtigungen aktualisieren" }),
+    close: localize(activeLocale, { tr: "Bildirimleri kapat", en: "Close notifications", de: "Benachrichtigungen schließen" }),
+    markAll: localize(activeLocale, { tr: "Tümünü okundu işaretle", en: "Mark all as read", de: "Alle als gelesen markieren" }),
+    retry: localize(activeLocale, { tr: "Tekrar dene", en: "Try again", de: "Erneut versuchen" }),
+    none: localize(activeLocale, { tr: "Bildirim yok", en: "No notifications", de: "Keine Benachrichtigungen" }),
+    description: localize(activeLocale, { tr: "Oylar, yorumlar ve yayın güncellemeleri burada görünecek.", en: "Votes, comments and release updates will appear here.", de: "Abstimmungen, Kommentare und Release-Updates erscheinen hier." }),
+  }), [activeLocale]);
 
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [open, setOpen] = useState(false);
@@ -74,8 +91,8 @@ export function NotificationBell() {
       if (!response.ok) {
         throw new Error(
           response.status === 401
-            ? "Bildirimleri görmek için giriş yapmalısınız."
-            : "Bildirimler alınamadı.",
+            ? copy.loginRequired
+            : copy.loadError,
         );
       }
 
@@ -90,14 +107,14 @@ export function NotificationBell() {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "Bildirimler alınamadı.",
+          : copy.loadError,
       );
     } finally {
       setLoading(false);
       setRefreshing(false);
       setLoaded(true);
     }
-  }, []);
+  }, [copy]);
 
   useEffect(() => {
     const initialRequest = !loaded && !loading
@@ -155,7 +172,7 @@ export function NotificationBell() {
       });
 
       if (!response.ok) {
-        throw new Error("Bildirimler güncellenemedi.");
+        throw new Error(copy.updateError);
       }
 
       const readAt = new Date().toISOString();
@@ -170,7 +187,7 @@ export function NotificationBell() {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "Bildirimler güncellenemedi.",
+          : copy.updateError,
       );
     } finally {
       setMarkingRead(false);
@@ -181,7 +198,7 @@ export function NotificationBell() {
     <div className="relative" ref={wrapperRef}>
       <button
         aria-expanded={open}
-        aria-label="Bildirimler"
+        aria-label={copy.title}
         className="relative inline-flex size-10 items-center justify-center rounded-full border border-[#d6a85f]/25 bg-[#151c2d] text-[#f1f3f8] shadow-[0_8px_24px_rgba(0,0,0,0.2)] transition hover:border-[#d6a85f]/70 hover:bg-[#202b44] hover:text-[#f4d99e]"
         onClick={() => setOpen((current) => !current)}
         type="button"
@@ -197,25 +214,25 @@ export function NotificationBell() {
 
       {open ? (
         <section
-          aria-label="Bildirim listesi"
+          aria-label={copy.title}
           className="absolute right-0 top-12 z-[100] w-[min(360px,calc(100vw-24px))] overflow-hidden rounded-3xl border border-[#2b344b] bg-[#121a2b] text-[#f1f3f8] shadow-[0_24px_80px_rgba(0,0,0,0.35)]"
         >
           <header className="flex items-center justify-between border-b border-[#2b344b] px-4 py-4">
             <div>
                 <p className="text-sm font-bold text-[#f1f3f8]">
-                Bildirimler
+                {copy.title}
               </p>
 
               <p className="mt-0.5 text-xs text-[#b7c2d0]">
                 {unread
-                  ? `${unread} okunmamış bildirim`
-                  : "Yeni bildirim bulunmuyor"}
+                  ? copy.unread(unread)
+                  : copy.empty}
               </p>
             </div>
 
             <div className="flex items-center gap-1">
               <button
-                aria-label="Bildirimleri yenile"
+                aria-label={copy.refresh}
                 className="inline-flex size-9 items-center justify-center rounded-full text-[#b7c2d0] transition hover:bg-[#202b44] hover:text-[#f4d99e]"
                 disabled={refreshing}
                 onClick={() => void loadNotifications(true)}
@@ -229,7 +246,7 @@ export function NotificationBell() {
               </button>
 
               <button
-                aria-label="Bildirimleri kapat"
+                aria-label={copy.close}
                 className="inline-flex size-9 items-center justify-center rounded-full text-[#b7c2d0] transition hover:bg-[#202b44] hover:text-[#f4d99e]"
                 onClick={() => setOpen(false)}
                 type="button"
@@ -253,7 +270,7 @@ export function NotificationBell() {
                   <CheckCheck className="size-3.5" />
                 )}
 
-                Tümünü okundu işaretle
+                {copy.markAll}
               </button>
             </div>
           ) : null}
@@ -274,7 +291,7 @@ export function NotificationBell() {
                   onClick={() => void loadNotifications()}
                   type="button"
                 >
-                  Tekrar dene
+                  {copy.retry}
                 </button>
               </div>
             ) : items.length > 0 ? (
@@ -307,7 +324,7 @@ export function NotificationBell() {
                         </p>
 
                         <p className="mt-2 text-[11px] font-medium text-[#8793a8]">
-                          {formatNotificationDate(item.createdAt)}
+                          {formatNotificationDate(item.createdAt, activeLocale)}
                         </p>
                       </div>
                     </div>
@@ -321,12 +338,11 @@ export function NotificationBell() {
                 </span>
 
                 <p className="mt-3 text-sm font-semibold text-[#f1f3f8]">
-                  Bildirim yok
+                  {copy.none}
                 </p>
 
                 <p className="mt-1 text-xs leading-5 text-[#b7c2d0]">
-                  Oylar, yorumlar ve yayın güncellemeleri burada
-                  görünecek.
+                  {copy.description}
                 </p>
               </div>
             )}

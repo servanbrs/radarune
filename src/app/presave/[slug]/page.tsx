@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { PublicGrowthShell } from "@/features/growth/components/public-shell";
 import { growthRepository } from "@/features/growth/server/repositories/growth.repository";
+import { getRequestLocale } from "@/lib/i18n-server";
 
 export default async function PreSavePublicPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -8,9 +9,10 @@ export default async function PreSavePublicPage({ params }: { params: Promise<{ 
   if (!campaign || !campaign.active) {
     notFound();
   }
+  const locale = await getRequestLocale();
 
   return (
-    <PublicGrowthShell>
+    <PublicGrowthShell locale={locale}>
       <section className="rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-xl backdrop-blur">
         <p className="text-xs uppercase tracking-[0.24em] text-muted">Pre-save</p>
         <h1 className="mt-3 text-4xl font-semibold">{campaign.name}</h1>

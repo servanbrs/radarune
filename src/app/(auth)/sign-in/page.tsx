@@ -5,6 +5,8 @@ import { SignInForm } from "@/features/authentication/components/sign-in-form";
 import { safeRedirectPath } from "@/features/authentication/lib/safe-redirect";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { getSocialProviderAvailability } from "@/features/authentication/server/social-provider-configuration.service";
+import { getRequestLocale } from "@/lib/i18n-server";
+import { t } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   title: "Giriş yap, aramıza katıl | Radarune",
@@ -36,20 +38,23 @@ export default async function SignInPage({
     redirect(nextPath);
   }
   const socialProviders = await getSocialProviderAvailability();
+  const locale = await getRequestLocale();
 
   return (
     <AuthShell
-      description="Yayın operasyonu çalışma alanınıza, provider yönlendirmelerine ve katalog yönetim araçlarına erişin."
-      eyebrow="Radarune erişimi"
+      description={t(locale, "signInDescription")}
+      eyebrow={t(locale, "signInEyebrow")}
       footerHref="/sign-up"
-      footerLinkLabel="Hesap oluştur"
-      footerText="Henüz hesabınız yok mu?"
-      title="Giriş yap"
+      footerLinkLabel={t(locale, "createAccount")}
+      footerText={t(locale, "signInFooterText")}
+      title={t(locale, "signInTitle")}
+      locale={locale}
     >
       <SignInForm
         googleEnabled={socialProviders.google}
         facebookEnabled={socialProviders.facebook}
         nextPath={nextPath}
+        locale={locale}
       />
     </AuthShell>
   );

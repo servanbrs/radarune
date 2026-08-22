@@ -5,6 +5,34 @@ import { unstable_cache } from "next/cache";
 import { prisma } from "@/server/prisma/prisma";
 import { youtubeAdminCredentialService } from "@/features/integrations/server/services/youtube-admin-credential.service";
 
+const CHART_QUERY_TIMEOUT_MS = 4_000;
+
+async function withTimeout<T>(
+  task: Promise<T>,
+  fallback: T,
+  label: string,
+  timeoutMs = CHART_QUERY_TIMEOUT_MS,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      task,
+      new Promise<T>((resolve) => {
+        timer = setTimeout(() => {
+          console.warn(`[PUBLIC_CHARTS] ${label} zaman aşımına uğradı.`);
+          resolve(fallback);
+        }, timeoutMs);
+      }),
+    ]);
+  } catch (error) {
+    console.error(`[PUBLIC_CHARTS] ${label} hazırlanamadı:`, error);
+    return fallback;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 export type PublicChartTrack = {
   id: string;
   trackId: string | null;
@@ -69,7 +97,7 @@ function compactNumber(value: string | number | bigint | null | undefined) {
       ? Number(value)
       : typeof value === "string"
         ? Number(value)
-        : value ?? 0;
+        : (value ?? 0);
 
   if (!Number.isFinite(numericValue)) {
     return "0";
@@ -106,10 +134,7 @@ async function fetchYouTubePopular(
   organizationId: string,
   regionCode?: string,
 ): Promise<PublicChartTrack[]> {
-  const apiKey =
-    await youtubeAdminCredentialService.getApiKey(
-      organizationId,
-    );
+  const apiKey = await youtubeAdminCredentialService.getApiKey(organizationId);
 
   if (!apiKey) {
     return [];
@@ -179,33 +204,22 @@ async function fetchYouTubePopular(
         trackId: null,
         releaseId: null,
         title,
-        artistName:
-          item.snippet?.channelTitle?.trim() || "YouTube Music",
-        thumbnailUrl: youtubeThumbnail(
-          item.snippet?.thumbnails,
-        ),
+        artistName: item.snippet?.channelTitle?.trim() || "YouTube Music",
+        thumbnailUrl: youtubeThumbnail(item.snippet?.thumbnails),
         externalUrl: `https://www.youtube.com/watch?v=${videoId}`,
         embedUrl: `https://www.youtube.com/embed/${videoId}`,
         provider: "YOUTUBE" as const,
         metricLabel: "görüntülenme",
-        metricValue: compactNumber(
-          item.statistics?.viewCount,
-        ),
+        metricValue: compactNumber(item.statistics?.viewCount),
       },
     ];
   });
 }
 
-function getTurkeyYouTubeChart(
-  organizationId: string,
-) {
+function getTurkeyYouTubeChart(organizationId: string) {
   return unstable_cache(
-    async () =>
-      fetchYouTubePopular(organizationId, "TR"),
-    [
-      "public-youtube-chart-tr-v3",
-      organizationId,
-    ],
+    async () => fetchYouTubePopular(organizationId, "TR"),
+    ["public-youtube-chart-tr-v3", organizationId],
     {
       revalidate: 1800,
       tags: [
@@ -217,16 +231,10 @@ function getTurkeyYouTubeChart(
   )();
 }
 
-function getGlobalYouTubeChart(
-  organizationId: string,
-) {
+function getGlobalYouTubeChart(organizationId: string) {
   return unstable_cache(
-    async () =>
-      fetchYouTubePopular(organizationId),
-    [
-      "public-youtube-chart-global-v3",
-      organizationId,
-    ],
+    async () => fetchYouTubePopular(organizationId),
+    ["public-youtube-chart-global-v3", organizationId],
     {
       revalidate: 1800,
       tags: [
@@ -281,8 +289,7 @@ const getRadaruneMostLiked = unstable_cache(
         trackId: item.trackId,
         releaseId: item.releaseId,
         title: item.title,
-        artistName:
-          item.artistName?.trim() || "Bilinmeyen sanatçı",
+        artistName: item.artistName?.trim() || "Bilinmeyen sanatçı",
         thumbnailUrl:
           item.thumbnailUrl ??
           (item.releaseId
@@ -295,10 +302,7 @@ const getRadaruneMostLiked = unstable_cache(
         metricValue: compactNumber(item._count.likes),
       }));
     } catch (error) {
-      console.error(
-        "Radarune beğeni listesi hazırlanamadı:",
-        error,
-      );
+      console.error("Radarune beğeni listesi hazırlanamadı:", error);
 
       return [];
     }
@@ -351,8 +355,7 @@ const getRadaruneMostDiscussed = unstable_cache(
         trackId: item.trackId,
         releaseId: item.releaseId,
         title: item.title,
-        artistName:
-          item.artistName?.trim() || "Bilinmeyen sanatçı",
+        artistName: item.artistName?.trim() || "Bilinmeyen sanatçı",
         thumbnailUrl:
           item.thumbnailUrl ??
           (item.releaseId
@@ -365,10 +368,7 @@ const getRadaruneMostDiscussed = unstable_cache(
         metricValue: compactNumber(item._count.comments),
       }));
     } catch (error) {
-      console.error(
-        "Radarune yorum listesi hazırlanamadı:",
-        error,
-      );
+      console.error("Radarune yorum listesi hazırlanamadı:", error);
 
       return [];
     }
@@ -414,8 +414,7 @@ const getRadaruneNewReleases = unstable_cache(
           trackId: item.trackId,
           releaseId: item.releaseId,
           title: item.title,
-          artistName:
-            item.artistName?.trim() || "Bilinmeyen sanatçı",
+          artistName: item.artistName?.trim() || "Bilinmeyen sanatçı",
           thumbnailUrl:
             item.thumbnailUrl ??
             (item.releaseId
@@ -432,10 +431,7 @@ const getRadaruneNewReleases = unstable_cache(
         };
       });
     } catch (error) {
-      console.error(
-        "Radarune yeni yayın listesi hazırlanamadı:",
-        error,
-      );
+      console.error("Radarune yeni yayın listesi hazırlanamadı:", error);
 
       return [];
     }
@@ -448,63 +444,50 @@ const getRadaruneNewReleases = unstable_cache(
 );
 
 class PublicChartsService {
-  async getPublicCharts(
+  private readonly inFlight = new Map<string, Promise<PublicChartSection[]>>();
+
+  async getPublicCharts(organizationId: string): Promise<PublicChartSection[]> {
+    const existing = this.inFlight.get(organizationId);
+    if (existing) return existing;
+
+    const pending = this.loadPublicCharts(organizationId).finally(() => {
+      if (this.inFlight.get(organizationId) === pending) {
+        this.inFlight.delete(organizationId);
+      }
+    });
+
+    this.inFlight.set(organizationId, pending);
+    return pending;
+  }
+
+  private async loadPublicCharts(
     organizationId: string,
   ): Promise<PublicChartSection[]> {
-    const results = await Promise.allSettled([
-      getTurkeyYouTubeChart(organizationId),
-      getGlobalYouTubeChart(organizationId),
-      getRadaruneMostLiked(),
-      getRadaruneMostDiscussed(),
-      getRadaruneNewReleases(),
-    ]);
-
-    const [
-      turkeyResult,
-      globalResult,
-      mostLikedResult,
-      mostDiscussedResult,
-      newestResult,
-    ] = results;
-
-    if (turkeyResult.status === "rejected") {
-      console.error(
-        "Türkiye YouTube listesi alınamadı:",
-        turkeyResult.reason,
-      );
-    }
-
-    if (globalResult.status === "rejected") {
-      console.error(
-        "Global YouTube listesi alınamadı:",
-        globalResult.reason,
-      );
-    }
-
-    const turkey =
-      turkeyResult.status === "fulfilled"
-        ? turkeyResult.value
-        : [];
-
-    const global =
-      globalResult.status === "fulfilled"
-        ? globalResult.value
-        : [];
-
-    const mostLiked =
-      mostLikedResult.status === "fulfilled"
-        ? mostLikedResult.value
-        : [];
-
-    const mostDiscussed =
-      mostDiscussedResult.status === "fulfilled"
-        ? mostDiscussedResult.value
-        : [];
-
-    const newest =
-      newestResult.status === "fulfilled"
-        ? newestResult.value
-        : [];
+    // Do not let a single slow MariaDB query keep the public page in a
+    // loading state for the adapter's 30-second acquire timeout. The chart
+    // sections are optional and can be filled on the next cached refresh.
+    const [turkey, global, mostLiked, mostDiscussed, newest] =
+      await Promise.all([
+        withTimeout(
+          getTurkeyYouTubeChart(organizationId),
+          [],
+          "Türkiye YouTube listesi",
+          3_000,
+        ),
+        withTimeout(
+          getGlobalYouTubeChart(organizationId),
+          [],
+          "Global YouTube listesi",
+          3_000,
+        ),
+        withTimeout(getRadaruneMostLiked(), [], "Radarune beğeni listesi"),
+        withTimeout(getRadaruneMostDiscussed(), [], "Radarune yorum listesi"),
+        withTimeout(
+          getRadaruneNewReleases(),
+          [],
+          "Radarune yeni yayın listesi",
+        ),
+      ]);
 
     return [
       {
@@ -538,8 +521,7 @@ class PublicChartsService {
         id: "radarune-most-discussed",
         eyebrow: "RADARUNE / GÜNDEM",
         title: "En çok konuşulanlar",
-        description:
-          "Toplulukta en fazla yorum alan aktif şarkılar.",
+        description: "Toplulukta en fazla yorum alan aktif şarkılar.",
         sourceLabel: "Radarune gerçek verisi",
         tracks: mostDiscussed,
       },
@@ -547,8 +529,7 @@ class PublicChartsService {
         id: "radarune-new",
         eyebrow: "RADARUNE / YENİ",
         title: "Yeni keşifler",
-        description:
-          "Radarune'a en son eklenen ve dinlemeye açık yayınlar.",
+        description: "Radarune'a en son eklenen ve dinlemeye açık yayınlar.",
         sourceLabel: "Radarune kataloğu",
         tracks: newest,
       },

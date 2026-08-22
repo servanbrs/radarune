@@ -1,6 +1,8 @@
 import Link from "next/link";
 
 import { VerifyEmailOtpForm } from "@/features/authentication/components/verify-email-otp-form";
+import { getRequestLocale } from "@/lib/i18n-server";
+import { t } from "@/lib/i18n";
 
 type VerifyEmailPageProps = {
   searchParams: Promise<{
@@ -13,6 +15,7 @@ export default async function VerifyEmailPage({
 }: VerifyEmailPageProps) {
   const params = await searchParams;
   const email = params.email?.trim() ?? "";
+  const locale = await getRequestLocale();
 
   return (
     <main className="min-h-screen bg-background px-4 py-12 sm:px-6">
@@ -24,13 +27,13 @@ export default async function VerifyEmailPage({
           Radarune
         </Link>
 
-        <VerifyEmailOtpForm initialEmail={email} />
+        <VerifyEmailOtpForm initialEmail={email} locale={locale} />
 
         <Link
           className="mt-6 text-sm font-medium text-muted hover:text-foreground"
           href="/sign-in"
         >
-          Giriş sayfasına dön
+          {t(locale, "backToSignIn")}
         </Link>
       </div>
     </main>

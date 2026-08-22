@@ -7,6 +7,7 @@ import { StructuredData } from "@/features/seo/components/structured-data";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { UserProfileShareButton } from "@/features/users/components/user-profile-share-button";
 import { userProfileService } from "@/features/users/server/services/user-profile.service";
+import { getRequestLocale } from "@/lib/i18n-server";
 
 export const dynamic = "force-dynamic";
 
@@ -31,9 +32,10 @@ export default async function PublicUserPage({ params }: { params: Promise<{ use
   if (result.redirectTo) permanentRedirect(`/u/${result.redirectTo}`);
   if (!result.profile) notFound();
   const session = await authSessionService.getOptionalSession();
+  const locale = await getRequestLocale();
   const profile = result.profile;
   return (
-    <PublicGrowthShell currentUser={session ? { name: session.user.name } : null}>
+    <PublicGrowthShell currentUser={session ? { name: session.user.name } : null} locale={locale}>
       <StructuredData data={{ "@context": "https://schema.org", "@type": "Person", name: profile.name, url: `https://radarune.com/u/${profile.username}`, image: profile.image ?? undefined, sameAs: [`https://radarune.com/u/${profile.username}`] }} />
       <section className="overflow-hidden rounded-[2rem] border border-white/70 bg-[#081311] text-white shadow-[0_30px_100px_rgba(4,15,13,0.22)]">
         <div className="relative overflow-hidden px-6 py-12 sm:px-10 sm:py-16">

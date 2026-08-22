@@ -118,6 +118,20 @@ export class SupportService {
     });
   }
 
+  async getUnreadCount(actor: FinanceActorContext) {
+    if (!this.canManageSupport(actor)) return 0;
+
+    return prisma.supportTicket.count({
+      where: {
+        ...(this.canSeeAllOrganizations(actor) ? {} : { organizationId: actor.organizationId }),
+        // OPEN is a new ticket; IN_PROGRESS means the user replied after a
+        // staff response. WAITING_USER is intentionally excluded because the
+        // latest visible action came from support.
+        status: { in: ["OPEN", "IN_PROGRESS"] },
+      },
+    });
+  }
+
   async getThread(actor: FinanceActorContext, ticketId: string) {
     const ticket = await prisma.supportTicket.findFirst({ where: { id: ticketId, ...(this.canSeeAllOrganizations(actor) ? {} : { organizationId: actor.organizationId }), ...(this.canManageSupport(actor) ? {} : { requesterUserId: actor.userId }) }, include: { messages: { where: this.canManageSupport(actor) ? {} : { internal: false }, orderBy: { createdAt: "asc" }, include: { sender: { select: { id: true, name: true, systemRole: true } } } }, requester: { select: { id: true, name: true, email: true } }, organization: { select: { id: true, name: true, slug: true } }, assignedUser: { select: { id: true, name: true } }, release: { select: { id: true, title: true, upc: true, tracks: { select: { isrc: true, title: true } } } } } });
     if (!ticket) throw new Error("Destek talebi bulunamadı.");

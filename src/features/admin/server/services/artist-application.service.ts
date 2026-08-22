@@ -52,6 +52,7 @@ export class ArtistApplicationService {
       ...(parsed.data.spotifyArtistUrl ? { spotifyArtistUrl: parsed.data.spotifyArtistUrl } : {}),
       ...(parsed.data.appleMusicArtistUrl ? { appleMusicArtistUrl: parsed.data.appleMusicArtistUrl } : {}),
       ...(parsed.data.youtubeChannelUrl ? { youtubeChannelUrl: parsed.data.youtubeChannelUrl } : {}),
+      ...(parsed.data.documentReference ? { documentReference: parsed.data.documentReference } : {}),
       socialLinks: {
         ...(parsed.data.deezerArtistUrl ? { deezerArtistUrl: parsed.data.deezerArtistUrl } : {}),
         ...(parsed.data.itunesArtistUrl ? { itunesArtistUrl: parsed.data.itunesArtistUrl } : {}),
@@ -124,6 +125,27 @@ export class ArtistApplicationService {
       if (input.action === "APPROVE") {
         if (!["PENDING", "UNDER_REVIEW", "REVISION_REQUESTED"].includes(application.status)) {
           throw new Error("Başvuru bu durumda onaylanamaz.");
+        }
+
+        if (!input.verificationConfirmed) {
+          throw new Error("Onaylamadan önce doğrulama kanıtını manuel olarak kontrol ettiğinizi onaylayın.");
+        }
+
+        const socialLinks = application.socialLinks;
+        const hasPlatformProof = Boolean(
+          application.spotifyArtistUrl ||
+          application.appleMusicArtistUrl ||
+          application.youtubeChannelUrl ||
+          application.documentReference ||
+          (typeof socialLinks === "object" && socialLinks !== null &&
+            !Array.isArray(socialLinks) &&
+            ["deezerArtistUrl", "itunesArtistUrl"].some((key) => {
+              const value = (socialLinks as Record<string, unknown>)[key];
+              return typeof value === "string" && value.trim().length > 0;
+            })),
+        );
+        if (!hasPlatformProof) {
+          throw new Error("Bu başvuru doğrulama kanıtı içermiyor. Kanıt isteyip sonra onaylayın.");
         }
 
         const artist =

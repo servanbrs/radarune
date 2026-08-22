@@ -11,16 +11,19 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { t, type Locale } from "@/lib/i18n";
 
 type PublicUserMenuProps = {
   currentUser: {
     name: string;
     username?: string | null;
   };
+  locale: Locale;
 };
 
 export function PublicUserMenu({
   currentUser,
+  locale,
 }: PublicUserMenuProps) {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = useState(false);
@@ -99,12 +102,12 @@ export function PublicUserMenu({
               <p className="truncate text-xs text-black/45">
                 {currentUser.username
                   ? `@${currentUser.username}`
-                  : "Radarune kullanıcısı"}
+                : t(locale, "platformTagline")}
               </p>
             </div>
 
             <button
-              aria-label="Menüyü kapat"
+              aria-label={t(locale, "closeMenu")}
               className="inline-flex size-8 items-center justify-center rounded-full text-black/40 hover:bg-black/5 hover:text-black"
               onClick={() => setOpen(false)}
               type="button"
@@ -122,7 +125,7 @@ export function PublicUserMenu({
               onClick={() => setOpen(false)}
             >
               <LayoutDashboard className="size-4 text-[#087d70]" />
-              Dashboard
+              {t(locale, "dashboard")}
             </Link>
 
             <Link
@@ -131,7 +134,7 @@ export function PublicUserMenu({
               onClick={() => setOpen(false)}
             >
               <CircleUserRound className="size-4 text-[#087d70]" />
-              Profilim
+              {t(locale, "profile")}
             </Link>
 
             <Link
@@ -140,7 +143,7 @@ export function PublicUserMenu({
               onClick={() => setOpen(false)}
             >
               <Music2 className="size-4 text-[#087d70]" />
-              Playlistlerim
+              {t(locale, "myPlaylists")}
             </Link>
 
             <Link
@@ -149,7 +152,7 @@ export function PublicUserMenu({
               onClick={() => setOpen(false)}
             >
               <Settings className="size-4 text-[#087d70]" />
-              Ayarlar
+              {t(locale, "settings")}
             </Link>
 
             <Link
@@ -158,7 +161,7 @@ export function PublicUserMenu({
               onClick={() => setOpen(false)}
             >
               <LifeBuoy className="size-4 text-[#087d70]" />
-              Destek merkezi
+              {t(locale, "support")}
             </Link>
           </nav>
         </section>

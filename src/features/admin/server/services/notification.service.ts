@@ -60,6 +60,41 @@ export class NotificationService {
     return this.notifyStaff(input);
   }
 
+  async notifyArtistFollowers(
+    input: {
+      organizationId: string;
+      artistIds: string[];
+      releaseId: string;
+      releaseTitle: string;
+    },
+    client: DatabaseClient = prisma,
+  ) {
+    const artistIds = [...new Set(input.artistIds)].filter(Boolean);
+    if (artistIds.length === 0) return { count: 0 };
+
+    const follows = await client.follow.findMany({
+      where: {
+        organizationId: input.organizationId,
+        artistId: { in: artistIds },
+      },
+      select: { userId: true },
+    });
+    const userIds = [...new Set(follows.map((follow) => follow.userId))];
+    if (userIds.length === 0) return { count: 0 };
+
+    return client.notification.createMany({
+      data: userIds.map((userId) => ({
+        organizationId: input.organizationId,
+        userId,
+        type: "NEW_RELEASE_FROM_FOLLOWED_ARTIST",
+        title: "Takip ettiğin sanatçıdan yeni yayın",
+        message: `“${input.releaseTitle}” yayını Radarune’da dinlemeye açıldı.`,
+        entityType: "Release",
+        entityId: input.releaseId,
+      })),
+    });
+  }
+
   async create(
     input: {
       organizationId?: string;

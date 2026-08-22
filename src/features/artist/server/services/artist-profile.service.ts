@@ -26,6 +26,10 @@ function editableArtistScope(input: ArtistEditorActor): Prisma.ArtistWhereInput 
       : {
           OR: [
             { ownerUserId: input.userId },
+            // Eski/otomatik içe aktarımlarda kanal oluşturucusu kayıtlı kalıp
+            // ownerUserId boş olabilir. Kullanıcı yalnızca kendi oluşturduğu
+            // sahipsiz kanalı görür; başkasının kanalına erişim açılmaz.
+            { createdByUserId: input.userId, ownerUserId: null },
             {
               teamMembers: {
                 some: {

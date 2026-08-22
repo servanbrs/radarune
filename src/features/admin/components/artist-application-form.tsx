@@ -88,6 +88,11 @@ export function ArtistApplicationForm() {
         <label className="grid gap-2 text-sm font-medium">iTunes / Apple Music sanatçı linki<input className="rounded-xl border border-line bg-white px-4 py-3" name="itunesArtistUrl" placeholder="https://music.apple.com/..." type="url" /></label>
       </div>
       <label className="grid gap-2 text-sm font-medium">YouTube kanalı<input className="rounded-xl border border-line bg-white px-4 py-3" name="youtubeChannelUrl" type="url" /></label>
+      <label className="grid gap-2 text-sm font-medium">
+        Doğrulama kanıtı bağlantısı
+        <input className="rounded-xl border border-line bg-white px-4 py-3" name="documentReference" placeholder="https://resmi-siteniz.com veya belge bağlantısı" type="url" />
+        <span className="text-xs font-normal text-muted">En az bir Spotify, Deezer, Apple Music, YouTube veya resmi site/belge bağlantısı ekleyin. İsim beyanı tek başına sanatçı doğrulaması sayılmaz.</span>
+      </label>
       <button className="rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-white disabled:opacity-50" disabled={pending} type="submit">{pending ? "Gönderiliyor…" : "Sanatçı başvurusu gönder"}</button>
       {message ? <p className="rounded-xl border border-line bg-surface p-3 text-sm">{message}</p> : null}
     </form>

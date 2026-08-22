@@ -13,6 +13,7 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SignOutButton } from "@/features/authentication/components/sign-out-button";
 import { useRef } from "react";
+import { t } from "@/lib/i18n";
 
 export function UserMenu({ name, email, adminAccess, moderatorAccess, artistAccess, locale = "tr-TR" }: { name: string; email: string; adminAccess?: boolean; moderatorAccess?: boolean; artistAccess?: boolean; locale?: string }) {
   const menuRef = useRef<HTMLDetailsElement | null>(null);
@@ -33,23 +34,23 @@ export function UserMenu({ name, email, adminAccess, moderatorAccess, artistAcce
           <p className="mt-1 truncate text-xs text-white/50">{email}</p>
         </div>
         <nav className="grid gap-1 py-2" onClick={closeMenu}>
-          {adminAccess ? <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/admin"><LayoutDashboard className="h-4 w-4 text-emerald-300" /> Yönetim paneli</Link> : null}
-          {moderatorAccess ? <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/moderator"><ShieldHalf className="h-4 w-4 text-amber-300" /> Moderatör paneli</Link> : null}
-          {artistAccess ? <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/artist-profile"><UserRound className="h-4 w-4" /> Sanatçı paneli</Link> : null}
+          {adminAccess ? <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/admin"><LayoutDashboard className="h-4 w-4 text-emerald-300" /> {t(locale, "settings") === "Ayarlar" ? "Yönetim paneli" : "Admin panel"}</Link> : null}
+          {moderatorAccess ? <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/moderator"><ShieldHalf className="h-4 w-4 text-amber-300" /> {locale === "de-DE" ? "Moderatorpanel" : locale === "en-US" ? "Moderator panel" : "Moderatör paneli"}</Link> : null}
+          {artistAccess ? <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/artist-profile"><UserRound className="h-4 w-4" /> {locale === "de-DE" ? "Künstlerbereich" : locale === "en-US" ? "Artist panel" : "Sanatçı paneli"}</Link> : null}
           <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/settings">
-            <UserRound className="h-4 w-4" /> Profil ayarları
+            <UserRound className="h-4 w-4" /> {locale === "de-DE" ? "Profileinstellungen" : locale === "en-US" ? "Profile settings" : "Profil ayarları"}
           </Link>
           <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/settings#security">
-            <KeyRound className="h-4 w-4" /> Şifre değiştir
+            <KeyRound className="h-4 w-4" /> {locale === "de-DE" ? "Passwort ändern" : locale === "en-US" ? "Change password" : "Şifre değiştir"}
           </Link>
           <Link className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white" href="/analytics">
-            <ChartNoAxesCombined className="h-4 w-4 text-sky-300" /> Analizler
+            <ChartNoAxesCombined className="h-4 w-4 text-sky-300" /> {t(locale, "analytics")}
           </Link>
         </nav>
         <div className="flex items-center justify-between border-t border-white/10 pt-2">
           <LanguageSwitcher dark locale={locale} />
           <div className="flex items-center gap-2">
-            <span className="text-xs text-white/45">Tema</span>
+            <span className="text-xs text-white/45">{t(locale, "theme")}</span>
             <ThemeToggle dark />
           </div>
         </div>

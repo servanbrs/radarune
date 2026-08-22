@@ -98,6 +98,30 @@ function freshnessScore(date: Date | null, maximum: number) {
   return 0;
 }
 
+function normalizeArtistLookupName(value: string | null | undefined) {
+  return (value ?? "")
+    .replace(/\s+-\s+Topic$/i, "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("tr-TR")
+    .replace(/ı/g, "i")
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+function externalArtistNameCandidates(source: {
+  artistName: string | null;
+  title: string;
+}) {
+  const titleArtist = source.title.split(/\s+[-–—|]\s+/)[0]?.trim();
+
+  return [source.artistName, titleArtist]
+    .map(normalizeArtistLookupName)
+    .filter(
+      (value, index, values) =>
+        value.length > 0 && values.indexOf(value) === index,
+    );
+}
+
 function weightedDiscoverOrder(items: DiscoverFeedItem[]) {
   return items
     .map((item) => {
@@ -354,6 +378,7 @@ export class DiscoverService {
         take: 80,
         select: {
           id: true,
+          organizationId: true,
           provider: true,
           externalUrl: true,
           embedUrl: true,
@@ -370,6 +395,51 @@ export class DiscoverService {
         },
       }),
     ]);
+
+    // Older imports may not have an artistId yet, so their cards lose the
+    // profile action even though the matching Artist record already exists.
+    // Resolve those records at read time without inventing a profile slug.
+    const unlinkedExternalSources = externalSources.filter(
+      (source) =>
+        !source.artist && Boolean(source.artistName?.trim() || source.title.trim()),
+    );
+    const fallbackOrganizationIds = Array.from(
+      new Set(unlinkedExternalSources.map((source) => source.organizationId)),
+    );
+    const fallbackArtists = fallbackOrganizationIds.length
+      ? await prisma.artist.findMany({
+          where: { organizationId: { in: fallbackOrganizationIds } },
+          select: {
+            id: true,
+            organizationId: true,
+            name: true,
+            slug: true,
+          },
+        })
+      : [];
+    const fallbackArtistByKey = new Map(
+      fallbackArtists.map((artist) => [
+        `${artist.organizationId}:${normalizeArtistLookupName(artist.name)}`,
+        artist,
+      ]),
+    );
+    const fallbackArtistBySourceId = new Map<
+      string,
+      (typeof fallbackArtists)[number]
+    >();
+
+    for (const source of unlinkedExternalSources) {
+      const artist = externalArtistNameCandidates(source)
+        .map(
+          (name) =>
+            fallbackArtistByKey.get(`${source.organizationId}:${name}`),
+        )
+        .find((candidate) => candidate);
+
+      if (artist) {
+        fallbackArtistBySourceId.set(source.id, artist);
+      }
+    }
 
     // Do not leave the pool empty just because this user has already seen
     // every track in the first page. Refill from the catalog in that case.
@@ -477,7 +547,7 @@ export class DiscoverService {
           embedUrl: source.embedUrl,
           provider: source.provider,
           playable: source.playable,
-          artist: source.artist,
+          artist: source.artist ?? fallbackArtistBySourceId.get(source.id) ?? null,
           score:
             25 +
             Math.min(source._count.likes, 100) * (0.4 + scoringWeights.vote * 0.8 + scoringWeights.like * 0.8) +

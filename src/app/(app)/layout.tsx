@@ -12,6 +12,8 @@ import { GlobalSearch } from "@/components/global-search";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { MobileBottomNav } from "@/features/platform/components/mobile-bottom-nav";
+import { getRequestLocale } from "@/lib/i18n-server";
+import { t } from "@/lib/i18n";
 
 type NavigationItem = {
   href: string;
@@ -38,19 +40,16 @@ export default async function AppLayout({
   const creatorAccess = creatorAccessService.getAccess({
     systemRole: user.systemRole,
   });
-  const locale = organization.organization.defaultLocale;
-  const english = locale === "en-US";
-  const german = locale === "de-DE";
-  const tr = (turkish: string, englishText: string, germanText: string) =>
-    english ? englishText : german ? germanText : turkish;
-
+  // The cookie is the user's active choice. The tenant default is only the
+  // fallback when no preference has been stored yet.
+  const locale = await getRequestLocale();
   const primaryNavigation: NavigationItem[] = [
     {
       href: "/dashboard",
-      label: tr("Ana Sayfa", "Home", "Startseite"),
+      label: t(locale, "home"),
     },
-    { href: "/discover", label: tr("Keşfet", "Discover", "Entdecken") },
-    { href: "/lists", label: tr("Listeler", "Lists", "Listen") },
+    { href: "/discover", label: t(locale, "discover") },
+    { href: "/lists", label: t(locale, "lists") },
   ];
 
   return (
@@ -84,14 +83,14 @@ export default async function AppLayout({
               <GlobalSearch />
             </div>
 
-                <NotificationBell />
+                <NotificationBell locale={locale} />
 
             <UserMenu
               adminAccess={adminAccess}
               moderatorAccess={moderatorAccess}
               artistAccess={creatorAccess.isArtist}
               email={user.email}
-              locale={organization.organization.defaultLocale}
+              locale={locale}
               name={user.name}
             />
           </div>
@@ -105,23 +104,23 @@ export default async function AppLayout({
         <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="font-semibold text-foreground">Radarune</p>
-            <p className="mt-1">Müziğin radarı · Yayın ve keşif platformu</p>
+            <p className="mt-1">{t(locale, "platformTagline")}</p>
           </div>
           <nav className="flex flex-wrap items-center gap-x-5 gap-y-3">
             <Link className="hover:text-foreground" href="/about">
-              {tr("Hakkımızda", "About", "Über uns")}
+              {t(locale, "about")}
             </Link>
             <Link className="hover:text-foreground" href="/contact">
-              {tr("İletişim", "Contact", "Kontakt")}
+              {t(locale, "contact")}
             </Link>
             <Link className="hover:text-foreground" href="/terms">
-              {tr("Kullanım koşulları", "Terms", "Nutzungsbedingungen")}
+              {t(locale, "terms")}
             </Link>
             <LanguageSwitcher locale={locale} />
           </nav>
         </div>
       </footer>
-      <MobileBottomNav homeHref="/dashboard" profileHref="/mobile-profile" profileLabel="Profil" />
+      <MobileBottomNav locale={locale} homeHref="/dashboard" profileHref="/mobile-profile" profileLabel={t(locale, "profile")} />
     </div>
   );
 }

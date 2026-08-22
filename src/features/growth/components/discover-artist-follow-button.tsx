@@ -1,6 +1,7 @@
 "use client";
 
-import { Check, UserPlus } from "lucide-react";
+import { UserMinus, UserPlus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function DiscoverArtistFollowButton({
@@ -12,14 +13,18 @@ export function DiscoverArtistFollowButton({
   isAuthenticated: boolean;
   initialFollowing?: boolean;
 }) {
+  const router = useRouter();
   const [following, setFollowing] = useState(initialFollowing);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (!isAuthenticated) return null;
-
   async function toggleFollow() {
     if (pending) return;
+    if (!isAuthenticated) {
+      const next = `${window.location.pathname}${window.location.search}`;
+      router.push(`/sign-in?next=${encodeURIComponent(next)}`);
+      return;
+    }
     setPending(true);
     setError(null);
     try {
@@ -50,8 +55,8 @@ export function DiscoverArtistFollowButton({
         onClick={(event) => { event.preventDefault(); event.stopPropagation(); void toggleFollow(); }}
         type="button"
       >
-        {following ? <Check className="size-3.5" /> : <UserPlus className="size-3.5" />}
-        {following ? "Takipte" : "Takip et"}
+        {following ? <UserMinus className="size-3.5" /> : <UserPlus className="size-3.5" />}
+        {following ? "Takipten çık" : "Takip et"}
       </button>
       {error ? <span className="max-w-48 text-[11px] font-medium text-red-700">{error}</span> : null}
     </span>

@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/features/authentication/lib/auth-client";
 import { safeRedirectPath } from "@/features/authentication/lib/safe-redirect";
+import { t } from "@/lib/i18n";
 
 const RESEND_SECONDS = 60;
 
@@ -22,7 +23,7 @@ function normalizeCode(value: string) {
   return value.replace(/\D/g, "").slice(0, 6);
 }
 
-export function VerifyLoginOtpForm() {
+export function VerifyLoginOtpForm({ locale }: { locale: string }) {
   const router = useRouter();
 
   const [code, setCode] = useState("");
@@ -31,7 +32,7 @@ export function VerifyLoginOtpForm() {
   const [error, setError] = useState<string | null>(null);
 
   const [message, setMessage] = useState<string | null>(
-    "Altı haneli giriş kodu e-posta adresinize gönderildi.",
+    t(locale, "verifyLoginDescription"),
   );
 
   const [remaining, setRemaining] = useState(RESEND_SECONDS);
@@ -47,13 +48,13 @@ export function VerifyLoginOtpForm() {
     if (result.error) {
       setError(
         result.error.message ??
-          "Giriş kodu gönderilemedi. Giriş işlemini yeniden başlatın.",
+          t(locale, "restartLogin"),
       );
       return false;
     }
 
     setRemaining(RESEND_SECONDS);
-    setMessage("Altı haneli giriş kodu e-posta adresinize gönderildi.");
+    setMessage(t(locale, "verifyLoginDescription"));
 
     return true;
   }
@@ -85,11 +86,11 @@ export function VerifyLoginOtpForm() {
       });
 
       if (result.error) {
-        setError(result.error.message ?? "Güvenlik kodu geçersiz.");
+        setError(result.error.message ?? t(locale, "verifyLogin"));
         return;
       }
 
-      setMessage("Giriş doğrulandı. Dashboard açılıyor…");
+      setMessage(t(locale, "verifyLogin"));
 
       const next = new URLSearchParams(window.location.search).get("next");
       router.replace(safeRedirectPath(next));
@@ -108,34 +109,39 @@ export function VerifyLoginOtpForm() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md">
-      <div className="rounded-[2rem] border border-line bg-surface p-6 shadow-2xl sm:p-8">
-        <div className="flex size-14 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+    <div className="auth-otp-shell mx-auto w-full max-w-md">
+      <div className={`auth-otp-card rounded-[2rem] border border-line bg-surface p-6 shadow-2xl sm:p-8${pending ? " is-pending" : ""}${error ? " has-error" : ""}`}>
+        <div className="auth-otp-icon flex size-14 items-center justify-center rounded-2xl bg-accent/10 text-accent">
           <ShieldCheck className="size-7" />
         </div>
 
         <p className="mt-6 text-xs font-semibold uppercase tracking-[0.22em] text-accent">
-          İki adımlı doğrulama
+          {t(locale, "twoFactor")}
         </p>
 
         <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em]">
-          Girişinizi doğrulayın
+          {t(locale, "verifyLoginTitle")}
         </h1>
 
         <p className="mt-3 text-sm leading-7 text-muted">
-          Şifreniz doğrulandı. Hesabınıza erişmek için e-postanıza gönderilen
-          altı haneli güvenlik kodunu girin.
+          {t(locale, "verifyLoginDescription")}
         </p>
 
+        <div aria-hidden="true" className="auth-otp-progress mt-6">
+          {Array.from({ length: 6 }, (_, index) => (
+            <span className={index < code.length ? "is-filled" : ""} key={index} />
+          ))}
+        </div>
+
         <label className="mt-7 grid gap-2 text-sm font-medium">
-          Güvenlik kodu
+          {t(locale, "verificationCode")}
           <div className="relative">
             <KeyRound className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted" />
 
             <Input
               autoComplete="one-time-code"
               autoFocus
-              className="h-14 pl-12 text-center text-2xl font-semibold tracking-[0.32em]"
+              className="auth-otp-input h-14 pl-12 text-center text-2xl font-semibold tracking-[0.32em]"
               inputMode="numeric"
               onChange={(event) => setCode(normalizeCode(event.target.value))}
               onKeyDown={(event) => {
@@ -160,11 +166,11 @@ export function VerifyLoginOtpForm() {
 
           <span>
             <span className="block text-sm font-medium">
-              Bu cihaza 30 gün güven
+              {t(locale, "trustDevice")}
             </span>
 
             <span className="mt-1 block text-xs leading-5 text-muted">
-              Bu tarayıcıda 30 gün boyunca tekrar güvenlik kodu istenmez.
+              {t(locale, "trustDeviceDescription")}
             </span>
           </span>
         </label>
@@ -194,7 +200,7 @@ export function VerifyLoginOtpForm() {
             <ShieldCheck className="size-4" />
           )}
 
-          {pending ? "Doğrulanıyor…" : "Girişi doğrula"}
+          {pending ? t(locale, "verifyEmailPending") : t(locale, "verifyLogin")}
         </Button>
 
         <Button
@@ -206,19 +212,18 @@ export function VerifyLoginOtpForm() {
         >
           <RefreshCw className="size-4" />
 
-          {remaining > 0 ? `Tekrar gönder (${remaining})` : "Yeni kod gönder"}
+          {remaining > 0 ? `${t(locale, "resendCode")} (${remaining})` : t(locale, "sendNewCode")}
         </Button>
 
         <p className="mt-5 text-center text-xs leading-5 text-muted">
-          Kod 10 dakika geçerlidir. Beş başarısız denemeden sonra hesap güvenlik
-          amacıyla 15 dakika kilitlenir.
+          {t(locale, "codeValidity")}
         </p>
 
         <Link
           className="mt-5 block text-center text-sm font-medium text-muted hover:text-foreground"
           href="/sign-in"
         >
-          Giriş işlemini yeniden başlat
+          {t(locale, "restartLogin")}
         </Link>
       </div>
     </div>

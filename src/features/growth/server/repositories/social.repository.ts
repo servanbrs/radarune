@@ -59,9 +59,37 @@ export class SocialRepository {
     return prisma.externalMediaLike.upsert({ where: { userId_externalMediaId: { userId, externalMediaId } }, update: {}, create: { organizationId, userId, externalMediaId }, select: { id: true } });
   }
 
+  async likeReleaseAsArtist(input: { organizationId: string; artistId: string; performedByUserId: string; releaseId: string }) {
+    return prisma.artistChannelLike.upsert({
+      where: { artistId_releaseId: { artistId: input.artistId, releaseId: input.releaseId } },
+      update: {},
+      create: { organizationId: input.organizationId, artistId: input.artistId, performedByUserId: input.performedByUserId, releaseId: input.releaseId },
+      select: { id: true },
+    });
+  }
+
+  async likeTrackAsArtist(input: { organizationId: string; artistId: string; performedByUserId: string; trackId: string }) {
+    return prisma.artistChannelLike.upsert({
+      where: { artistId_trackId: { artistId: input.artistId, trackId: input.trackId } },
+      update: {},
+      create: { organizationId: input.organizationId, artistId: input.artistId, performedByUserId: input.performedByUserId, trackId: input.trackId },
+      select: { id: true },
+    });
+  }
+
+  async likeExternalMediaAsArtist(input: { organizationId: string; artistId: string; performedByUserId: string; externalMediaId: string }) {
+    return prisma.artistChannelLike.upsert({
+      where: { artistId_externalMediaId: { artistId: input.artistId, externalMediaId: input.externalMediaId } },
+      update: {},
+      create: { organizationId: input.organizationId, artistId: input.artistId, performedByUserId: input.performedByUserId, externalMediaId: input.externalMediaId },
+      select: { id: true },
+    });
+  }
+
   async createComment(input: {
     organizationId?: string;
     authorUserId: string;
+    authorArtistId?: string;
     releaseId?: string;
     trackId?: string;
     externalMediaId?: string;
@@ -74,6 +102,7 @@ export class SocialRepository {
       data: {
         organizationId: input.organizationId ?? null,
         authorUserId: input.authorUserId,
+        authorArtistId: input.authorArtistId ?? null,
         releaseId: input.releaseId ?? null,
         trackId: input.trackId ?? null,
         externalMediaId: input.externalMediaId ?? null,
@@ -82,7 +111,13 @@ export class SocialRepository {
         parentCommentId: input.parentCommentId ?? null,
         content: input.content,
       },
-      select: { id: true },
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+        authorUser: { select: { name: true, username: true } },
+        authorArtist: { select: { name: true, slug: true } },
+      },
     });
   }
 
@@ -100,6 +135,7 @@ export class SocialRepository {
         content: true,
         createdAt: true,
         authorUser: { select: { name: true, username: true } },
+        authorArtist: { select: { name: true, slug: true } },
         replies: {
           where: { status: "VISIBLE" },
           orderBy: { createdAt: "asc" },
@@ -109,6 +145,7 @@ export class SocialRepository {
             content: true,
             createdAt: true,
             authorUser: { select: { name: true, username: true } },
+            authorArtist: { select: { name: true, slug: true } },
           },
         },
       },

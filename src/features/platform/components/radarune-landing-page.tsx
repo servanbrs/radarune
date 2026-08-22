@@ -7,6 +7,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { QuickSignUpForm } from "@/features/authentication/components/quick-sign-up-form";
 import { MobileBottomNav } from "@/features/platform/components/mobile-bottom-nav";
+import { getRequestLocale } from "@/lib/i18n-server";
+import { normalizeLocale, t } from "@/lib/i18n";
 
 const capabilities = [
   {
@@ -58,7 +60,8 @@ const frequentlyAskedQuestions = [
   },
 ] as const;
 
-export function RadaruneLandingPage({ discoverReleases = [] }: { discoverReleases?: PublicDiscoverCandidate[] }) {
+export async function RadaruneLandingPage({ discoverReleases = [] }: { discoverReleases?: PublicDiscoverCandidate[] }) {
+  const locale = normalizeLocale(await getRequestLocale());
   return (
     <main className="landing-shell min-h-screen overflow-hidden bg-[#090b0f] pb-20 text-white lg:pb-0">
       <StructuredData
@@ -75,20 +78,20 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
       <div className="landing-aurora landing-aurora-one pointer-events-none absolute inset-x-0 top-0 h-[38rem]" />
       <div className="landing-aurora landing-aurora-two pointer-events-none absolute right-[-10rem] top-[22rem] h-[30rem] w-[30rem]" />
 
-      <header className="relative z-10 border-b border-white/10 px-5 py-4 md:px-10 md:py-5">
+      <header className="landing-reveal landing-reveal-delay-1 relative z-10 border-b border-white/10 px-5 py-4 md:px-10 md:py-5">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-6">
           <Link className="flex items-center gap-3" href="/" aria-label="Radarune ana sayfa">
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#efb848] text-sm font-bold text-[#090b0f]">R</span>
             <span className="text-sm font-semibold tracking-[0.24em]">RADARUNE</span>
           </Link>
           <nav className="hidden items-center gap-3 text-xs text-white/60 sm:gap-8 sm:text-sm lg:flex" aria-label="Ana navigasyon">
-            <Link className="hover:text-white" href="/">Ana Sayfa</Link>
-            <Link className="hover:text-white" href="/discover">Keşfet</Link>
-            <Link className="hover:text-white" href="/lists">Listeler</Link>
+            <Link className="hover:text-white" href="/">{t(locale, "home")}</Link>
+            <Link className="hover:text-white" href="/discover">{t(locale, "discover")}</Link>
+            <Link className="hover:text-white" href="/lists">{t(locale, "lists")}</Link>
             <Link className="hover:text-white" href="/hype">Hype</Link>
           </nav>
           <div className="hidden items-center gap-3 lg:flex">
-            <Link className="hidden text-sm font-medium text-white/65 hover:text-white sm:inline" href="/sign-in">Giriş yap</Link>
+            <Link className="hidden text-sm font-medium text-white/65 hover:text-white sm:inline" href="/sign-in">{t(locale, "login")}</Link>
             <ThemeToggle />
             <Link className="inline-flex items-center gap-2 rounded-full bg-[#efb848] px-4 py-2.5 text-sm font-semibold text-[#090b0f] hover:bg-[#ffd46f]" href="/sign-up">
               Başlayın <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
@@ -98,11 +101,12 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
       </header>
 
       <section className="relative z-10 mx-auto grid max-w-7xl gap-12 px-5 pb-20 pt-16 md:px-10 md:pb-24 md:pt-24 lg:min-h-[calc(100vh-5.5rem)] lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16 lg:py-20">
-        <div>
+        <div className="landing-reveal landing-reveal-delay-2">
           <div className="landing-eyebrow mb-7 inline-flex items-center gap-2 rounded-full border border-[#efb848]/30 bg-[#efb848]/10 px-3 py-1.5 text-xs font-medium tracking-[0.14em] text-[#ffd46f]">
             <CircleDot className="h-3.5 w-3.5" aria-hidden="true" />
-            MÜZİĞİN RADARI · TAMAMEN ÜCRETSİZ
+            MÜZİĞİN RADARI · BUGÜNÜN YENİ SESLERİ
           </div>
+          <p className="mb-5 text-sm font-medium text-white/45">Hoş geldin. İyi müzik burada önce duyulur.</p>
           <h1 className="landing-title max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.05em] md:text-7xl lg:text-[5.25rem]">
             Sanatçını keşfet.<br /><span className="text-[#efb848]">Şarkıyı şimdi dinle.</span><br />Sesini duyur.
           </h1>
@@ -119,7 +123,7 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
           </div>
         </div>
 
-        <div className="relative mx-auto w-full max-w-xl lg:ml-auto">
+        <div className="landing-reveal landing-reveal-delay-3 landing-float relative mx-auto w-full max-w-xl lg:ml-auto">
           <div className="absolute -inset-8 rounded-[3rem] bg-[#efb848]/10 blur-3xl" />
           <div className="landing-dark-card relative rounded-[2rem] border border-white/15 bg-[#11151b]/95 p-4 shadow-2xl shadow-black/40 md:p-6">
             <div className="flex items-center justify-between border-b border-white/10 pb-5">
@@ -128,6 +132,26 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
                 <p className="landing-card-primary mt-2 text-lg font-semibold">Radarune keşif akışı</p>
               </div>
               <span className="rounded-full border border-[#61d2a5]/30 bg-[#61d2a5]/10 px-3 py-1 text-xs text-[#8ae8c2]">Kontrol altında</span>
+            </div>
+            <div className="landing-now-playing mt-5 rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+              <div className="flex items-center justify-between gap-3">
+                <span className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#8ae8c2]"><span className="landing-pulse-dot h-2 w-2 rounded-full bg-[#61d2a5]" />Şimdi radarında</span>
+                <span className="text-[10px] uppercase tracking-[0.16em] text-white/35">Canlı akış</span>
+              </div>
+              <div className="mt-4 flex items-center gap-4">
+                <div className="landing-cover-art grid h-16 w-16 shrink-0 place-items-center rounded-2xl text-2xl font-black text-white" aria-hidden="true">
+                  <span className="landing-cover-orbit landing-cover-orbit-one" />
+                  <span className="landing-cover-orbit landing-cover-orbit-two" />
+                  R
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-white">Bugün keşfedilen ses</p>
+                  <p className="mt-1 text-xs text-white/45">Yeni müzikler, gerçek dinleyiciler</p>
+                  <div className="landing-wave mt-3" aria-hidden="true">
+                    {Array.from({ length: 16 }, (_, index) => <span key={index} />)}
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="grid gap-3 py-5">
               {[
@@ -247,20 +271,20 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
         </div>
       </section>
 
-      <section className="relative z-10 mx-5 mb-8 rounded-[2rem] border border-white/10 bg-white/[0.035] px-6 py-10 md:mx-auto md:max-w-7xl md:px-12 md:py-14" aria-labelledby="faq-title">
+      <section className="landing-faq relative z-10 mx-5 mb-8 rounded-[2rem] border px-6 py-10 md:mx-auto md:max-w-7xl md:px-12 md:py-14" aria-labelledby="faq-title">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#efb848]">Sıkça sorulan sorular</p>
-          <h2 id="faq-title" className="mt-4 text-3xl font-semibold leading-tight tracking-[-0.04em] md:text-5xl">Radarune hakkında merak edilenler.</h2>
-          <p className="mt-4 text-base leading-7 text-white/55">Başlamak, müzik keşfetmek ve yayınını duyurmakla ilgili en sık sorulan soruların yanıtları.</p>
+          <p className="landing-faq-label text-xs font-semibold uppercase tracking-[0.24em]">Sıkça sorulan sorular</p>
+          <h2 id="faq-title" className="landing-faq-title mt-4 text-3xl font-semibold leading-tight tracking-[-0.04em] md:text-5xl">Radarune hakkında merak edilenler.</h2>
+          <p className="landing-faq-description mt-4 text-base leading-7">Başlamak, müzik keşfetmek ve yayınını duyurmakla ilgili en sık sorulan soruların yanıtları.</p>
         </div>
-        <div className="mt-8 divide-y divide-white/10 rounded-2xl border border-white/10 bg-[#11151b]/70 px-5 md:px-7">
+        <div className="landing-faq-list mt-8 divide-y rounded-2xl border px-5 md:px-7">
           {frequentlyAskedQuestions.map(({ answer, question }, index) => (
             <details className="group py-5 first:pt-2 last:pb-2" key={question} open={index === 0}>
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-5 py-3 text-base font-semibold text-white marker:hidden md:text-lg">
+              <summary className="landing-faq-question flex cursor-pointer list-none items-center justify-between gap-5 py-3 text-base font-semibold marker:hidden md:text-lg">
                 <span>{question}</span>
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[#efb848]/40 text-xl font-normal leading-none text-[#efb848] transition group-open:rotate-45" aria-hidden="true">+</span>
+                <span className="landing-faq-icon grid h-8 w-8 shrink-0 place-items-center rounded-full border text-xl font-normal leading-none transition group-open:rotate-45" aria-hidden="true">+</span>
               </summary>
-              <p className="max-w-3xl pb-3 pr-12 text-sm leading-7 text-white/55 md:text-base">{answer}</p>
+              <p className="landing-faq-answer max-w-3xl pb-3 pr-12 text-sm leading-7 md:text-base">{answer}</p>
             </details>
           ))}
         </div>
@@ -269,10 +293,10 @@ export function RadaruneLandingPage({ discoverReleases = [] }: { discoverRelease
       <footer className="relative z-10 mx-auto grid max-w-7xl gap-8 px-5 py-12 text-sm text-white/55 md:grid-cols-[1.2fr_1fr_1fr] md:px-10">
         <div><p className="font-semibold tracking-[0.2em] text-white/80">RADARUNE</p><p className="mt-3 max-w-xs leading-6">Sanatçılar ve label ekipleri için müzik operasyonları.</p><p className="mt-5 text-xs text-white/35">© {new Date().getFullYear()} Radarune</p></div>
         <nav className="grid content-start gap-3" aria-label="Footer bağlantıları"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">Radarune</p><Link className="hover:text-white" href="/about">Hakkımızda</Link><Link className="hover:text-white" href="/contact">İletişim</Link><Link className="hover:text-white" href="/terms">Kullanım koşulları</Link></nav>
-        <div className="grid content-start gap-3"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">Tercihler</p><label className="flex items-center justify-between gap-3">Dil <LanguageSwitcher locale="tr-TR" /></label></div>
+        <div className="grid content-start gap-3"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">{t(locale, "theme")}</p><label className="flex items-center justify-between gap-3">{t(locale, "language")} <LanguageSwitcher locale={locale} /></label></div>
       </footer>
 
-      <MobileBottomNav homeHref="/" profileHref="/sign-in?next=%2F" profileLabel="Giriş" />
+      <MobileBottomNav homeHref="/" profileHref="/sign-in?next=%2F" profileLabel={t(locale, "login")} locale={locale} />
     </main>
   );
 }

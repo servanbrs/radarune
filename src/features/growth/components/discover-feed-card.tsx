@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -16,7 +16,9 @@ import {
 
 import { DiscoverCommentForm } from "@/features/growth/components/discover-comment-form";
 import { DiscoverArtistFollowButton } from "@/features/growth/components/discover-artist-follow-button";
+import { PublicTrackPlayer } from "@/features/growth/components/public-track-player";
 import type { DiscoverFeedItem } from "@/features/growth/server/services/discover.service";
+import { localize } from "@/lib/i18n";
 
 type DiscoverFeedCardProps = {
   item: DiscoverFeedItem;
@@ -24,6 +26,7 @@ type DiscoverFeedCardProps = {
   inlinePlaying?: boolean;
   onInlinePlay?: (item: DiscoverFeedItem) => void;
   isAuthenticated?: boolean;
+  locale?: string;
 };
 
 function youtubeVideoId(externalUrl: string | null, embedUrl: string | null) {
@@ -86,12 +89,12 @@ export function DiscoverFeedCard({
   inlinePlaying = false,
   onInlinePlay,
   isAuthenticated = false,
+  locale = "tr-TR",
 }: DiscoverFeedCardProps) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(item.likeCount ?? 0);
   const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(inlinePlaying);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const router = useRouter();
 
   const artworkUrl =
@@ -128,15 +131,6 @@ export function DiscoverFeedCard({
     item.provider === "SPOTIFY" &&
     Boolean(spotifyUrl) &&
     (inlinePlaying || playing);
-
-  useEffect(() => {
-    if (!audioRef.current || !isLocalAudio) return;
-    if (playing) {
-      void audioRef.current.play().catch(() => setPlaying(false));
-    } else {
-      audioRef.current.pause();
-    }
-  }, [isLocalAudio, playing]);
 
   async function likeItem() {
     if (!isAuthenticated) {
@@ -183,9 +177,6 @@ export function DiscoverFeedCard({
 
   function togglePlay() {
     if (isLocalAudio) {
-      setPlaying((current) => !current);
-      onInlinePlay?.(item);
-      onPlay?.(item);
       return;
     }
 
@@ -221,11 +212,12 @@ export function DiscoverFeedCard({
     <div className="mx-auto w-full min-w-0 max-w-full sm:max-w-[760px]">
       <article className="w-full min-w-0 max-w-full overflow-hidden rounded-[28px] border border-black/10 bg-[#07090c] shadow-[0_28px_90px_rgba(15,23,42,0.22)]">
         <div
-          className="relative aspect-video w-full min-w-0 cursor-pointer overflow-hidden"
-          onClick={togglePlay}
-          role="button"
-          tabIndex={0}
+          className={`relative aspect-video w-full min-w-0 overflow-hidden ${isLocalAudio ? "" : "cursor-pointer"}`}
+          onClick={isLocalAudio ? undefined : togglePlay}
+          role={isLocalAudio ? undefined : "button"}
+          tabIndex={isLocalAudio ? undefined : 0}
           onKeyDown={(event) => {
+            if (isLocalAudio) return;
             if (event.key === "Enter" || event.key === " ") {
               event.preventDefault();
               togglePlay();
@@ -262,8 +254,6 @@ export function DiscoverFeedCard({
             </div>
           )}
 
-          {isLocalAudio && item.trackId ? <audio aria-label={`${item.title} oynatıcı`} className="absolute inset-x-5 bottom-5 z-20 w-[calc(100%-2.5rem)] rounded-full opacity-95" controls onEnded={() => setPlaying(false)} preload="none" ref={audioRef} src={`/api/public/v1/tracks/${item.trackId}/stream`} /> : null}
-
           {!shouldShowYoutube && !shouldShowSpotify ? (
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/5 to-black/20" />
           ) : null}
@@ -289,21 +279,38 @@ export function DiscoverFeedCard({
           {!shouldShowYoutube && !shouldShowSpotify ? (
             <div className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-between gap-4 p-5 sm:p-7">
               <div className="flex min-w-0 items-center gap-4">
-                <button
-                  aria-label={playing ? "Şarkıyı duraklat" : "Şarkıyı oynat"}
-                  className="inline-flex size-14 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/45 text-white backdrop-blur-xl transition hover:scale-105 hover:bg-white hover:text-black"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    togglePlay();
-                  }}
-                  type="button"
-                >
-                  {playing ? (
-                    <Pause className="size-5 fill-current" />
-                  ) : (
-                    <Play className="ml-0.5 size-5 fill-current" />
-                  )}
-                </button>
+                {isLocalAudio && item.trackId ? (
+                  <div
+                    className="w-full max-w-[360px]"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <PublicTrackPlayer
+                      compact
+                      onPlay={() => {
+                        onInlinePlay?.(item);
+                        onPlay?.(item);
+                      }}
+                      title={item.title}
+                      trackId={item.trackId}
+                    />
+                  </div>
+                ) : (
+                  <button
+                    aria-label={playing ? "Şarkıyı duraklat" : "Şarkıyı oynat"}
+                    className="inline-flex size-14 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/45 text-white backdrop-blur-xl transition hover:scale-105 hover:bg-white hover:text-black"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      togglePlay();
+                    }}
+                    type="button"
+                  >
+                    {playing ? (
+                      <Pause className="size-5 fill-current" />
+                    ) : (
+                      <Play className="ml-0.5 size-5 fill-current" />
+                    )}
+                  </button>
+                )}
 
                 <div className="min-w-0">
                   <h2 className="truncate text-lg font-bold text-white sm:text-2xl">
@@ -347,11 +354,11 @@ export function DiscoverFeedCard({
 
                 <div className="inline-flex h-11 items-center gap-2 rounded-full px-3">
                   <MessageCircle className="size-5" />
-                  <span className="text-sm font-semibold">Yorum</span>
+                  <span className="text-sm font-semibold">{localize(locale, { tr: "Yorum", en: "Comment", de: "Kommentar" })}</span>
                 </div>
 
                 <button
-                  aria-label="Tam ekran"
+                  aria-label={localize(locale, { tr: "Tam ekran", en: "Fullscreen", de: "Vollbild" })}
                   className="inline-flex size-11 items-center justify-center rounded-full transition hover:bg-white/10"
                   onClick={(event) => {
                     event.stopPropagation();
@@ -372,17 +379,17 @@ export function DiscoverFeedCard({
         </div>
       </article>
 
-      {artistHref ? <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-black/[0.07] bg-white/85 px-4 py-3 shadow-sm backdrop-blur-xl"><div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#8b9693]">Sanatçı kanalı</p><Link className="mt-1 block truncate text-sm font-semibold text-[#101817] hover:text-emerald-700" href={artistHref}>{item.artistName}</Link></div><div className="flex shrink-0 items-center gap-2"><Link className="rounded-xl bg-[#101817] px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700" href={artistHref}>Profili aç →</Link>{item.artist?.id ? <DiscoverArtistFollowButton artistId={item.artist.id} initialFollowing={item.isFollowing ?? false} isAuthenticated={isAuthenticated} /> : null}</div></div> : null}
+      {artistHref ? <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-black/[0.07] bg-white/85 px-4 py-3 shadow-sm backdrop-blur-xl"><div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#8b9693]">{localize(locale, { tr: "Sanatçı kanalı", en: "Artist channel", de: "Künstlerkanal" })}</p><Link className="mt-1 block truncate text-sm font-semibold text-[#101817] hover:text-emerald-700" href={artistHref}>{item.artistName}</Link></div><div className="flex shrink-0 items-center gap-2"><Link className="rounded-xl bg-[#101817] px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700" href={artistHref}>{localize(locale, { tr: "Profili aç →", en: "Open profile →", de: "Profil öffnen →" })}</Link>{item.artist?.id ? <DiscoverArtistFollowButton artistId={item.artist.id} initialFollowing={item.isFollowing ?? false} isAuthenticated={isAuthenticated} /> : null}</div></div> : null}
 
       <section className="mt-5 overflow-hidden rounded-[26px] border border-black/[0.07] bg-white/90 shadow-[0_20px_60px_rgba(15,23,42,0.1)] backdrop-blur-xl">
         <div className="flex items-center justify-between border-b border-black/[0.06] px-5 py-4 sm:px-6">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#65706e]">
-              Yorumlar
+              {localize(locale, { tr: "Yorumlar", en: "Comments", de: "Kommentare" })}
             </p>
 
             <p className="mt-1 text-sm text-[#8b9693]">
-              Bu şarkı hakkındaki düşünceni paylaş.
+              {localize(locale, { tr: "Bu şarkı hakkındaki düşünceni paylaş.", en: "Share your thoughts about this song.", de: "Teile deine Meinung zu diesem Song." })}
             </p>
           </div>
 
@@ -396,6 +403,7 @@ export function DiscoverFeedCard({
             loginHref="/sign-in?next=/discover"
             releaseId={item.releaseId}
             trackId={item.trackId}
+            locale={locale}
           />
         </div>
       </section>

@@ -23,10 +23,12 @@ import {
 
 import { DiscoverFeedCard } from "@/features/growth/components/discover-feed-card";
 import type { DiscoverFeedItem } from "@/features/growth/server/services/discover.service";
+import { localize } from "@/lib/i18n";
 
 type DiscoverFeedClientProps = {
   feed: DiscoverFeedItem[];
   isAuthenticated?: boolean;
+  locale?: string;
 };
 
 function artworkUrl(item: DiscoverFeedItem | null) {
@@ -42,6 +44,7 @@ function artworkUrl(item: DiscoverFeedItem | null) {
 export function DiscoverFeedClient({
   feed,
   isAuthenticated = false,
+  locale = "tr-TR",
 }: DiscoverFeedClientProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -221,6 +224,20 @@ export function DiscoverFeedClient({
   });
 
   function pointerDown(event: PointerEvent<HTMLDivElement>) {
+    const target = event.target as HTMLElement | null;
+
+    // Links and controls inside the card must keep their native click
+    // behaviour. Capturing their pointer on the swipe container causes the
+    // browser to retarget the click to this wrapper, which made links such as
+    // "Profili aç" appear unresponsive.
+    if (
+      target?.closest(
+        "a, button, input, textarea, select, summary, [role='button'], [data-no-swipe]",
+      )
+    ) {
+      return;
+    }
+
     dragStart.current = event.clientX;
     dragStartY.current = event.clientY;
 
@@ -312,11 +329,11 @@ export function DiscoverFeedClient({
       <div className="relative z-10 mb-6 flex flex-col items-center justify-between gap-4 px-1 sm:mb-8 lg:flex-row">
         <div>
           <p className="text-center text-[11px] font-bold uppercase tracking-[0.28em] text-emerald-700 lg:text-left">
-            Keşif akışı
+            {localize(locale, { tr: "Keşif akışı", en: "Discovery feed", de: "Entdeckungsfeed" })}
           </p>
 
           <p className="mt-2 text-center text-sm text-[#65706e] lg:text-left">
-            Oy ve tazeliğe göre karışan yeni içerikler
+            {localize(locale, { tr: "Oy ve tazeliğe göre karışan yeni içerikler", en: "Fresh content mixed by votes and momentum", de: "Neue Inhalte, gemischt nach Stimmen und Aktualität" })}
           </p>
         </div>
 
@@ -334,7 +351,7 @@ export function DiscoverFeedClient({
             }}
             type="button"
           >
-            Keşif
+            {localize(locale, { tr: "Keşif", en: "Discover", de: "Entdecken" })}
           </button>
 
           <button
@@ -350,7 +367,7 @@ export function DiscoverFeedClient({
             }}
             type="button"
           >
-            Trend
+            {localize(locale, { tr: "Trend", en: "Trending", de: "Trend" })}
           </button>
         </div>
       </div>
@@ -358,7 +375,7 @@ export function DiscoverFeedClient({
       <div className="relative z-10 grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,760px)_minmax(280px,360px)] lg:justify-center xl:grid-cols-[72px_minmax(0,760px)_minmax(280px,360px)] xl:gap-7">
         <aside className="hidden flex-col items-center gap-3 pt-20 xl:col-start-1 xl:row-start-1 xl:flex">
           <button
-            aria-label="Önceki içerik"
+            aria-label={localize(locale, { tr: "Önceki içerik", en: "Previous content", de: "Vorheriger Inhalt" })}
             className="inline-flex size-12 items-center justify-center rounded-full border border-black/[0.07] bg-white/80 text-[#52605d] shadow-lg backdrop-blur transition hover:-translate-y-1 hover:text-[#101817]"
             onClick={previousItem}
             type="button"
@@ -367,7 +384,7 @@ export function DiscoverFeedClient({
           </button>
 
           <button
-            aria-label="Sonraki içerik"
+            aria-label={localize(locale, { tr: "Sonraki içerik", en: "Next content", de: "Nächster Inhalt" })}
             className="inline-flex size-12 items-center justify-center rounded-full border border-black/[0.07] bg-white/80 text-[#52605d] shadow-lg backdrop-blur transition hover:-translate-y-1 hover:text-[#101817]"
             onClick={nextItem}
             type="button"
@@ -378,7 +395,7 @@ export function DiscoverFeedClient({
           <div className="my-2 h-16 w-px bg-black/10" />
 
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8b9693] [writing-mode:vertical-rl]">
-            Kaydır ve keşfet
+            {localize(locale, { tr: "Kaydır ve keşfet", en: "Swipe to discover", de: "Wischen und entdecken" })}
           </span>
         </aside>
 
@@ -402,20 +419,21 @@ export function DiscoverFeedClient({
                 }
                 isAuthenticated={isAuthenticated}
                 item={activeItem}
+                locale={locale}
                 onInlinePlay={playInline}
                 onPlay={playItem}
               />
             </div>
           ) : (
             <div className="rounded-[2rem] border border-black/10 bg-white/80 p-12 text-center text-muted shadow-xl">
-              Henüz keşfedilecek içerik yok.
+              {localize(locale, { tr: "Henüz keşfedilecek içerik yok.", en: "There is no content to discover yet.", de: "Noch gibt es keine Inhalte zu entdecken." })}
             </div>
           )}
 
           {activeItem ? (
             <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5 sm:mt-7 sm:gap-3">
               <button
-                aria-label="Beğenme ve geç"
+                aria-label={localize(locale, { tr: "Beğenme ve geç", en: "Skip", de: "Überspringen" })}
                 className="inline-flex size-12 items-center justify-center rounded-full border border-red-500/15 bg-white/85 text-red-500 shadow-xl backdrop-blur transition hover:-translate-y-1 hover:bg-red-500 hover:text-white sm:size-14"
                 onClick={nextItem}
                 type="button"
@@ -429,11 +447,11 @@ export function DiscoverFeedClient({
                 type="button"
               >
                 <ArrowDown className="size-4" />
-                Sonraki
+                {localize(locale, { tr: "Sonraki", en: "Next", de: "Weiter" })}
               </button>
 
               <button
-                aria-label="Beğen"
+                aria-label={localize(locale, { tr: "Beğen", en: "Like", de: "Gefällt mir" })}
                 className="inline-flex size-12 items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_18px_50px_rgba(16,185,129,0.35)] transition hover:-translate-y-1 hover:scale-105 sm:size-14"
                 onClick={() => void voteAndNext()}
                 type="button"
@@ -475,8 +493,7 @@ export function DiscoverFeedClient({
               </div>
 
               <p className="mt-4 text-sm leading-6 text-[#65706e]">
-                Topluluk ilgisi, tazelik ve keşif sinyallerine göre hesaplanan
-                içerik skoru.
+                {localize(locale, { tr: "Topluluk ilgisi, tazelik ve keşif sinyallerine göre hesaplanan içerik skoru.", en: "A content score calculated from community interest, freshness and discovery signals.", de: "Ein Inhaltsscore aus Community-Interesse, Aktualität und Entdeckungssignalen." })}
               </p>
             </article>
 
@@ -485,7 +502,7 @@ export function DiscoverFeedClient({
                 <Flame className="size-4" />
 
                 <span className="text-xs font-bold uppercase tracking-[0.18em]">
-                  Şimdi keşfediliyor
+                  {localize(locale, { tr: "Şimdi keşfediliyor", en: "Discovering now", de: "Jetzt entdeckt" })}
                 </span>
               </div>
 
@@ -499,7 +516,7 @@ export function DiscoverFeedClient({
 
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-white/[0.06] p-4">
-                  <p className="text-xs text-white/40">Tür</p>
+                  <p className="text-xs text-white/40">{localize(locale, { tr: "Tür", en: "Genre", de: "Genre" })}</p>
 
                   <p className="mt-1 truncate text-sm font-semibold">
                     {activeItem.primaryGenre}
@@ -507,7 +524,7 @@ export function DiscoverFeedClient({
                 </div>
 
                 <div className="rounded-2xl bg-white/[0.06] p-4">
-                  <p className="text-xs text-white/40">Beğeni</p>
+                  <p className="text-xs text-white/40">{localize(locale, { tr: "Beğeni", en: "Likes", de: "Likes" })}</p>
 
                   <p className="mt-1 text-sm font-semibold">
                     {activeItem.likeCount ?? 0}
@@ -525,7 +542,7 @@ export function DiscoverFeedClient({
               type="button"
             >
               <RotateCcw className="size-4" />
-              Akışı başa al
+              {localize(locale, { tr: "Akışı başa al", en: "Restart feed", de: "Feed neu starten" })}
             </button>
           </aside>
         ) : null}
@@ -533,9 +550,9 @@ export function DiscoverFeedClient({
 
       {!isAuthenticated ? (
         <div className="relative z-10 mx-auto mt-10 max-w-2xl rounded-2xl border border-black/[0.07] bg-white/80 p-5 text-center text-sm text-[#65706e] shadow-lg backdrop-blur">
-          Beğenme, yorum ve kaydetme özellikleri için{" "}
+          {localize(locale, { tr: "Beğenme, yorum ve kaydetme özellikleri için", en: "To like, comment and save", de: "Zum Liken, Kommentieren und Speichern" })}{" "}
           <Link className="font-semibold text-emerald-700" href="/sign-in">
-            giriş yapın
+            {localize(locale, { tr: "giriş yapın", en: "sign in", de: "anmelden" })}
           </Link>
           .
         </div>

@@ -4,6 +4,8 @@ import { AuthShell } from "@/features/authentication/components/auth-shell";
 import { SignUpForm } from "@/features/authentication/components/sign-up-form";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { getSocialProviderAvailability } from "@/features/authentication/server/social-provider-configuration.service";
+import { getRequestLocale } from "@/lib/i18n-server";
+import { t } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   title: "Aramıza katıl | Radarune",
@@ -27,17 +29,19 @@ export default async function SignUpPage() {
     redirect("/dashboard");
   }
   const socialProviders = await getSocialProviderAvailability();
+  const locale = await getRequestLocale();
 
   return (
     <AuthShell
-      description="Radarune hesabınızı oluşturun, yeni müzikleri keşfedin ve sanatçı başvurunuzu yönetin."
-      eyebrow="Radarune üyeliği"
+      description={t(locale, "signUpDescription")}
+      eyebrow={t(locale, "signUpEyebrow")}
       footerHref="/sign-in"
-      footerLinkLabel="Giriş yap"
-      footerText="Zaten hesabınız var mı?"
-      title="Hesap oluştur"
+      footerLinkLabel={t(locale, "login")}
+      footerText={t(locale, "signUpFooterText")}
+      title={t(locale, "signUpTitle")}
+      locale={locale}
     >
-      <SignUpForm googleEnabled={socialProviders.google} facebookEnabled={socialProviders.facebook} />
+      <SignUpForm googleEnabled={socialProviders.google} facebookEnabled={socialProviders.facebook} locale={locale} />
     </AuthShell>
   );
 }

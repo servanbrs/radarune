@@ -47,8 +47,15 @@ const resolveTenantForRequest = cache(async () => {
   const host = normalizeHost(headerList.get("x-forwarded-host") ?? headerList.get("host"));
 
   if (host) {
-    const byHost = await shareInFlight(`host:${host}`, () => getCachedTenantByHost(host));
-    if (byHost) return byHost;
+    try {
+      const byHost = await shareInFlight(`host:${host}`, () => getCachedTenantByHost(host));
+      if (byHost) return byHost;
+    } catch (error) {
+      // Tenant lookup is optional for public chrome/metadata. A transient
+      // database outage must not turn every public request into an error page.
+      console.error("[TENANT_CONTEXT] Tenant lookup failed:", error);
+      return null;
+    }
   }
 
   // Local development has no tenant host header. Use the first active
@@ -57,12 +64,23 @@ const resolveTenantForRequest = cache(async () => {
     return shareInFlight("default", getCachedDefaultTenant);
   }
 
-  const session = await auth.api.getSession({ headers: headerList });
+  let session: Awaited<ReturnType<typeof auth.api.getSession>>;
+  try {
+    session = await auth.api.getSession({ headers: headerList });
+  } catch (error) {
+    console.error("[TENANT_CONTEXT] Session lookup failed:", error);
+    return null;
+  }
   if (!session) return null;
-  return shareInFlight(`membership:${session.user.id}`, async () => {
-    const membership = await tenantRepository.findByMembership(session.user.id);
-    return membership?.organization ?? null;
-  });
+  try {
+    return await shareInFlight(`membership:${session.user.id}`, async () => {
+      const membership = await tenantRepository.findByMembership(session.user.id);
+      return membership?.organization ?? null;
+    });
+  } catch (error) {
+    console.error("[TENANT_CONTEXT] Membership lookup failed:", error);
+    return null;
+  }
 });
 
 export class TenantContextService {

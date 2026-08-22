@@ -67,6 +67,23 @@ export default async function AdminDistributionJobDetailPage({
           </p>
         </article>
       </section>
+      {job.provider === "ONE_RPM" && job.status === "MANUAL_REVIEW" ? (
+        <section className="panel border border-amber-200 bg-amber-50 p-6 text-amber-950">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">ONErpm manuel son kontrol</p>
+          <h2 className="mt-2 text-xl font-semibold">Form ve dosya hazırlığı tamamlandığında burada görünür</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6">
+            Sistem ONErpm oturumunuzla başlık, sanatçı, kapak, ses dosyası ve UPC/ISRC alanlarını doldurur. Bu adım son gönderim değildir; ONErpm’de son kontrolü yapıp gönderimi siz onaylamalısınız.
+          </p>
+          <a
+            className="mt-4 inline-flex rounded-full border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-100"
+            href={`/api/distribution/jobs/${job.id}/onerpm-preview`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            ONErpm form önizlemesini aç
+          </a>
+        </section>
+      ) : null}
       <DistributionJobControls
         jobId={job.id}
         initialStatus={job.status}

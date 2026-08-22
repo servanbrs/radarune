@@ -2,6 +2,7 @@ import { authSessionService } from "@/features/authentication/server/services/au
 import { MobileSearchPage } from "@/features/growth/components/mobile-search-page";
 import { PublicGrowthShell } from "@/features/growth/components/public-shell";
 import type { Metadata } from "next";
+import { getRequestLocale } from "@/lib/i18n-server";
 
 export const metadata: Metadata = {
   title: "Müzik ve sanatçı ara | Radarune",
@@ -18,8 +19,9 @@ export const metadata: Metadata = {
 };
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  const locale = await getRequestLocale();
   const session = await authSessionService.getOptionalSession();
   const params = await searchParams;
   const currentUser = session ? { name: session.user.name, username: "username" in session.user && typeof session.user.username === "string" ? session.user.username : null } : null;
-  return <PublicGrowthShell currentUser={currentUser}><MobileSearchPage initialQuery={params.q ?? ""} /></PublicGrowthShell>;
+  return <PublicGrowthShell currentUser={currentUser} locale={locale}><MobileSearchPage initialQuery={params.q ?? ""} /></PublicGrowthShell>;
 }

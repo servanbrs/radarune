@@ -1177,6 +1177,7 @@ model User {
   preSaveConversions             PreSaveConversion[]
   preSaveSubscribers             PreSaveSubscriber[]
   releaseLikes                   ReleaseLike[]
+  artistChannelLikes             ArtistChannelLike[]             @relation("ArtistChannelLikePerformer")
   externalMediaLikes             ExternalMediaLike[]
   storyViews                     StoryView[]
   trackLikes                     TrackLike[]
@@ -1340,6 +1341,7 @@ model Organization {
   subscriptions                  Subscription[]
   releases                       Release[]
   comments                       Comment[]
+  artistChannelLikes             ArtistChannelLike[]
   contentReports                 ContentReport[]
   discoverEvents                 DiscoverEvent[]
   follows                        Follow[]
@@ -1710,6 +1712,8 @@ model Artist {
   importMatches        ImportMatch[]
   teamMembers          ArtistTeamMember[]
   profileDraft         ArtistProfileDraft?
+  channelLikes         ArtistChannelLike[]
+  authoredComments     Comment[]              @relation("ArtistAuthoredComments")
 
   @@unique([organizationId, slug])
   @@index([organizationId])
@@ -1855,6 +1859,7 @@ model Release {
   playlistTracks           PlaylistTrack[]
   preSaveCampaigns         PreSaveCampaign[]
   releaseLikes             ReleaseLike[]
+  channelLikes             ArtistChannelLike[]        @relation("ArtistChannelLikeRelease")
   smartLinks               SmartLink[]
   stories                  Story[]
   externalMediaSources     ExternalMediaSource[]
@@ -1902,6 +1907,7 @@ model Track {
   discoverEvents       DiscoverEvent[]
   playlistTracks       PlaylistTrack[]
   trackLikes           TrackLike[]
+  channelLikes         ArtistChannelLike[]        @relation("ArtistChannelLikeTrack")
   playbackSessions     PlaybackSession[]
   externalMediaSources ExternalMediaSource[]
   importMatches        ImportMatch[]
@@ -2960,6 +2966,7 @@ model ExternalMediaSource {
   track              Track?                @relation(fields: [trackId], references: [id], onDelete: SetNull)
   importItems        ImportItem[]
   likes              ExternalMediaLike[]
+  channelLikes       ArtistChannelLike[] @relation("ArtistChannelLikeExternalMedia")
   comments           Comment[]
 
   @@unique([organizationId, provider, externalId])
@@ -3459,6 +3466,32 @@ model TrackLike {
   @@index([organizationId, trackId, createdAt])
 }
 
+model ArtistChannelLike {
+  id                String               @id @default(cuid())
+  organizationId    String
+  artistId          String
+  performedByUserId String
+  releaseId         String?
+  trackId           String?
+  externalMediaId   String?
+  createdAt         DateTime             @default(now())
+  organization      Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  artist            Artist               @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  performedByUser   User                 @relation("ArtistChannelLikePerformer", fields: [performedByUserId], references: [id], onDelete: Cascade)
+  release           Release?             @relation("ArtistChannelLikeRelease", fields: [releaseId], references: [id], onDelete: Cascade)
+  track             Track?               @relation("ArtistChannelLikeTrack", fields: [trackId], references: [id], onDelete: Cascade)
+  externalMedia     ExternalMediaSource? @relation("ArtistChannelLikeExternalMedia", fields: [externalMediaId], references: [id], onDelete: Cascade)
+
+  @@unique([artistId, releaseId])
+  @@unique([artistId, trackId])
+  @@unique([artistId, externalMediaId])
+  @@index([organizationId, artistId, createdAt])
+  @@index([performedByUserId])
+  @@index([releaseId])
+  @@index([trackId])
+  @@index([externalMediaId])
+}
+
 model Playlist {
   id             String                 @id @default(cuid())
   organizationId String?
@@ -3534,6 +3567,7 @@ model Comment {
   id               String               @id @default(cuid())
   organizationId   String?
   authorUserId     String
+  authorArtistId   String?
   releaseId        String?
   trackId          String?
   externalMediaId  String?
@@ -3549,6 +3583,7 @@ model Comment {
   updatedAt        DateTime             @updatedAt
   organization     Organization?        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   authorUser       User                 @relation(fields: [authorUserId], references: [id], onDelete: Cascade)
+  authorArtist     Artist?              @relation("ArtistAuthoredComments", fields: [authorArtistId], references: [id], onDelete: SetNull)
   release          Release?             @relation(fields: [releaseId], references: [id], onDelete: Cascade)
   track            Track?               @relation(fields: [trackId], references: [id], onDelete: Cascade)
   externalMedia    ExternalMediaSource? @relation(fields: [externalMediaId], references: [id], onDelete: Cascade)
@@ -3565,6 +3600,7 @@ model Comment {
   @@index([playlistId, status, createdAt])
   @@index([storyId, status, createdAt])
   @@index([authorUserId, createdAt])
+  @@index([authorArtistId, createdAt])
 }
 
 model CommentLike {

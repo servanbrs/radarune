@@ -81,6 +81,12 @@ export class OneRpmAdapter implements DistributionProviderAdapter {
   }
 
   private getMissingFields(configuration: DistributionProviderRuntimeConfiguration | null) {
+    if (configuration?.publicMetadata.mode === "AUTOMATION") {
+      // Automation uses the encrypted browser session captured by the local
+      // ONErpm login helper. It does not require API credentials.
+      return [];
+    }
+
     const missingFields = [
       !configuration ? "configuration" : null,
       !configuration?.credentials.apiKey ? "apiKey" : null,
@@ -110,6 +116,12 @@ export class OneRpmAdapter implements DistributionProviderAdapter {
   async testConnection(
     configuration: DistributionProviderRuntimeConfiguration | null,
   ): Promise<DistributionProviderResult<{ checkedAt: Date }>> {
+    if (configuration?.publicMetadata.mode === "AUTOMATION") {
+      return {
+        success: true,
+        data: { checkedAt: new Date() },
+      };
+    }
     return this.validateConfiguration(configuration);
   }
 
@@ -126,6 +138,12 @@ export class OneRpmAdapter implements DistributionProviderAdapter {
     configuration: DistributionProviderRuntimeConfiguration | null,
   ): Promise<DistributionProviderResult<ProviderReleaseMutationResult>> {
     void input;
+    if (configuration?.publicMetadata.mode === "AUTOMATION") {
+      return configurationRequired(
+        "ONErpm otomasyonu için manuel oturum worker tarafından hazırlanmalıdır.",
+        [],
+      );
+    }
     return configurationRequired(
       "ONErpm canlı gönderim için resmi API yapılandırması ve erişimi gereklidir.",
       this.getMissingFields(configuration),

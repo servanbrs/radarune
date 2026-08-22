@@ -42,6 +42,7 @@ export default async function DashboardPage() {
       manageableArtistsCount={manageableArtistIds.length}
       organizationName={organization.organization.name}
       role={user.systemRole}
+      locale={organization.organization.defaultLocale}
       userName={user.name}
     />
   );

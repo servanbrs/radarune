@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
+import { cookies } from "next/headers";
 import "./globals.css";
 import { configurationResolver } from "@/features/configuration/server/configuration-resolver.service";
 import { tenantContextService } from "@/features/platform/server/services/tenant-context.service";
+import { normalizeLocale } from "@/lib/i18n";
 
 const stringSetting = (value: unknown) =>
   typeof value === "string" && value.trim().length > 0 ? value : undefined;
@@ -188,13 +190,16 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = normalizeLocale((await cookies()).get("radarune-locale")?.value);
+  const htmlLang = locale === "en-US" ? "en" : locale === "de-DE" ? "de" : "tr";
+
   return (
-    <html lang="tr" className={`${""} ${""} h-full antialiased`}>
+    <html lang={htmlLang} className={`${""} ${""} h-full antialiased`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

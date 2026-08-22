@@ -25,6 +25,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { releasePublicPath } from "@/features/releases/lib/release-url";
+import { normalizeLocale, t } from "@/lib/i18n";
 
 type DashboardData = {
   stats: {
@@ -91,6 +92,7 @@ type DashboardOverviewProps = {
   organizationName: string;
   role: string;
   userName: string;
+  locale: string;
 };
 
 type MetricCardProps = {
@@ -107,27 +109,6 @@ type QuickAction = {
   icon: LucideIcon;
   title: string;
 };
-
-const compactNumberFormatter = new Intl.NumberFormat("tr-TR", {
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
-
-const currencyFormatter = new Intl.NumberFormat("tr-TR", {
-  style: "currency",
-  currency: "TRY",
-  maximumFractionDigits: 2,
-});
-
-const dateFormatter = new Intl.DateTimeFormat("tr-TR", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-});
-
-const relativeDateFormatter = new Intl.RelativeTimeFormat("tr-TR", {
-  numeric: "auto",
-});
 
 const statusLabels: Record<string, string> = {
   DRAFT: "Taslak",
@@ -174,11 +155,17 @@ const auditActionLabels: Record<string, string> = {
   TENANT_THEME_UPDATED: "Tema ayarları güncellendi",
 };
 
-function formatCurrencyFromMinor(value: bigint) {
-  return currencyFormatter.format(Number(value) / 100);
+function formatCurrencyFromMinor(value: bigint, locale = "tr-TR") {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: "TRY",
+    maximumFractionDigits: 2,
+  }).format(Number(value) / 100);
 }
 
-function formatRelativeDate(date: Date) {
+function formatRelativeDate(date: Date, locale = "tr-TR") {
+  const relativeDateFormatter = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+  const dateFormatter = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric" });
   const difference = date.getTime() - Date.now();
   const minutes = Math.round(difference / 60_000);
 
@@ -201,32 +188,68 @@ function formatRelativeDate(date: Date) {
   return dateFormatter.format(date);
 }
 
-function getGreeting() {
+function getGreeting(locale = "tr-TR") {
   const hour = new Date().getHours();
 
   if (hour < 12) {
-    return "Günaydın";
+    return t(locale, "greetingMorning");
   }
 
   if (hour < 18) {
-    return "İyi günler";
+    return t(locale, "greetingDay");
   }
 
-  return "İyi akşamlar";
+  return t(locale, "greetingEvening");
 }
 
-function getStatusLabel(status: string) {
-  return statusLabels[status] ?? status.replaceAll("_", " ");
+function getStatusLabel(status: string, locale = "tr-TR") {
+  const labels = statusLabels[status];
+
+  if (locale === "en-US") {
+    return {
+      DRAFT: "Draft",
+      PENDING_REVIEW: "Under review",
+      REVISION_REQUESTED: "Revision needed",
+      APPROVED: "Approved",
+      QUEUED: "Distribution queued",
+      LIVE: "Live",
+      REJECTED: "Rejected",
+    }[status] ?? labels ?? status.replaceAll("_", " ");
+  }
+
+  if (locale === "de-DE") {
+    return {
+      DRAFT: "Entwurf",
+      PENDING_REVIEW: "In Prüfung",
+      REVISION_REQUESTED: "Überarbeitung nötig",
+      APPROVED: "Freigegeben",
+      QUEUED: "Distribution läuft",
+      LIVE: "Live",
+      REJECTED: "Abgelehnt",
+    }[status] ?? labels ?? status.replaceAll("_", " ");
+  }
+
+  return labels ?? status.replaceAll("_", " ");
 }
 
-function getAuditActionLabel(action: string) {
-  return (
-    auditActionLabels[action] ??
-    action
-      .replaceAll("_", " ")
-      .toLocaleLowerCase("tr-TR")
-      .replace(/^./, (character) => character.toLocaleUpperCase("tr-TR"))
-  );
+function getAuditActionLabel(action: string, locale = "tr-TR") {
+  const translations: Record<string, Record<string, string>> = {
+    "en-US": {
+      RELEASE_CREATED: "New release created", RELEASE_UPDATED: "Release updated", RELEASE_SUBMITTED: "Release submitted for review", RELEASE_APPROVED: "Release approved", RELEASE_REJECTED: "Release rejected",
+      USER_CREATED: "New user created", USER_UPDATED: "User details updated", ARTIST_CREATED: "New artist created", ARTIST_UPDATED: "Artist details updated", DISTRIBUTION_CREATED: "Distribution job created", DISTRIBUTION_FAILED: "Distribution job failed",
+      SMART_LINK_CREATED: "Smart Link created", SMART_LINK_UPDATED: "Smart Link updated", SMART_LINK_DELETED: "Smart Link deleted", WHATSAPP_INTEGRATION_UPDATED: "WhatsApp integration updated", INTEGRATION_CREDENTIAL_UPDATED: "Integration credentials updated", SOCIAL_AUTH_PROVIDER_UPDATED: "Social sign-in settings updated", ADMIN_SETTING_UPDATED: "Admin setting updated", ARTIST_PROFILE_UPDATED: "Artist profile updated", ARTIST_APPLICATION_CREATED: "Artist application created", ARTIST_APPLICATION_APPROVED: "Artist application approved", DISCOVER_CONFIG_UPDATED: "Discover settings updated", PRESAVE_CAMPAIGN_CREATED: "Pre-save campaign created", VOTE_CREATED: "Release vote submitted", USER_STATUS_CHANGED: "User status changed", USER_ROLE_CHANGED: "User role changed", WEBHOOK_ENDPOINT_CREATED: "Webhook endpoint created", WEBHOOK_SECRET_ROTATED: "Webhook secret rotated", STORAGE_PROVIDER_CREATED: "Storage provider created", STORAGE_PROVIDER_TESTED: "Storage provider tested", TENANT_BRANDING_UPDATED: "Brand settings updated", TENANT_THEME_UPDATED: "Theme settings updated",
+    },
+    "de-DE": {
+      RELEASE_CREATED: "Neuer Release erstellt", RELEASE_UPDATED: "Release aktualisiert", RELEASE_SUBMITTED: "Release zur Prüfung eingereicht", RELEASE_APPROVED: "Release freigegeben", RELEASE_REJECTED: "Release abgelehnt",
+      USER_CREATED: "Neuer Benutzer erstellt", USER_UPDATED: "Benutzerdaten aktualisiert", ARTIST_CREATED: "Neuer Künstler erstellt", ARTIST_UPDATED: "Künstlerdaten aktualisiert", DISTRIBUTION_CREATED: "Distributionsauftrag erstellt", DISTRIBUTION_FAILED: "Distributionsauftrag fehlgeschlagen",
+      SMART_LINK_CREATED: "Smart Link erstellt", SMART_LINK_UPDATED: "Smart Link aktualisiert", SMART_LINK_DELETED: "Smart Link gelöscht", WHATSAPP_INTEGRATION_UPDATED: "WhatsApp-Integration aktualisiert", INTEGRATION_CREDENTIAL_UPDATED: "Integrationsdaten aktualisiert", SOCIAL_AUTH_PROVIDER_UPDATED: "Social-Login-Einstellungen aktualisiert", ADMIN_SETTING_UPDATED: "Admin-Einstellung aktualisiert", ARTIST_PROFILE_UPDATED: "Künstlerprofil aktualisiert", ARTIST_APPLICATION_CREATED: "Künstlerbewerbung erstellt", ARTIST_APPLICATION_APPROVED: "Künstlerbewerbung freigegeben", DISCOVER_CONFIG_UPDATED: "Discover-Einstellungen aktualisiert", PRESAVE_CAMPAIGN_CREATED: "Pre-Save-Kampagne erstellt", VOTE_CREATED: "Für Release abgestimmt", USER_STATUS_CHANGED: "Benutzerstatus geändert", USER_ROLE_CHANGED: "Benutzerrolle geändert", WEBHOOK_ENDPOINT_CREATED: "Webhook-Endpunkt erstellt", WEBHOOK_SECRET_ROTATED: "Webhook-Schlüssel erneuert", STORAGE_PROVIDER_CREATED: "Speicheranbieter erstellt", STORAGE_PROVIDER_TESTED: "Speicheranbieter getestet", TENANT_BRANDING_UPDATED: "Markeneinstellungen aktualisiert", TENANT_THEME_UPDATED: "Designeinstellungen aktualisiert",
+    },
+  };
+
+  return translations[locale]?.[action] ?? auditActionLabels[action] ?? action
+    .replaceAll("_", " ")
+    .toLocaleLowerCase(locale === "de-DE" ? "de-DE" : "tr-TR")
+    .replace(/^./, (character) => character.toLocaleUpperCase(locale === "de-DE" ? "de-DE" : "tr-TR"));
 }
 
 function getStatusClasses(status: string) {
@@ -327,51 +350,49 @@ export function DashboardOverview({
   organizationName,
   role,
   userName,
+  locale,
 }: DashboardOverviewProps) {
+  const activeLocale = normalizeLocale(locale);
+  const compactNumberFormatter = new Intl.NumberFormat(activeLocale, { notation: "compact", maximumFractionDigits: 1 });
+  const formatNumber = (value: number) => value.toLocaleString(activeLocale);
   const firstName = userName.trim().split(/\s+/)[0] || userName;
 
   const hasArtistWorkspace = role === "ARTIST" || artistsCount > 0;
   const hasOrganizationWorkspace = ["ORGANIZER", "LABEL", "LABEL_MANAGER"].includes(role) || labelsCount > 0;
-  const roleName = hasArtistWorkspace ? "Sanatçı hesabı" : hasOrganizationWorkspace ? "Label / organizatör hesabı" : "Creator hesabı";
+  const roleName = hasArtistWorkspace ? t(activeLocale, "artistAccount") : hasOrganizationWorkspace ? t(activeLocale, "labelAccount") : t(activeLocale, "creatorAccount");
   const roleDescription = hasArtistWorkspace
-    ? "Kendi sanatçı kanalını, yayınlarını ve performansını yönet."
+    ? t(activeLocale, "artistAccountDescription")
     : hasOrganizationWorkspace
-      ? "Bağlı sanatçıları, şirket kataloğunu ve dağıtımı tek merkezden yönet."
-      : "Profilini tamamla, sanatçı veya organizatör olarak yayın araçlarını aç.";
+      ? t(activeLocale, "labelAccountDescription")
+      : t(activeLocale, "creatorAccountDescription");
 
   const metrics: MetricCardProps[] = [
     {
-      description: `${data.stats.liveReleases.toLocaleString(
-        "tr-TR",
-      )} yayın platformlarda aktif`,
+      description: `${formatNumber(data.stats.liveReleases)} ${t(activeLocale, "release")} ${activeLocale === "tr-TR" ? "platformlarda aktif" : activeLocale === "de-DE" ? "auf Plattformen aktiv" : "active on platforms"}`,
       icon: Disc3,
-      label: "Toplam yayın",
+      label: activeLocale === "tr-TR" ? "Toplam yayın" : activeLocale === "de-DE" ? "Releases gesamt" : "Total releases",
       value: compactNumberFormatter.format(data.stats.totalReleases),
       href: "/releases",
     },
     {
-      description: `${data.stats.downloads.toLocaleString(
-        "tr-TR",
-      )} raporlanan indirme`,
+      description: `${formatNumber(data.stats.downloads)} ${activeLocale === "tr-TR" ? "raporlanan indirme" : activeLocale === "de-DE" ? "gemeldete Downloads" : "reported downloads"}`,
       icon: Headphones,
-      label: "Toplam dinlenme",
+      label: activeLocale === "tr-TR" ? "Toplam dinlenme" : activeLocale === "de-DE" ? "Streams gesamt" : "Total streams",
       value: compactNumberFormatter.format(data.stats.streams),
       href: "/analytics",
     },
     {
-      description: `${labelsCount.toLocaleString(
-        "tr-TR",
-      )} label altında yönetiliyor`,
+      description: `${formatNumber(labelsCount)} ${activeLocale === "tr-TR" ? "label altında yönetiliyor" : activeLocale === "de-DE" ? "unter Labels verwaltet" : "managed under labels"}`,
       icon: Users,
-      label: "Sanatçılar",
-      value: artistsCount.toLocaleString("tr-TR"),
+      label: activeLocale === "tr-TR" ? "Sanatçılar" : activeLocale === "de-DE" ? "Künstler" : "Artists",
+      value: formatNumber(artistsCount),
       href: canManageArtists ? "/artists" : "/artist-profile",
     },
     {
-      description: "Raporlanan toplam net kazanç",
+      description: activeLocale === "tr-TR" ? "Raporlanan toplam net kazanç" : activeLocale === "de-DE" ? "Gemeldeter Nettoumsatz" : "Reported net revenue",
       icon: WalletCards,
-      label: "Tahmini gelir",
-      value: formatCurrencyFromMinor(data.stats.netRevenueMinor),
+      label: activeLocale === "tr-TR" ? "Tahmini gelir" : activeLocale === "de-DE" ? "Geschätzte Einnahmen" : "Estimated revenue",
+      value: formatCurrencyFromMinor(data.stats.netRevenueMinor, activeLocale),
       href: "/finance",
     },
   ];
@@ -380,84 +401,78 @@ export function DashboardOverview({
     {
       description:
         data.stats.pendingReviewReleases > 0
-          ? `${data.stats.pendingReviewReleases.toLocaleString(
-              "tr-TR",
-            )} yayın şu anda inceleme aşamasında.`
-          : "İnceleme bekleyen bir yayın bulunmuyor.",
+          ? `${formatNumber(data.stats.pendingReviewReleases)} ${activeLocale === "tr-TR" ? "yayın" : activeLocale === "de-DE" ? "Release(s)" : "release(s)"} ${t(activeLocale, "reviewPending")}`
+          : t(activeLocale, "noReviewPending"),
       icon: BadgeCheck,
-      title: "Yayın kontrolü",
+      title: activeLocale === "tr-TR" ? "Yayın kontrolü" : activeLocale === "de-DE" ? "Release-Prüfung" : "Release review",
     },
     {
       description:
         data.stats.playlistAppearances > 0
-          ? `Kataloğun toplam ${data.stats.playlistAppearances.toLocaleString(
-              "tr-TR",
-            )} playlist görünümü aldı.`
-          : "Playlist verileri oluştuğunda performans bilgileri burada gösterilecek.",
+          ? `${activeLocale === "tr-TR" ? "Kataloğun toplam" : activeLocale === "de-DE" ? "Dein Katalog hat insgesamt" : "Your catalog received"} ${formatNumber(data.stats.playlistAppearances)} ${activeLocale === "tr-TR" ? "playlist görünümü aldı." : activeLocale === "de-DE" ? "Playlist-Aufrufe." : "playlist views."}`
+          : activeLocale === "tr-TR" ? "Playlist verileri oluştuğunda performans bilgileri burada gösterilecek." : activeLocale === "de-DE" ? "Playlist-Daten werden hier angezeigt, sobald sie verfügbar sind." : "Playlist performance will appear here when data is available.",
       icon: Radio,
-      title: "Playlist performansı",
+      title: activeLocale === "tr-TR" ? "Playlist performansı" : activeLocale === "de-DE" ? "Playlist-Performance" : "Playlist performance",
     },
     {
       description:
         data.stats.failedDistributionJobs > 0
-          ? `${data.stats.failedDistributionJobs.toLocaleString(
-              "tr-TR",
-            )} başarısız dağıtım işlemi kontrol bekliyor.`
-          : "Tüm dağıtım işlemleri normal çalışıyor.",
+          ? `${formatNumber(data.stats.failedDistributionJobs)} ${activeLocale === "tr-TR" ? "başarısız dağıtım işlemi" : activeLocale === "de-DE" ? "fehlgeschlagene Distribution(s)" : "failed distribution job(s)"} ${t(activeLocale, "distributionNeedsReview")}.`
+          : t(activeLocale, "distributionHealthy"),
       icon:
         data.stats.failedDistributionJobs > 0
           ? AlertTriangle
           : Sparkles,
-      title: "Dağıtım sağlığı",
+      title: activeLocale === "tr-TR" ? "Dağıtım sağlığı" : activeLocale === "de-DE" ? "Distributionsstatus" : "Distribution health",
     },
   ];
 
   const catalogItems = [
     {
-      label: "Taslak",
+      label: getStatusLabel("DRAFT", activeLocale),
       value: data.stats.draftReleases,
     },
     {
-      label: "İncelemede",
+      label: getStatusLabel("PENDING_REVIEW", activeLocale),
       value: data.stats.pendingReviewReleases,
     },
     {
-      label: "Düzenleme gerekli",
+      label: getStatusLabel("REVISION_REQUESTED", activeLocale),
       value: data.stats.revisionReleases,
     },
     {
-      label: "Yayında",
+      label: getStatusLabel("LIVE", activeLocale),
       value: data.stats.liveReleases,
     },
   ];
 
   const quickActions: QuickAction[] = [
     {
-      description: "Yeni bir single, EP veya albüm hazırla.",
+      description: t(activeLocale, "newReleaseDescription"),
       href:
         manageableArtistsCount > 0
           ? "/releases/new"
           : "/become?reason=release-required",
       icon: Plus,
-      title: "Yeni yayın",
+      title: t(activeLocale, "newRelease"),
     },
     {
-      description: "Kataloğunun performans verilerini incele.",
+      description: t(activeLocale, "analyticsDescription"),
       href: "/analytics",
       icon: BarChart3,
-      title: "Analytics",
+      title: t(activeLocale, "analytics"),
     },
     {
-      description: "Dinlenme ve gelir raporlarını görüntüle.",
+      description: t(activeLocale, "financeReportsDescription"),
       href: "/finance",
       icon: Download,
-      title: "Finans raporları",
+      title: t(activeLocale, "financeReports"),
     },
     {
-      description: "Yeni müzikleri keşfet ve topluluğa katıl.",
+      description: t(activeLocale, "discoverDescription"),
       href: "/discover",
       icon: Radio,
-      title: "Keşfet",
+      title: t(activeLocale, "discover"),
     },
   ];
 
@@ -465,31 +480,31 @@ export function DashboardOverview({
   const isAdminRole = ["ADMIN", "SUPER_ADMIN"].includes(role);
   const workspaceActions = hasArtistWorkspace
     ? [
-        { description: "Kanal görünümünü, kapak ve sosyal bağlantılarını düzenle.", href: "/artist-profile/edit", icon: Music2, title: "Sanatçı profilim" },
-        { description: "Yeni yayınını ve katalog akışını hazırla.", href: "/releases/new", icon: Disc3, title: "Yayın hazırla" },
-        { description: "Spotify, Apple Music ve sosyal linklerini tek sayfada topla.", href: "/smart-links/new", icon: Share2, title: "Smart Link oluştur" },
-        { description: "Dinlenme, ülke, şehir ve gelir performansını incele.", href: "/analytics", icon: BarChart3, title: "Sanatçı analizleri" },
+        { description: t(activeLocale, "artistProfileWorkspaceDescription"), href: "/artist-profile/edit", icon: Music2, title: t(activeLocale, "artistProfileWorkspace") },
+        { description: t(activeLocale, "prepareReleaseDescription"), href: "/releases/new", icon: Disc3, title: t(activeLocale, "prepareRelease") },
+        { description: t(activeLocale, "createSmartLinkDescription"), href: "/smart-links/new", icon: Share2, title: t(activeLocale, "createSmartLink") },
+        { description: t(activeLocale, "artistAnalyticsDescription"), href: "/analytics", icon: BarChart3, title: t(activeLocale, "artistAnalytics") },
       ]
     : isOrganizationRole
       ? [
-          { description: "Bağlı sanatçı kanallarını ve doğrulama durumlarını yönet.", href: "/artists", icon: Users, title: "Sanatçıları yönet" },
-          { description: "Şirket/label katalog yapısını düzenle.", href: "/labels", icon: Building2, title: "Label ve organizasyon" },
-          { description: "Sanatçı kataloğu için yeni dağıtım hazırlığı başlat.", href: "/releases/new", icon: Disc3, title: "Dağıtım hazırlığı" },
-          { description: "Ekip için paylaşılabilir, SEO uyumlu linkler oluştur.", href: "/smart-links/new", icon: Share2, title: "Smart Link oluştur" },
+          { description: t(activeLocale, "manageArtistChannelsDescription"), href: "/artists", icon: Users, title: t(activeLocale, "manageArtistChannels") },
+          { description: t(activeLocale, "labelOrganizationDescription"), href: "/labels", icon: Building2, title: t(activeLocale, "labelOrganization") },
+          { description: t(activeLocale, "prepareDistributionDescription"), href: "/releases/new", icon: Disc3, title: t(activeLocale, "prepareDistribution") },
+          { description: t(activeLocale, "createSmartLinkDescription"), href: "/smart-links/new", icon: Share2, title: t(activeLocale, "createSmartLink") },
         ]
       : [
-          { description: "Kendi kanalın ve yayın araçların için başvuru yap.", href: "/become?type=artist", icon: Music2, title: "Sanatçı ol" },
-          { description: "Label, menajerlik veya organizasyon hesabı için başvur.", href: "/become?type=organization", icon: Building2, title: "Organizasyon başvurusu" },
-          { description: "Ücretsiz Smart Link ve yayın araçlarını açmak için creator erişimi iste.", href: "/become", icon: Share2, title: "Creator araçlarını aç" },
-          { description: "Radarune topluluğuna yeni üyeler davet et.", href: "/settings", icon: UserPlus, title: "Üyeleri davet et" },
+          { description: t(activeLocale, "artistApplicationDescription"), href: "/become?type=artist", icon: Music2, title: t(activeLocale, "artistApplication") },
+          { description: t(activeLocale, "organizationApplicationDescription"), href: "/become?type=organization", icon: Building2, title: t(activeLocale, "organizationApplication") },
+          { description: t(activeLocale, "enableCreatorToolsDescription"), href: "/become", icon: Share2, title: t(activeLocale, "enableCreatorTools") },
+          { description: t(activeLocale, "inviteMembersDescription"), href: "/settings", icon: UserPlus, title: t(activeLocale, "inviteMembers") },
         ];
 
   if (isAdminRole) {
     workspaceActions.push({
-      description: "Admin yetkinle ekip üyelerini ve erişimlerini oluştur.",
+      description: t(activeLocale, "createMemberDescription"),
       href: "/admin/users/new",
       icon: UserPlus,
-      title: "Üye oluştur",
+      title: t(activeLocale, "createMember"),
     });
   }
 
@@ -513,7 +528,7 @@ export function DashboardOverview({
               </p>
 
               <h1 className="text-balance text-3xl font-semibold tracking-tight md:text-5xl">
-                {getGreeting()}, {firstName}.
+                {getGreeting(activeLocale)}, {firstName}.
               </h1>
 
               <p className="mt-4 max-w-2xl text-sm leading-7 text-white/60 md:text-base">
@@ -527,7 +542,7 @@ export function DashboardOverview({
                 href="/discover"
               >
                 <Radio className="size-4" />
-                Keşfet
+                {t(activeLocale, "discover")}
               </Link>
 
               <Link
@@ -539,14 +554,14 @@ export function DashboardOverview({
                 }
               >
                 <Plus className="size-4" />
-                Yeni yayın
+                {t(activeLocale, "newRelease")}
               </Link>
 
               <Link
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/15"
                 href="/dashboard/support"
               >
-                Destek merkezi
+                {t(activeLocale, "supportCenter")}
               </Link>
             </div>
           </div>
@@ -555,15 +570,14 @@ export function DashboardOverview({
             <div className="flex items-center gap-3 border-b border-white/10 px-6 py-4 md:border-b-0 md:border-r md:px-10">
               <CalendarDays className="size-4 shrink-0 text-[#efb848]" />
               <span className="text-sm text-white/60">
-                {data.stats.pendingReviewReleases.toLocaleString("tr-TR")} yayın
-                incelemede
+                {data.stats.pendingReviewReleases.toLocaleString(activeLocale)} {activeLocale === "tr-TR" ? "yayın incelemede" : activeLocale === "de-DE" ? "Release(s) in Prüfung" : "release(s) under review"}
               </span>
             </div>
 
             <div className="flex items-center gap-3 border-b border-white/10 px-6 py-4 md:border-b-0 md:border-r">
               <Lightbulb className="size-4 shrink-0 text-[#efb848]" />
               <span className="text-sm text-white/60">
-                {insights.length} performans içgörüsü hazır
+                {insights.length} {activeLocale === "tr-TR" ? "performans içgörüsü hazır" : activeLocale === "de-DE" ? "Performance-Einblicke bereit" : "performance insights ready"}
               </span>
             </div>
 
@@ -571,10 +585,8 @@ export function DashboardOverview({
               <Activity className="size-4 shrink-0 text-[#efb848]" />
               <span className="text-sm text-white/60">
                 {data.stats.failedDistributionJobs > 0
-                  ? `${data.stats.failedDistributionJobs.toLocaleString(
-                      "tr-TR",
-                    )} işlem kontrol bekliyor`
-                  : "Dağıtım sistemleri çalışıyor"}
+                  ? `${data.stats.failedDistributionJobs.toLocaleString(activeLocale)} ${activeLocale === "tr-TR" ? "işlem kontrol bekliyor" : activeLocale === "de-DE" ? "Vorgang/Vorgänge benötigen Prüfung" : "job(s) need review"}`
+                  : t(activeLocale, "distributionHealthy")}
               </span>
             </div>
           </div>
@@ -583,11 +595,11 @@ export function DashboardOverview({
         <section className="rounded-[2rem] border border-emerald-900/15 bg-[#10201d] p-5 text-white shadow-[0_20px_70px_rgba(8,35,28,0.14)] md:p-6">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-emerald-300">Çalışma alanı</p>
-              <h2 className="mt-2 text-xl font-semibold">{role === "ARTIST" ? "Sanatçı araçları" : isOrganizationRole ? "Label ve organizasyon araçları" : "Radarune Creator"}</h2>
-              <p className="mt-1 max-w-2xl text-sm leading-6 text-white/50">{role === "ARTIST" ? "Kanalını, yayınlarını, Smart Link’lerini ve analizlerini tek alandan yönet." : isOrganizationRole ? "Sanatçı, ekip, katalog ve dağıtım operasyonunu tek çalışma alanında topla." : "Sanatçı veya organizasyon başvurunu tamamla; yayın, Smart Link ve ekip araçlarını aç."}</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-emerald-300">{t(activeLocale, "workingArea")}</p>
+              <h2 className="mt-2 text-xl font-semibold">{role === "ARTIST" ? t(activeLocale, "artistTools") : isOrganizationRole ? t(activeLocale, "labelTools") : t(activeLocale, "creatorTools")}</h2>
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-white/50">{role === "ARTIST" ? (activeLocale === "tr-TR" ? "Kanalını, yayınlarını, Smart Link’lerini ve analizlerini tek alandan yönet." : activeLocale === "de-DE" ? "Verwalte Kanal, Releases, Smart Links und Analysen an einem Ort." : "Manage your channel, releases, Smart Links and analytics in one place.") : isOrganizationRole ? (activeLocale === "tr-TR" ? "Sanatçı, ekip, katalog ve dağıtım operasyonunu tek çalışma alanında topla." : activeLocale === "de-DE" ? "Verwalte Künstler, Team, Katalog und Distribution zentral." : "Bring artists, team, catalog and distribution operations into one workspace.") : (activeLocale === "tr-TR" ? "Sanatçı veya organizasyon başvurunu tamamla; yayın, Smart Link ve ekip araçlarını aç." : activeLocale === "de-DE" ? "Schließe deine Künstler- oder Organisationsbewerbung ab und schalte Release-, Smart-Link- und Team-Werkzeuge frei." : "Complete your artist or organization application to unlock release, Smart Link and team tools.")}</p>
             </div>
-            <span className="rounded-full border border-emerald-300/15 bg-emerald-300/[0.08] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-200">{role === "USER" ? "Başvuru gerekli" : "Aktif çalışma alanı"}</span>
+            <span className="rounded-full border border-emerald-300/15 bg-emerald-300/[0.08] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-200">{role === "USER" ? t(activeLocale, "applicationRequired") : t(activeLocale, "activeWorkspace")}</span>
           </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {workspaceActions.map(({ description, href, icon: Icon, title }) => (
@@ -609,12 +621,12 @@ export function DashboardOverview({
         <section className="rounded-[2rem] border border-black/[0.07] bg-[#10201d] p-5 text-white shadow-[0_20px_70px_rgba(8,35,28,0.14)] md:p-6">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-emerald-300">Artist roster</p>
-              <h2 className="mt-2 text-xl font-semibold">Sanatçı kanalların</h2>
-              <p className="mt-1 text-sm text-white/50">Profil, yayın, oy ve bağlantı yönetimine buradan geç.</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-emerald-300">{activeLocale === "tr-TR" ? "Sanatçı listesi" : activeLocale === "de-DE" ? "Künstlerliste" : "Artist roster"}</p>
+              <h2 className="mt-2 text-xl font-semibold">{t(activeLocale, "artistChannels")}</h2>
+              <p className="mt-1 text-sm text-white/50">{t(activeLocale, "artistChannelsDescription")}</p>
             </div>
             <Link className="rounded-xl border border-white/10 bg-white/[0.06] px-4 py-2.5 text-xs font-semibold text-white/75 transition hover:bg-white/10 hover:text-white" href={canManageArtists ? "/artists" : "/artist-profile"}>
-              {canManageArtists ? "Tüm sanatçıları yönet" : "Profil ayarlarına git"} <ArrowRight className="ml-1 inline size-3.5" />
+              {canManageArtists ? t(activeLocale, "manageArtists") : t(activeLocale, "goToProfileSettings")} <ArrowRight className="ml-1 inline size-3.5" />
             </Link>
           </div>
           {artists.length > 0 ? (
@@ -625,37 +637,37 @@ export function DashboardOverview({
                     <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-emerald-300/15 text-lg font-bold text-emerald-200">
                       {artist.profileImageUrl ? <Image alt="" className="object-cover" fill sizes="48px" src={artist.profileImageUrl} unoptimized /> : artist.name.slice(0, 1).toUpperCase()}
                     </div>
-                    <div className="min-w-0 flex-1"><div className="flex items-center gap-2"><h3 className="truncate font-semibold">{artist.name}</h3><span className="shrink-0 rounded-full bg-emerald-300/15 px-2 py-0.5 text-[10px] font-bold text-emerald-200">{artist._count.applications > 0 ? "Doğrulanmış sanatçı" : "Sanatçı profili"}</span></div><p className="mt-1 truncate text-xs text-white/45">radarune.com/artist/{artist.slug}</p></div>
+                    <div className="min-w-0 flex-1"><div className="flex items-center gap-2"><h3 className="truncate font-semibold">{artist.name}</h3><span className="shrink-0 rounded-full bg-emerald-300/15 px-2 py-0.5 text-[10px] font-bold text-emerald-200">{artist._count.applications > 0 ? t(activeLocale, "verifiedArtist") : t(activeLocale, "artistProfile")}</span></div><p className="mt-1 truncate text-xs text-white/45">radarune.com/artist/{artist.slug}</p></div>
                   </div>
-                  <div className="mt-4 grid grid-cols-3 gap-2 text-center"><div className="rounded-xl bg-black/15 p-2"><p className="text-sm font-semibold">{artist._count.releaseArtistLinks}</p><p className="mt-1 text-[10px] text-white/40">Yayın</p></div><div className="rounded-xl bg-black/15 p-2"><p className="text-sm font-semibold">{artist._count.follows}</p><p className="mt-1 text-[10px] text-white/40">Takipçi</p></div><div className="rounded-xl bg-black/15 p-2"><p className="text-sm font-semibold">{artist._count.smartLinks}</p><p className="mt-1 text-[10px] text-white/40">Link</p></div></div>
-                  <div className="mt-4 flex gap-2"><Link className="flex-1 rounded-xl bg-emerald-300 px-3 py-2 text-center text-xs font-bold text-[#08201a]" href={`/artist/${artist.slug}`}>Profili aç</Link><Link className="rounded-xl border border-white/10 px-3 py-2 text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white" href={`/dashboard/artists/${artist.id}/profile`}>Düzenle</Link></div>
+                  <div className="mt-4 grid grid-cols-3 gap-2 text-center"><div className="rounded-xl bg-black/15 p-2"><p className="text-sm font-semibold">{artist._count.releaseArtistLinks}</p><p className="mt-1 text-[10px] text-white/40">{t(activeLocale, "release")}</p></div><div className="rounded-xl bg-black/15 p-2"><p className="text-sm font-semibold">{artist._count.follows}</p><p className="mt-1 text-[10px] text-white/40">{t(activeLocale, "followers")}</p></div><div className="rounded-xl bg-black/15 p-2"><p className="text-sm font-semibold">{artist._count.smartLinks}</p><p className="mt-1 text-[10px] text-white/40">{t(activeLocale, "link")}</p></div></div>
+                  <div className="mt-4 flex gap-2"><Link className="flex-1 rounded-xl bg-emerald-300 px-3 py-2 text-center text-xs font-bold text-[#08201a]" href={`/artist/${artist.slug}`}>{t(activeLocale, "openProfile")}</Link><Link className="rounded-xl border border-white/10 px-3 py-2 text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white" href={`/dashboard/artists/${artist.id}/profile`}>{t(activeLocale, "edit")}</Link></div>
                 </article>
               ))}
             </div>
           ) : (
-            <div className="mt-5 rounded-2xl border border-dashed border-white/15 px-5 py-8 text-sm text-white/50">Henüz bağlı bir sanatçı profili yok. Yayın göndermek için önce sanatçı profilini oluştur.</div>
+            <div className="mt-5 rounded-2xl border border-dashed border-white/15 px-5 py-8 text-sm text-white/50">{t(activeLocale, "noArtistProfile")}</div>
           )}
         </section>
 
         <section className="relative overflow-hidden rounded-[2rem] border border-emerald-900/10 bg-[linear-gradient(115deg,#eafff6_0%,#f4f9ff_55%,#fff8e8_100%)] p-5 shadow-[0_18px_70px_rgba(22,101,76,0.08)] md:p-6">
           <div className="pointer-events-none absolute -right-16 -top-20 size-56 rounded-full bg-emerald-300/20 blur-3xl" />
-          <div className="relative flex flex-wrap items-end justify-between gap-4"><div><p className="text-[10px] font-bold uppercase tracking-[0.24em] text-emerald-700">Growth snapshot</p><h2 className="mt-2 text-xl font-semibold text-[#10201b]">Müziğinin Radarune’daki hareketi</h2><p className="mt-1 text-sm text-[#63736d]">Smart Link ve keşif performansını tek bakışta takip et.</p></div><Link className="rounded-xl bg-[#10201b] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-[#1d3930]" href="/smart-links">Growth araçlarını aç →</Link></div>
-          <div className="relative mt-5 grid gap-3 sm:grid-cols-3"><div className="rounded-2xl border border-white/80 bg-white/70 p-4"><p className="text-xs text-[#63736d]">Aktif Smart Link</p><p className="mt-2 text-2xl font-semibold text-[#10201b]">{data.stats.activeSmartLinks}</p></div><div className="rounded-2xl border border-white/80 bg-white/70 p-4"><p className="text-xs text-[#63736d]">Smart Link görüntülenmesi</p><p className="mt-2 text-2xl font-semibold text-[#10201b]">{data.stats.smartLinkViews.toLocaleString("tr-TR")}</p></div><div className="rounded-2xl border border-white/80 bg-white/70 p-4"><p className="text-xs text-[#63736d]">Platform tıklaması</p><p className="mt-2 text-2xl font-semibold text-[#10201b]">{data.stats.smartLinkClicks.toLocaleString("tr-TR")}</p></div></div>
+          <div className="relative flex flex-wrap items-end justify-between gap-4"><div><p className="text-[10px] font-bold uppercase tracking-[0.24em] text-emerald-700">{t(activeLocale, "growthSnapshot")}</p><h2 className="mt-2 text-xl font-semibold text-[#10201b]">{t(activeLocale, "musicMovement")}</h2><p className="mt-1 text-sm text-[#63736d]">{t(activeLocale, "growthDescription")}</p></div><Link className="rounded-xl bg-[#10201b] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-[#1d3930]" href="/smart-links">{t(activeLocale, "openGrowthTools")}</Link></div>
+          <div className="relative mt-5 grid gap-3 sm:grid-cols-3"><div className="rounded-2xl border border-white/80 bg-white/70 p-4"><p className="text-xs text-[#63736d]">{t(activeLocale, "activeSmartLink")}</p><p className="mt-2 text-2xl font-semibold text-[#10201b]">{formatNumber(data.stats.activeSmartLinks)}</p></div><div className="rounded-2xl border border-white/80 bg-white/70 p-4"><p className="text-xs text-[#63736d]">{t(activeLocale, "smartLinkViews")}</p><p className="mt-2 text-2xl font-semibold text-[#10201b]">{formatNumber(data.stats.smartLinkViews)}</p></div><div className="rounded-2xl border border-white/80 bg-white/70 p-4"><p className="text-xs text-[#63736d]">{t(activeLocale, "platformClicks")}</p><p className="mt-2 text-2xl font-semibold text-[#10201b]">{formatNumber(data.stats.smartLinkClicks)}</p></div></div>
         </section>
 
         <section className="grid gap-4 lg:grid-cols-[1.1fr_1.1fr_0.8fr]">
           <article className="panel p-5 md:p-6">
-            <div className="flex items-center justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.22em] text-accent">Audience signal</p><h2 className="mt-2 text-lg font-semibold text-foreground">Ülke bazlı erişim</h2></div><Globe2 className="size-5 text-accent" /></div>
-            <div className="mt-5 space-y-3">{data.stats.audienceCountries.length > 0 ? data.stats.audienceCountries.map((row) => <div className="flex items-center justify-between rounded-xl border border-line bg-surface-strong/50 px-3 py-2.5" key={row.country}><span className="text-sm font-medium">{row.country}</span><span className="text-xs text-muted">{row._count._all.toLocaleString("tr-TR")} ziyaret</span></div>) : <p className="text-sm text-muted">Smart Link ziyaretleri ülke bilgisi oluşturduğunda burada görünür.</p>}</div>
+            <div className="flex items-center justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.22em] text-accent">{t(activeLocale, "audienceSignal")}</p><h2 className="mt-2 text-lg font-semibold text-foreground">{t(activeLocale, "countryReach")}</h2></div><Globe2 className="size-5 text-accent" /></div>
+            <div className="mt-5 space-y-3">{data.stats.audienceCountries.length > 0 ? data.stats.audienceCountries.map((row) => <div className="flex items-center justify-between rounded-xl border border-line bg-surface-strong/50 px-3 py-2.5" key={row.country}><span className="text-sm font-medium">{row.country}</span><span className="text-xs text-muted">{formatNumber(row._count._all)} {activeLocale === "tr-TR" ? "ziyaret" : activeLocale === "de-DE" ? "Besuche" : "visits"}</span></div>) : <p className="text-sm text-muted">{activeLocale === "tr-TR" ? "Smart Link ziyaretleri ülke bilgisi oluşturduğunda burada görünür." : activeLocale === "de-DE" ? "Länderdaten erscheinen, sobald Smart-Link-Besuche sie erzeugen." : "Country data will appear when Smart Link visits generate it."}</p>}</div>
           </article>
           <article className="panel p-5 md:p-6">
-            <div className="flex items-center justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.22em] text-accent">Audience signal</p><h2 className="mt-2 text-lg font-semibold text-foreground">Şehir bazlı erişim</h2></div><MapPin className="size-5 text-accent" /></div>
-            <div className="mt-5 space-y-3">{data.stats.audienceCities.length > 0 ? data.stats.audienceCities.map((row) => <div className="flex items-center justify-between rounded-xl border border-line bg-surface-strong/50 px-3 py-2.5" key={row.city}><span className="text-sm font-medium">{row.city}</span><span className="text-xs text-muted">{row._count._all.toLocaleString("tr-TR")} ziyaret</span></div>) : <p className="text-sm text-muted">Şehir kırılımı Smart Link trafik verisi geldikçe oluşur.</p>}</div>
+            <div className="flex items-center justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.22em] text-accent">{t(activeLocale, "audienceSignal")}</p><h2 className="mt-2 text-lg font-semibold text-foreground">{t(activeLocale, "cityReach")}</h2></div><MapPin className="size-5 text-accent" /></div>
+            <div className="mt-5 space-y-3">{data.stats.audienceCities.length > 0 ? data.stats.audienceCities.map((row) => <div className="flex items-center justify-between rounded-xl border border-line bg-surface-strong/50 px-3 py-2.5" key={row.city}><span className="text-sm font-medium">{row.city}</span><span className="text-xs text-muted">{formatNumber(row._count._all)} {activeLocale === "tr-TR" ? "ziyaret" : activeLocale === "de-DE" ? "Besuche" : "visits"}</span></div>) : <p className="text-sm text-muted">{activeLocale === "tr-TR" ? "Şehir kırılımı Smart Link trafik verisi geldikçe oluşur." : activeLocale === "de-DE" ? "Stadtaufteilungen erscheinen mit eingehendem Smart-Link-Traffic." : "City breakdowns will appear as Smart Link traffic arrives."}</p>}</div>
           </article>
           <article className="overflow-hidden rounded-[2rem] bg-[#10201d] p-5 text-white shadow-[0_18px_60px_rgba(8,35,28,0.12)] md:p-6">
-            <div className="flex items-center justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.22em] text-emerald-300">Campaign params</p><h2 className="mt-2 text-lg font-semibold">Sosyal kaynaklar</h2></div><Share2 className="size-5 text-emerald-300" /></div>
-            <p className="mt-2 text-sm leading-6 text-white/50">TikTok, Instagram ve diğer UTM kaynaklarının Smart Link etkisini izle.</p>
-            <div className="mt-5 space-y-3">{data.stats.audienceSources.length > 0 ? data.stats.audienceSources.map((row) => <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2.5" key={row.utmSource}><span className="text-sm font-medium">{row.utmSource}</span><span className="text-xs text-white/50">{row._count._all.toLocaleString("tr-TR")}</span></div>) : <p className="text-sm text-white/45">Henüz UTM kaynağı yok.</p>}</div>
+            <div className="flex items-center justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.22em] text-emerald-300">{activeLocale === "tr-TR" ? "Kampanya parametreleri" : activeLocale === "de-DE" ? "Kampagnenparameter" : "Campaign parameters"}</p><h2 className="mt-2 text-lg font-semibold">{t(activeLocale, "socialSources")}</h2></div><Share2 className="size-5 text-emerald-300" /></div>
+            <p className="mt-2 text-sm leading-6 text-white/50">{activeLocale === "tr-TR" ? "TikTok, Instagram ve diğer UTM kaynaklarının Smart Link etkisini izle." : activeLocale === "de-DE" ? "Verfolge den Einfluss von TikTok, Instagram und anderen UTM-Quellen auf Smart Links." : "Track the impact of TikTok, Instagram and other UTM sources on Smart Links."}</p>
+            <div className="mt-5 space-y-3">{data.stats.audienceSources.length > 0 ? data.stats.audienceSources.map((row) => <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2.5" key={row.utmSource}><span className="text-sm font-medium">{row.utmSource}</span><span className="text-xs text-white/50">{formatNumber(row._count._all)}</span></div>) : <p className="text-sm text-white/45">{activeLocale === "tr-TR" ? "Henüz UTM kaynağı yok." : activeLocale === "de-DE" ? "Noch keine UTM-Quelle." : "No UTM source yet."}</p>}</div>
           </article>
         </section>
 
@@ -663,43 +675,40 @@ export function DashboardOverview({
           <section className="panel flex flex-col gap-5 border-accent/20 bg-accent/5 p-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
-                Yayın oluşturma erişimi
+                {t(activeLocale, "releaseAccess")}
               </p>
               <h2 className="mt-2 text-xl font-semibold text-foreground">
-                Önce sanatçı profilini doğrula
+                {t(activeLocale, "verifyArtistProfile")}
               </h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-                Yeni yayın göndermek için sanatçı başvurusu yapın. Başvurunuz
-                onaylandığında yayın sihirbazı yalnızca size bağlı sanatçı
-                profilleriyle açılır.
+                {activeLocale === "tr-TR" ? "Yeni yayın göndermek için sanatçı başvurusu yapın. Başvurunuz onaylandığında yayın sihirbazı yalnızca size bağlı sanatçı profilleriyle açılır." : activeLocale === "de-DE" ? "Bewirb dich als Künstler, um einen Release einzureichen. Nach der Freigabe öffnet sich der Assistent mit deinen verknüpften Profilen." : "Apply as an artist to submit a new release. Once approved, the release wizard opens with profiles linked to you."}
               </p>
             </div>
             <Link
               className="inline-flex shrink-0 items-center justify-center rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-white transition hover:bg-accent/90"
               href="/become?reason=release-required"
             >
-              Sanatçı başvurusu yap
+              {t(activeLocale, "applyArtist")}
             </Link>
           </section>
         ) : canManageArtists ? (
           <section className="panel flex flex-col gap-5 border-accent/20 bg-accent/5 p-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
-                Label çalışma alanı
+                {activeLocale === "tr-TR" ? "Label çalışma alanı" : activeLocale === "de-DE" ? "Label-Arbeitsbereich" : "Label workspace"}
               </p>
               <h2 className="mt-2 text-xl font-semibold text-foreground">
-                Tüm sanatçı profillerini tek yerden yönetin
+                {activeLocale === "tr-TR" ? "Tüm sanatçı profillerini tek yerden yönetin" : activeLocale === "de-DE" ? "Alle Künstlerprofile zentral verwalten" : "Manage all artist profiles in one place"}
               </h2>
               <p className="mt-2 text-sm leading-6 text-muted">
-                Sanatçı profillerine, bağlantılarına ve ekip erişimlerine
-                doğrudan ulaşın.
+                {activeLocale === "tr-TR" ? "Sanatçı profillerine, bağlantılarına ve ekip erişimlerine doğrudan ulaşın." : activeLocale === "de-DE" ? "Direkter Zugriff auf Künstlerprofile, Links und Team-Berechtigungen." : "Access artist profiles, links and team permissions directly."}
               </p>
             </div>
             <Link
               className="inline-flex shrink-0 items-center justify-center rounded-xl border border-accent/30 bg-surface px-5 py-3 text-sm font-semibold text-accent transition hover:bg-accent/10"
               href="/artists"
             >
-              Sanatçıları yönet
+              {t(activeLocale, "manageArtists")}
             </Link>
           </section>
         ) : null}
@@ -708,9 +717,9 @@ export function DashboardOverview({
           <article className="panel min-w-0 overflow-hidden">
             <div className="flex items-center justify-between gap-4 border-b border-line px-5 py-5 md:px-6">
               <div className="min-w-0">
-                <h2 className="font-semibold text-foreground">Son yayınlar</h2>
+                <h2 className="font-semibold text-foreground">{t(activeLocale, "latestReleases")}</h2>
                 <p className="mt-1 text-sm text-muted">
-                  Kataloğunda en son güncellenen çalışmalar
+                  {t(activeLocale, "latestReleasesDescription")}
                 </p>
               </div>
 
@@ -718,7 +727,7 @@ export function DashboardOverview({
                 className="shrink-0 text-sm font-semibold text-accent hover:opacity-80"
                 href="/releases"
               >
-                Tümünü gör
+                {t(activeLocale, "seeAll")}
               </Link>
             </div>
 
@@ -740,8 +749,7 @@ export function DashboardOverview({
                       </p>
 
                       <p className="mt-1 truncate text-xs text-muted">
-                        {release.artists[0]?.artist.name ??
-                          "Sanatçı belirtilmedi"}
+                        {release.artists[0]?.artist.name ?? t(activeLocale, "artistNotSpecified")}
                       </p>
                     </div>
 
@@ -751,11 +759,11 @@ export function DashboardOverview({
                           release.status,
                         )}`}
                       >
-                        {getStatusLabel(release.status)}
+                        {getStatusLabel(release.status, activeLocale)}
                       </span>
 
                       <p className="mt-1.5 text-[11px] text-muted">
-                        {formatRelativeDate(release.updatedAt)}
+                        {formatRelativeDate(release.updatedAt, activeLocale)}
                       </p>
                     </div>
 
@@ -764,10 +772,10 @@ export function DashboardOverview({
                 ))
               ) : (
                 <EmptyState
-                  description="İlk yayınını oluşturduğunda süreç ve durum bilgileri burada görüntülenecek."
+                  description={activeLocale === "tr-TR" ? "İlk yayınını oluşturduğunda süreç ve durum bilgileri burada görüntülenecek." : activeLocale === "de-DE" ? "Sobald du deinen ersten Release erstellst, werden Prozess und Status hier angezeigt." : "Once you create your first release, its process and status will appear here."}
                   href="/releases/new"
-                  linkLabel="Yeni yayın oluştur"
-                  title="Henüz yayın bulunmuyor"
+                  linkLabel={t(activeLocale, "newRelease")}
+                  title={activeLocale === "tr-TR" ? "Henüz yayın bulunmuyor" : activeLocale === "de-DE" ? "Noch keine Releases" : "No releases yet"}
                 />
               )}
             </div>
@@ -781,7 +789,7 @@ export function DashboardOverview({
               </div>
 
               <p className="mt-1 text-sm text-white/45">
-                Kataloğuna göre oluşturulan içgörüler
+                {activeLocale === "tr-TR" ? "Kataloğuna göre oluşturulan içgörüler" : activeLocale === "de-DE" ? "Einblicke aus deinem Katalog" : "Insights generated from your catalog"}
               </p>
             </div>
 
@@ -814,11 +822,11 @@ export function DashboardOverview({
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h2 className="font-semibold text-foreground">
-                  Katalog özeti
+                  {activeLocale === "tr-TR" ? "Katalog özeti" : activeLocale === "de-DE" ? "Katalogübersicht" : "Catalog overview"}
                 </h2>
 
                 <p className="mt-1 text-sm text-muted">
-                  Yayın sürecinin mevcut dağılımı
+                  {activeLocale === "tr-TR" ? "Yayın sürecinin mevcut dağılımı" : activeLocale === "de-DE" ? "Aktuelle Verteilung deiner Releases" : "Current release status distribution"}
                 </p>
               </div>
 
@@ -834,7 +842,7 @@ export function DashboardOverview({
                   <p className="text-xs font-medium text-muted">{item.label}</p>
 
                   <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-                    {item.value.toLocaleString("tr-TR")}
+                    {item.value.toLocaleString(activeLocale)}
                   </p>
                 </div>
               ))}
@@ -844,11 +852,11 @@ export function DashboardOverview({
           <article className="panel min-w-0 overflow-hidden">
             <div className="border-b border-line px-5 py-5">
               <h2 className="font-semibold text-foreground">
-                Son aktiviteler
+                {activeLocale === "tr-TR" ? "Son aktiviteler" : activeLocale === "de-DE" ? "Letzte Aktivitäten" : "Recent activity"}
               </h2>
 
               <p className="mt-1 text-sm text-muted">
-                Organizasyondaki son hareketler
+                {activeLocale === "tr-TR" ? "Organizasyondaki son hareketler" : activeLocale === "de-DE" ? "Die letzten Vorgänge in deiner Organisation" : "The latest activity in your organization"}
               </p>
             </div>
 
@@ -860,22 +868,22 @@ export function DashboardOverview({
 
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-foreground">
-                        {getAuditActionLabel(log.action)}
+                        {getAuditActionLabel(log.action, activeLocale)}
                       </p>
 
                       <p className="mt-1 truncate text-xs text-muted">
                         {log.actorUser?.name ??
                           log.actorUser?.email ??
-                          "Radarune sistemi"}{" "}
-                        · {formatRelativeDate(log.createdAt)}
+                          (activeLocale === "tr-TR" ? "Radarune sistemi" : activeLocale === "de-DE" ? "Radarune-System" : "Radarune system")}{" "}
+                        · {formatRelativeDate(log.createdAt, activeLocale)}
                       </p>
                     </div>
                   </div>
                 ))
               ) : (
                 <EmptyState
-                  description="Organizasyonda yapılan işlemler burada listelenecek."
-                  title="Henüz aktivite bulunmuyor"
+                  description={activeLocale === "tr-TR" ? "Organizasyonda yapılan işlemler burada listelenecek." : activeLocale === "de-DE" ? "Aktivitäten deiner Organisation werden hier angezeigt." : "Activity in your organization will appear here."}
+                  title={activeLocale === "tr-TR" ? "Henüz aktivite bulunmuyor" : activeLocale === "de-DE" ? "Noch keine Aktivitäten" : "No activity yet"}
                 />
               )}
             </div>
@@ -884,10 +892,10 @@ export function DashboardOverview({
 
         <section>
           <div className="mb-4">
-            <h2 className="font-semibold text-foreground">Hızlı işlemler</h2>
+            <h2 className="font-semibold text-foreground">{t(activeLocale, "quickActions")}</h2>
 
             <p className="mt-1 text-sm text-muted">
-              Sık kullandığın Radarune araçlarına doğrudan ulaş
+              {t(activeLocale, "quickActionsDescription")}
             </p>
           </div>
 
