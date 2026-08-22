@@ -24,16 +24,26 @@ function activeFor(pathname: string, key: string) {
 export function MobileBottomNav({ homeHref, profileHref, profileLabel, locale = "tr-TR" }: MobileBottomNavProps) {
   const pathname = usePathname();
   return (
-    <nav aria-label="Mobile menu" className="fixed inset-x-0 bottom-0 z-[80] border-t border-black/10 bg-white/95 px-1 pt-2 text-[#52605d] shadow-[0_-12px_40px_rgba(15,23,42,0.12)] backdrop-blur-2xl lg:hidden" style={{ paddingBottom: "max(0.55rem, env(safe-area-inset-bottom))" }}>
-      <div className="mx-auto grid max-w-lg grid-cols-6 gap-0.5">
+    <nav aria-label="Mobile menu" className="mobile-bottom-nav lg:hidden">
+      <div className="mobile-bottom-nav-inner">
         {items.map((item) => {
           const Icon = item.icon;
           const href = item.key === "home" ? homeHref : item.key === "profile" ? profileHref : item.href;
           const active = activeFor(pathname, item.key);
           return (
-            <Link aria-current={active ? "page" : undefined} aria-label={item.key === "profile" ? profileLabel : t(locale, item.key)} className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-0.5 py-1.5 text-[10px] font-semibold transition ${active ? "bg-[#e5f8f0] text-[#087d70]" : "text-[#7a8783] hover:bg-black/[0.04] hover:text-[#101817]"}`} href={href} key={item.key}>
-              <Icon className="size-[18px]" strokeWidth={active ? 2.5 : 2} />
-              <span className="truncate">{item.key === "profile" ? profileLabel : t(locale, item.key)}</span>
+            <Link
+              aria-current={active ? "page" : undefined}
+              aria-label={item.key === "profile" ? profileLabel : t(locale, item.key)}
+              className="mobile-nav-item"
+              data-active={active}
+              href={href}
+              key={item.key}
+            >
+              <span className="mobile-nav-icon-wrap">
+                <Icon className="mobile-nav-icon" strokeWidth={active ? 2.5 : 2} />
+              </span>
+              <span className="mobile-nav-label">{item.key === "profile" ? profileLabel : t(locale, item.key)}</span>
+              {active ? <span aria-hidden="true" className="mobile-nav-active-indicator" /> : null}
             </Link>
           );
         })}

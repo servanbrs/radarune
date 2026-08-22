@@ -35,6 +35,12 @@ export class ArtistChannelAnalyticsService {
     });
     const trackIds = trackRows.map((track) => track.id);
 
+    // Older generated clients may not have this optional analytics delegate yet.
+    // Keep the rest of the channel page usable while that client is regenerated.
+    const channelLikeDelegate = (prisma as unknown as {
+      artistChannelLike?: { count: (args: unknown) => Promise<number> };
+    }).artistChannelLike;
+
     const [followers, profileViews, uniqueViewers, streams, releaseLikes, trackLikes, channelLikes, comments] = await Promise.all([
       prisma.follow.count({ where: { organizationId: actor.organizationId, artistId: { in: requestedIds } } }),
       prisma.discoverEvent.count({ where: { organizationId: actor.organizationId, artistId: { in: requestedIds }, eventType: "PROFILE_OPEN" } }),
@@ -45,7 +51,7 @@ export class ArtistChannelAnalyticsService {
       prisma.playbackSession.count({ where: { organizationId: actor.organizationId, trackId: { in: trackIds }, streamCountedAt: { not: null } } }),
       prisma.releaseLike.count({ where: { organizationId: actor.organizationId, releaseId: { in: releaseIds } } }),
       prisma.trackLike.count({ where: { organizationId: actor.organizationId, trackId: { in: trackIds } } }),
-      prisma.artistChannelLike.count({ where: { organizationId: actor.organizationId, artistId: { in: requestedIds } } }),
+      channelLikeDelegate?.count({ where: { organizationId: actor.organizationId, artistId: { in: requestedIds } } }) ?? Promise.resolve(0),
       prisma.comment.count({
         where: {
           organizationId: actor.organizationId,

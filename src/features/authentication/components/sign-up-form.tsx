@@ -64,7 +64,7 @@ export function SignUpForm({ facebookEnabled, googleEnabled, locale }: { faceboo
   });
 
   return (
-    <form className="flex flex-col gap-4" onSubmit={onSubmit}>
+    <form className="auth-form flex flex-col gap-4" onSubmit={onSubmit}>
       <Field
         error={form.formState.errors.name?.message}
         htmlFor="sign-up-name"
