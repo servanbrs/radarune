@@ -247,6 +247,8 @@ main[data-admin-theme="dark"] [class*="bg-[#0d211d]"] { background-color: #17223
 }
 
 html {
+  min-width: 100%;
+  min-height: 100%;
   background:
     radial-gradient(circle at top left, rgba(15, 118, 110, 0.18), transparent 30%),
     radial-gradient(circle at bottom right, rgba(255, 147, 87, 0.18), transparent 35%),
@@ -254,11 +256,23 @@ html {
 }
 
 body {
+  min-width: 100%;
+  min-height: 100%;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-heading), sans-serif;
   overflow-x: hidden;
   transition: background-color 420ms ease, color 420ms ease;
+}
+
+/* Public pages must own the full mobile viewport. `dvh` follows the visible
+   browser area while `svh` keeps the shell stable as mobile chrome expands or
+   collapses, preventing the html/body background from showing as a white band. */
+.public-growth-shell {
+  width: 100%;
+  min-width: 100%;
+  min-height: 100dvh;
+  min-height: 100svh;
 }
 
 .auth-shell {

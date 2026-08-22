@@ -375,11 +375,13 @@ export class AdminV2AnalyticsService {
           select: { ipHash: true, country: true, city: true },
         })
       : [];
-    const locationByIpHash = new Map<string, { country: string; city: string }>();
+    const locationByIpHash = new Map<string, { country: string; countryCode: string | null; city: string }>();
     for (const location of activeLocations) {
       if (!locationByIpHash.has(location.ipHash)) {
+        const rawCountryCode = location.country?.trim().toUpperCase() ?? "";
         locationByIpHash.set(location.ipHash, {
           country: countryLabel(location.country),
+          countryCode: /^[A-Z]{2}$/.test(rawCountryCode) ? rawCountryCode : null,
           city: location.city ?? "Bilinmiyor",
         });
       }
@@ -444,6 +446,9 @@ export class AdminV2AnalyticsService {
           country: session.ipAddress
             ? locationByIpHash.get(hashPrivacyValue(session.ipAddress))?.country ?? "Bilinmiyor"
             : "Bilinmiyor",
+          countryCode: session.ipAddress
+            ? locationByIpHash.get(hashPrivacyValue(session.ipAddress))?.countryCode ?? null
+            : null,
           city: session.ipAddress
             ? locationByIpHash.get(hashPrivacyValue(session.ipAddress))?.city ?? "Bilinmiyor"
             : "Bilinmiyor",

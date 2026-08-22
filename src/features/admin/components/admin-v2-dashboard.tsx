@@ -97,8 +97,8 @@ export function AdminV2Dashboard({ dashboard }: Props) {
   );
 
   return (
-    <main data-admin-theme="dark" className="min-h-screen bg-[#0b1020] text-[#f1f3f8]">
-      <div className="mx-auto w-full max-w-[1680px] px-4 py-6 sm:px-6 lg:px-8">
+    <div data-admin-theme="dark" className="min-w-0 max-w-full bg-[#0b1020] text-[#f1f3f8]">
+      <div className="mx-auto w-full min-w-0 max-w-[1680px] px-4 py-6 sm:px-6 lg:px-8">
         <section className="relative overflow-hidden rounded-[32px] bg-[#121a2b] px-6 py-8 text-white shadow-[0_28px_90px_rgba(4,8,20,0.35)] sm:px-9 lg:px-11">
           <div className="pointer-events-none absolute -right-24 -top-36 size-[430px] rounded-full bg-emerald-400/20 blur-[100px]" />
 
@@ -184,7 +184,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
           />
         </section>
 
-        <section className="mt-5 grid gap-5 xl:grid-cols-[minmax(280px,.55fr)_minmax(0,1.45fr)]">
+        <section className="mt-5 grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(280px,.55fr)_minmax(0,1.45fr)]">
           <article className="rounded-[28px] border border-white/[0.08] bg-[#151c2d] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.2)] sm:p-6">
             <SectionHeading
               eyebrow="Kullanıcı analizi"
@@ -230,7 +230,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
               icon={Globe2}
             />
 
-            <AdminWorldMap countries={dashboard.charts.countries} />
+            <AdminWorldMap countries={dashboard.charts.countries} activeSessions={dashboard.details.activeSessions} />
 
             <div className="mt-5 grid grid-cols-2 gap-2">
               {dashboard.charts.countries.slice(0, 6).map((country) => (
@@ -270,7 +270,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
           </article>
         </section>
 
-        <section className="mt-5 grid gap-5 xl:grid-cols-3">
+        <section className="mt-5 grid items-start gap-5 xl:grid-cols-3">
           <StatusPanel
             title="Yayın durumları"
             items={dashboard.charts.releaseStatuses}
@@ -326,7 +326,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
           </article>
         </section>
 
-        <section className="mt-5 grid gap-5 xl:grid-cols-2">
+        <section className="mt-5 grid items-start gap-5 xl:grid-cols-2">
           <AnalyticsPreview
             title="Şu an aktif kullanıcılar"
             eyebrow="Canlı oturumlar"
@@ -362,7 +362,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
           </AnalyticsPreview>
         </section>
       </div>
-    </main>
+    </div>
   );
 }
 
