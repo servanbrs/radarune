@@ -88,43 +88,19 @@ const quickLinks = [
 export default async function ListsPage() {
   const [locale, session, cachedOrganizationId] = await Promise.all([
     getRequestLocale(),
-    withTimeout(authSessionService.getOptionalSession(), null, 1_500),
+    withTimeout(authSessionService.getOptionalSession(), null, 900),
     withTimeout(getPublicOrganizationId(), null, 3_000),
   ]);
 
-  let organizationId: string | null = cachedOrganizationId;
-
-  if (session) {
-    const membership = await withTimeout(
-      prisma.organizationMembership.findFirst({
-        where: {
-          userId: session.user.id,
-          status: "ACTIVE",
-          organization: {
-            tenantStatus: "ACTIVE",
-          },
-        },
-        orderBy: [
-          {
-            role: "asc",
-          },
-          {
-            createdAt: "asc",
-          },
-        ],
-        select: {
-          organizationId: true,
-        },
-      }),
-      null,
-      1_500,
-    );
-
-    organizationId = membership?.organizationId ?? cachedOrganizationId;
-  }
-
-  const sections = organizationId
-    ? await publicChartsService.getPublicCharts(organizationId)
+  // /lists is a public page. Do not resolve the signed-in user's membership
+  // here: that extra query made mobile retries compete for the small DB pool.
+  // The public tenant is already cached and is the correct source for charts.
+  const sections = cachedOrganizationId
+    ? await withTimeout(
+        publicChartsService.getPublicCharts(cachedOrganizationId),
+        [],
+        5_500,
+      )
     : [];
 
   const currentUser = session
@@ -202,8 +178,8 @@ export default async function ListsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur">
+            <div className="grid min-w-0 grid-cols-2 gap-3">
+              <div className="min-w-0 rounded-3xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur">
                 <p className="text-4xl font-black text-[#54e7c2]">
                   {sections.length}
                 </p>
@@ -216,7 +192,7 @@ export default async function ListsPage() {
                 </p>
               </div>
 
-              <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur">
+              <div className="min-w-0 rounded-3xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur">
                 <p className="text-4xl font-black">{totalTracks}</p>
                 <p className="mt-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/40">
                   {localize(locale, {
@@ -227,7 +203,7 @@ export default async function ListsPage() {
                 </p>
               </div>
 
-              <div className="col-span-2 rounded-3xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur">
+              <div className="col-span-2 min-w-0 rounded-3xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur">
                 <p className="text-sm font-bold">
                   {localize(locale, {
                     tr: "Gerçek ve güncel veri",

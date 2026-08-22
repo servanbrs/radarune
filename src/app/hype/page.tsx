@@ -13,6 +13,7 @@ import {
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { PublicGrowthShell } from "@/features/growth/components/public-shell";
 import { TrackPlayButton } from "@/features/growth/components/track-play-button";
+import { publicReleaseArtworkUrl } from "@/features/releases/lib/public-artwork-url";
 import type { DiscoverFeedItem } from "@/features/growth/server/services/discover.service";
 import {
   discoverService,
@@ -63,7 +64,7 @@ export const metadata: Metadata = {
 
 function artworkUrl(item: DiscoverFeedItem) {
   if (item.sourceType === "RADARUNE" && item.releaseId) {
-    return `/api/public/v1/releases/${item.releaseId}/artwork?v=2`;
+    return publicReleaseArtworkUrl(item.releaseId, item.publishedAt);
   }
 
   return item.thumbnailUrl;

@@ -139,13 +139,13 @@ function ChartRow({
       className="overflow-hidden rounded-[2rem] border border-black/[0.06] bg-white/65 p-4 shadow-[0_15px_50px_rgba(15,23,42,0.05)] backdrop-blur-xl sm:p-6"
       id={section.id}
     >
-      <header className="flex items-end justify-between gap-4">
-        <div>
+      <header className="flex min-w-0 items-end justify-between gap-4">
+        <div className="min-w-0">
           <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#087d70]">
             {section.eyebrow}
           </p>
 
-          <h2 className="mt-2 text-2xl font-black tracking-[-0.03em] text-black sm:text-3xl">
+          <h2 className="mt-2 break-words text-2xl font-black tracking-[-0.03em] text-black sm:text-3xl">
             {section.title}
           </h2>
 

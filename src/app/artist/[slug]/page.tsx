@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element -- Public artwork is served through a runtime API route. */
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DiscoverArtistFollowButton } from "@/features/growth/components/discover-artist-follow-button";
@@ -12,6 +11,8 @@ import { ArtistMediaPlayer } from "@/features/artist/components/artist-media-pla
 import { releasePublicPath } from "@/features/releases/lib/release-url";
 import { getRequestLocale } from "@/lib/i18n-server";
 import { ArtistProfileViewTracker } from "@/features/growth/components/artist-profile-view-tracker";
+import { PublicArtworkImage } from "@/features/releases/components/public-artwork-image";
+import { publicReleaseArtworkUrl } from "@/features/releases/lib/public-artwork-url";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -53,7 +54,7 @@ export default async function ArtistPublicPage({ params }: { params: Promise<{ s
             <div id="about">{artist.shortBiography || artist.biography ? <p className="max-w-2xl whitespace-pre-line text-base leading-7 text-muted">{artist.biography ?? artist.shortBiography}</p> : <p className="text-sm text-muted">Bu sanatçı profilini yakında güncelleyecek.</p>}</div>
             <h2 className="mt-10 text-xl font-semibold" id="releases">Son yayınlar</h2>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {artist.releaseArtistLinks.map((link) => <Link className="group overflow-hidden rounded-2xl border border-line bg-surface-strong" href={releasePublicPath(link.release.title, link.release.id)} key={link.id}><div className="aspect-square bg-gradient-to-br from-accent/30 to-surface-strong">{link.release.artworkUploadId ? <img alt={`${link.release.title} kapak`} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" onError={(event) => { event.currentTarget.style.display = "none"; }} src={`/api/public/v1/releases/${link.release.id}/artwork`} /> : <div className="grid h-full place-items-center text-sm text-muted">Kapak görseli yok</div>}</div><div className="p-4"><p className="font-semibold group-hover:text-accent">{link.release.title}</p><div className="mt-2 flex items-center justify-between gap-2 text-xs text-muted"><span>{link.release.primaryGenre}</span><span>{link.release._count.releaseLikes} oy</span></div></div></Link>)}
+              {artist.releaseArtistLinks.map((link) => <Link className="group overflow-hidden rounded-2xl border border-line bg-surface-strong" href={releasePublicPath(link.release.title, link.release.id)} key={link.id}><div className="aspect-square bg-gradient-to-br from-accent/30 to-surface-strong"><PublicArtworkImage alt={`${link.release.title} kapak`} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" src={publicReleaseArtworkUrl(link.release.id, link.release.updatedAt)} /></div><div className="p-4"><p className="font-semibold group-hover:text-accent">{link.release.title}</p><div className="mt-2 flex items-center justify-between gap-2 text-xs text-muted"><span>{link.release.primaryGenre}</span><span>{link.release._count.releaseLikes} oy</span></div></div></Link>)}
               {null}
             </div>
             <ArtistMediaPlayer items={artist.externalMediaSources} />

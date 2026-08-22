@@ -4,6 +4,7 @@ import { unstable_cache } from "next/cache";
 
 import { prisma } from "@/server/prisma/prisma";
 import { youtubeAdminCredentialService } from "@/features/integrations/server/services/youtube-admin-credential.service";
+import { publicReleaseArtworkUrl } from "@/features/releases/lib/public-artwork-url";
 
 const CHART_QUERY_TIMEOUT_MS = 4_000;
 
@@ -131,15 +132,9 @@ function youtubeThumbnail(
 }
 
 async function fetchYouTubePopular(
-  organizationId: string,
+  apiKey: string,
   regionCode?: string,
 ): Promise<PublicChartTrack[]> {
-  const apiKey = await youtubeAdminCredentialService.getApiKey(organizationId);
-
-  if (!apiKey) {
-    return [];
-  }
-
   const params = new URLSearchParams({
     part: "snippet,statistics",
     chart: "mostPopular",
@@ -216,182 +211,39 @@ async function fetchYouTubePopular(
   });
 }
 
-function getTurkeyYouTubeChart(organizationId: string) {
-  return unstable_cache(
-    async () => fetchYouTubePopular(organizationId, "TR"),
-    ["public-youtube-chart-tr-v3", organizationId],
-    {
-      revalidate: 1800,
-      tags: [
-        "public-charts",
-        "youtube-charts",
-        `youtube-charts-${organizationId}`,
-      ],
-    },
-  )();
-}
+type RadaruneChartItem = {
+  id: string;
+  trackId: string | null;
+  releaseId: string | null;
+  title: string;
+  artistName: string | null;
+  thumbnailUrl: string | null;
+  externalUrl: string;
+  embedUrl: string | null;
+  publishedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  _count: {
+    likes: number;
+    comments: number;
+  };
+};
 
-function getGlobalYouTubeChart(organizationId: string) {
-  return unstable_cache(
-    async () => fetchYouTubePopular(organizationId),
-    ["public-youtube-chart-global-v3", organizationId],
-    {
-      revalidate: 1800,
-      tags: [
-        "public-charts",
-        "youtube-charts",
-        `youtube-charts-${organizationId}`,
-      ],
-    },
-  )();
-}
-
-const getRadaruneMostLiked = unstable_cache(
-  async (): Promise<PublicChartTrack[]> => {
+const getRadaruneChartItems = unstable_cache(
+  async (): Promise<RadaruneChartItem[]> => {
     try {
-      const items = await prisma.externalMediaSource.findMany({
-        where: {
-          status: "ACTIVE",
-          playable: true,
-        },
-        orderBy: [
-          {
-            likes: {
-              _count: "desc",
-            },
-          },
-          {
-            createdAt: "desc",
-          },
-        ],
-        take: 12,
-        select: {
-          id: true,
-          trackId: true,
-          releaseId: true,
-          title: true,
-          artistName: true,
-          thumbnailUrl: true,
-          externalUrl: true,
-          embedUrl: true,
-          provider: true,
-          _count: {
-            select: {
-              likes: true,
-              comments: true,
-            },
-          },
-        },
-      });
-
-      return items.map((item) => ({
-        id: `radarune-liked-${item.id}`,
-        trackId: item.trackId,
-        releaseId: item.releaseId,
-        title: item.title,
-        artistName: item.artistName?.trim() || "Bilinmeyen sanatçı",
-        thumbnailUrl:
-          item.thumbnailUrl ??
-          (item.releaseId
-            ? `/api/public/v1/releases/${item.releaseId}/artwork?v=2`
-            : null),
-        externalUrl: item.externalUrl,
-        embedUrl: item.embedUrl,
-        provider: "RADARUNE",
-        metricLabel: "beğeni",
-        metricValue: compactNumber(item._count.likes),
-      }));
-    } catch (error) {
-      console.error("Radarune beğeni listesi hazırlanamadı:", error);
-
-      return [];
-    }
-  },
-  ["public-radarune-most-liked-v2"],
-  {
-    revalidate: 300,
-    tags: ["public-charts", "radarune-charts"],
-  },
-);
-
-const getRadaruneMostDiscussed = unstable_cache(
-  async (): Promise<PublicChartTrack[]> => {
-    try {
-      const items = await prisma.externalMediaSource.findMany({
-        where: {
-          status: "ACTIVE",
-          playable: true,
-        },
-        orderBy: [
-          {
-            comments: {
-              _count: "desc",
-            },
-          },
-          {
-            createdAt: "desc",
-          },
-        ],
-        take: 12,
-        select: {
-          id: true,
-          trackId: true,
-          releaseId: true,
-          title: true,
-          artistName: true,
-          thumbnailUrl: true,
-          externalUrl: true,
-          embedUrl: true,
-          _count: {
-            select: {
-              comments: true,
-            },
-          },
-        },
-      });
-
-      return items.map((item) => ({
-        id: `radarune-discussed-${item.id}`,
-        trackId: item.trackId,
-        releaseId: item.releaseId,
-        title: item.title,
-        artistName: item.artistName?.trim() || "Bilinmeyen sanatçı",
-        thumbnailUrl:
-          item.thumbnailUrl ??
-          (item.releaseId
-            ? `/api/public/v1/releases/${item.releaseId}/artwork?v=2`
-            : null),
-        externalUrl: item.externalUrl,
-        embedUrl: item.embedUrl,
-        provider: "RADARUNE",
-        metricLabel: "yorum",
-        metricValue: compactNumber(item._count.comments),
-      }));
-    } catch (error) {
-      console.error("Radarune yorum listesi hazırlanamadı:", error);
-
-      return [];
-    }
-  },
-  ["public-radarune-most-discussed-v2"],
-  {
-    revalidate: 300,
-    tags: ["public-charts", "radarune-charts"],
-  },
-);
-
-const getRadaruneNewReleases = unstable_cache(
-  async (): Promise<PublicChartTrack[]> => {
-    try {
-      const items = await prisma.externalMediaSource.findMany({
+      // One bounded query feeds all three Radarune lists. The previous
+      // implementation opened three independent queries per page request;
+      // on mobile retries that could exhaust the production connection pool.
+      return await prisma.externalMediaSource.findMany({
         where: {
           status: "ACTIVE",
           playable: true,
         },
         orderBy: {
-          publishedAt: "desc",
+          createdAt: "desc",
         },
-        take: 12,
+        take: 48,
         select: {
           id: true,
           trackId: true,
@@ -403,45 +255,50 @@ const getRadaruneNewReleases = unstable_cache(
           embedUrl: true,
           publishedAt: true,
           createdAt: true,
+          updatedAt: true,
+          _count: {
+            select: {
+              likes: true,
+              comments: true,
+            },
+          },
         },
       });
-
-      return items.map((item) => {
-        const date = item.publishedAt ?? item.createdAt;
-
-        return {
-          id: `radarune-new-${item.id}`,
-          trackId: item.trackId,
-          releaseId: item.releaseId,
-          title: item.title,
-          artistName: item.artistName?.trim() || "Bilinmeyen sanatçı",
-          thumbnailUrl:
-            item.thumbnailUrl ??
-            (item.releaseId
-              ? `/api/public/v1/releases/${item.releaseId}/artwork?v=2`
-              : null),
-          externalUrl: item.externalUrl,
-          embedUrl: item.embedUrl,
-          provider: "RADARUNE",
-          metricLabel: "yayın tarihi",
-          metricValue: new Intl.DateTimeFormat("tr-TR", {
-            day: "2-digit",
-            month: "short",
-          }).format(date),
-        };
-      });
     } catch (error) {
-      console.error("Radarune yeni yayın listesi hazırlanamadı:", error);
-
+      console.error("Radarune liste verisi hazırlanamadı:", error);
       return [];
     }
   },
-  ["public-radarune-new-releases-v2"],
+  ["public-radarune-chart-items-v3"],
   {
     revalidate: 300,
     tags: ["public-charts", "radarune-charts"],
   },
 );
+
+function toRadaruneTrack(
+  item: RadaruneChartItem,
+  metricLabel: string,
+  metricValue: string,
+): PublicChartTrack {
+  return {
+    id: `radarune-${item.id}-${metricLabel}`,
+    trackId: item.trackId,
+    releaseId: item.releaseId,
+    title: item.title,
+    artistName: item.artistName?.trim() || "Bilinmeyen sanatçı",
+    thumbnailUrl:
+      item.thumbnailUrl ??
+      (item.releaseId
+        ? publicReleaseArtworkUrl(item.releaseId, item.updatedAt)
+        : null),
+    externalUrl: item.externalUrl,
+    embedUrl: item.embedUrl,
+    provider: "RADARUNE",
+    metricLabel,
+    metricValue,
+  };
+}
 
 class PublicChartsService {
   private readonly inFlight = new Map<string, Promise<PublicChartSection[]>>();
@@ -466,28 +323,63 @@ class PublicChartsService {
     // Do not let a single slow MariaDB query keep the public page in a
     // loading state for the adapter's 30-second acquire timeout. The chart
     // sections are optional and can be filled on the next cached refresh.
-    const [turkey, global, mostLiked, mostDiscussed, newest] =
-      await Promise.all([
-        withTimeout(
-          getTurkeyYouTubeChart(organizationId),
-          [],
-          "Türkiye YouTube listesi",
-          3_000,
+    const apiKey = await withTimeout(
+      youtubeAdminCredentialService.getApiKey(organizationId),
+      null,
+      "YouTube bağlantısı",
+      1_500,
+    );
+
+    const [turkey, global, radaruneItems] = await Promise.all([
+      apiKey
+        ? withTimeout(
+            fetchYouTubePopular(apiKey, "TR"),
+            [],
+            "Türkiye YouTube listesi",
+            3_000,
+          )
+        : Promise.resolve([]),
+      apiKey
+        ? withTimeout(
+            fetchYouTubePopular(apiKey),
+            [],
+            "Global YouTube listesi",
+            3_000,
+          )
+        : Promise.resolve([]),
+      withTimeout(
+        getRadaruneChartItems(),
+        [],
+        "Radarune liste verisi",
+        3_000,
+      ),
+    ]);
+
+    const mostLiked = [...radaruneItems]
+      .sort((a, b) => b._count.likes - a._count.likes)
+      .slice(0, 12)
+      .map((item) => toRadaruneTrack(item, "beğeni", compactNumber(item._count.likes)));
+    const mostDiscussed = [...radaruneItems]
+      .sort((a, b) => b._count.comments - a._count.comments)
+      .slice(0, 12)
+      .map((item) => toRadaruneTrack(item, "yorum", compactNumber(item._count.comments)));
+    const newest = [...radaruneItems]
+      .sort(
+        (a, b) =>
+          (b.publishedAt ?? b.createdAt).getTime() -
+          (a.publishedAt ?? a.createdAt).getTime(),
+      )
+      .slice(0, 12)
+      .map((item) =>
+        toRadaruneTrack(
+          item,
+          "yayın tarihi",
+          new Intl.DateTimeFormat("tr-TR", {
+            day: "2-digit",
+            month: "short",
+          }).format(item.publishedAt ?? item.createdAt),
         ),
-        withTimeout(
-          getGlobalYouTubeChart(organizationId),
-          [],
-          "Global YouTube listesi",
-          3_000,
-        ),
-        withTimeout(getRadaruneMostLiked(), [], "Radarune beğeni listesi"),
-        withTimeout(getRadaruneMostDiscussed(), [], "Radarune yorum listesi"),
-        withTimeout(
-          getRadaruneNewReleases(),
-          [],
-          "Radarune yeni yayın listesi",
-        ),
-      ]);
+      );
 
     return [
       {

@@ -17,6 +17,7 @@ import {
 import { DiscoverCommentForm } from "@/features/growth/components/discover-comment-form";
 import { DiscoverArtistFollowButton } from "@/features/growth/components/discover-artist-follow-button";
 import { PublicTrackPlayer } from "@/features/growth/components/public-track-player";
+import { publicReleaseArtworkUrl } from "@/features/releases/lib/public-artwork-url";
 import type { DiscoverFeedItem } from "@/features/growth/server/services/discover.service";
 import { localize } from "@/lib/i18n";
 
@@ -100,7 +101,7 @@ export function DiscoverFeedCard({
   const artworkUrl =
     item.thumbnailUrl ||
     (item.releaseId
-      ? `/api/public/v1/releases/${item.releaseId}/artwork?v=2`
+      ? publicReleaseArtworkUrl(item.releaseId, item.publishedAt)
       : null);
 
   const youtubeId = useMemo(

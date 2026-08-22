@@ -22,6 +22,7 @@ import {
 } from "react";
 
 import { DiscoverFeedCard } from "@/features/growth/components/discover-feed-card";
+import { publicReleaseArtworkUrl } from "@/features/releases/lib/public-artwork-url";
 import type { DiscoverFeedItem } from "@/features/growth/server/services/discover.service";
 import { localize } from "@/lib/i18n";
 
@@ -35,7 +36,7 @@ function artworkUrl(item: DiscoverFeedItem | null) {
   if (!item) return null;
 
   if (item.sourceType === "RADARUNE" && item.releaseId) {
-    return `/api/public/v1/releases/${item.releaseId}/artwork?v=2`;
+    return publicReleaseArtworkUrl(item.releaseId, item.publishedAt);
   }
 
   return item.thumbnailUrl;

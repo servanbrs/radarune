@@ -25,6 +25,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { releasePublicPath } from "@/features/releases/lib/release-url";
+import { publicReleaseArtworkUrl } from "@/features/releases/lib/public-artwork-url";
 import { normalizeLocale, t } from "@/lib/i18n";
 
 type DashboardData = {
@@ -740,7 +741,7 @@ export function DashboardOverview({
                     key={release.id}
                   >
                     <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-accent/10 text-accent">
-                      {release.artworkUploadId ? <Image alt={`${release.title} kapak görseli`} className="object-cover" fill sizes="48px" src={["APPROVED", "DISTRIBUTED", "LIVE"].includes(release.status) ? `/api/public/v1/releases/${release.id}/artwork` : `/api/storage/private/${release.artworkUploadId}`} unoptimized /> : <Music2 className="size-5" />}
+                      {["APPROVED", "DISTRIBUTED", "LIVE"].includes(release.status) ? <Image alt={`${release.title} kapak görseli`} className="object-cover" fill sizes="48px" src={publicReleaseArtworkUrl(release.id, release.updatedAt)} unoptimized /> : release.artworkUploadId ? <Image alt={`${release.title} kapak görseli`} className="object-cover" fill sizes="48px" src={`/api/storage/private/${release.artworkUploadId}`} unoptimized /> : <Music2 className="size-5" />}
                     </div>
 
                     <div className="min-w-0 flex-1">

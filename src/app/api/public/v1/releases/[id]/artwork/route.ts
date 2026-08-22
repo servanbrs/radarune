@@ -4,12 +4,35 @@ import { storageService } from "@/features/storage/server/services/storage.servi
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+function isTrustedThumbnailUrl(value: string) {
+  try {
+    const hostname = new URL(value).hostname.toLowerCase();
+    return (
+      hostname === "i.ytimg.com" ||
+      hostname.endsWith(".ytimg.com") ||
+      hostname === "img.youtube.com" ||
+      hostname === "i.scdn.co" ||
+      hostname.endsWith(".spotifycdn.com")
+    );
+  } catch {
+    return false;
+  }
+}
+
 export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
     const release = await prisma.release.findFirst({
       where: { id, status: { in: ["APPROVED", "DISTRIBUTED", "LIVE"] } },
-      select: { artworkUploadId: true },
+      select: {
+        artworkUploadId: true,
+        externalMediaSources: {
+          where: { status: "ACTIVE", thumbnailUrl: { not: null } },
+          orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+          take: 5,
+          select: { thumbnailUrl: true },
+        },
+      },
     });
     if (!release) return Response.json({ error: "Yayın bulunamadı." }, { status: 404 });
 
@@ -29,10 +52,6 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
       select: { id: true, storageKey: true, mimeType: true },
     });
 
-    if (uploads.length === 0) {
-      return Response.json({ error: "Kapak görseli bulunamadı." }, { status: 404 });
-    }
-
     const preferredUpload = release.artworkUploadId
       ? uploads.find((upload) => upload.id === release.artworkUploadId)
       : undefined;
@@ -50,7 +69,7 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
           headers: {
             "Content-Type": upload.mimeType?.startsWith("image/") ? upload.mimeType : "image/jpeg",
             "Content-Length": String(body.byteLength),
-            "Cache-Control": "public, max-age=300, stale-while-revalidate=900",
+            "Cache-Control": "public, max-age=60, stale-while-revalidate=300",
             "X-Content-Type-Options": "nosniff",
           },
         });
@@ -59,8 +78,28 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
       }
     }
 
-    return Response.json({ error: "Kapak dosyası depolamada bulunamadı." }, { status: 404 });
+    // Imported releases can still have a provider thumbnail even when an
+    // old local upload was removed during deployment. Use only HTTPS image
+    // URLs saved by the import pipeline; never proxy arbitrary user input.
+    const fallbackThumbnail = release.externalMediaSources
+      .map((source) => source.thumbnailUrl)
+      .find((url): url is string => Boolean(url && isTrustedThumbnailUrl(url)));
+
+    if (fallbackThumbnail) {
+      return Response.redirect(fallbackThumbnail, 307);
+    }
+
+    return Response.json(
+      { error: "Kapak dosyası depolamada bulunamadı." },
+      {
+        status: 404,
+        headers: { "Cache-Control": "no-store" },
+      },
+    );
   } catch (error) {
-    return Response.json({ error: error instanceof Error ? error.message : "Kapak okunamadı." }, { status: 422 });
+    return Response.json(
+      { error: error instanceof Error ? error.message : "Kapak okunamadı." },
+      { status: 422, headers: { "Cache-Control": "no-store" } },
+    );
   }
 }
