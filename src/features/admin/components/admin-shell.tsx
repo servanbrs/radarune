@@ -17,12 +17,20 @@ export async function AdminShell({
   showIntro?: boolean;
 }) {
   const { organization, user } = await authSessionService.getDashboardContext();
-  const supportUnread = await supportService.getUnreadCount({
-    organizationId: organization.organization.id,
-    membershipRole: organization.role,
-    systemRole: user.systemRole,
-    userId: user.id,
-  });
+  let supportUnread = 0;
+  try {
+    supportUnread = await supportService.getUnreadCount({
+      organizationId: organization.organization.id,
+      membershipRole: organization.role,
+      systemRole: user.systemRole,
+      userId: user.id,
+    });
+  } catch (error) {
+    // A missing/out-of-date support migration must not take down the whole
+    // admin workspace. The support menu can safely show zero until it is
+    // repaired, while the original error remains visible in server logs.
+    console.error("[ADMIN_SHELL] Destek okunmamış sayısı alınamadı:", error);
+  }
   return (
     <main className="admin-theme min-h-screen min-w-0 bg-[#0b1020] text-white" data-admin-theme="dark">
       <div className="mx-auto flex min-h-screen w-full max-w-[1920px]">
