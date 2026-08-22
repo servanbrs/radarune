@@ -1,14 +1,24 @@
 import "server-only";
 
 import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import path from "node:path";
 
 import type { AutomationSessionMetadata } from "@/features/distribution-automation/domain/automation-session";
 
-const defaultMetadataPath = resolve(
-  process.env.ONERPM_SESSION_METADATA_PATH?.trim() ||
-    ".radarune-private/onerpm/session-metadata.json",
+const defaultMetadataPath = path.join(
+  process.cwd(),
+  ".radarune-private",
+  "onerpm",
+  "session-metadata.json",
 );
+
+function getMetadataPath() {
+  const configured = process.env.ONERPM_SESSION_METADATA_PATH?.trim();
+  if (!configured) return defaultMetadataPath;
+  return path.isAbsolute(configured)
+    ? configured
+    : path.join(/*turbopackIgnore: true*/ process.cwd(), configured);
+}
 
 export type PublicOneRpmSessionStatus = {
   status: AutomationSessionMetadata["status"];
@@ -31,7 +41,7 @@ function emptyStatus(): PublicOneRpmSessionStatus {
 export async function getOneRpmSessionStatus(): Promise<PublicOneRpmSessionStatus> {
   try {
     const raw = await readFile(
-      process.env.ONERPM_SESSION_METADATA_PATH?.trim() || defaultMetadataPath,
+      /*turbopackIgnore: true*/ getMetadataPath(),
       "utf8",
     );
     const metadata = JSON.parse(raw) as Partial<AutomationSessionMetadata>;
