@@ -36,6 +36,7 @@ export function VerifyLoginOtpForm({ locale }: { locale: string }) {
   );
 
   const [remaining, setRemaining] = useState(RESEND_SECONDS);
+  const [verified, setVerified] = useState(false);
 
   const [pending, startTransition] = useTransition();
 
@@ -90,11 +91,14 @@ export function VerifyLoginOtpForm({ locale }: { locale: string }) {
         return;
       }
 
+      setVerified(true);
       setMessage(t(locale, "verifyLogin"));
 
       const next = new URLSearchParams(window.location.search).get("next");
-      router.replace(safeRedirectPath(next));
-      router.refresh();
+      window.setTimeout(() => {
+        router.replace(safeRedirectPath(next));
+        router.refresh();
+      }, 900);
     });
   }
 
@@ -110,9 +114,9 @@ export function VerifyLoginOtpForm({ locale }: { locale: string }) {
 
   return (
     <div className="auth-otp-shell mx-auto w-full max-w-md">
-      <div className={`auth-otp-card rounded-[2rem] border border-line bg-surface p-6 shadow-2xl sm:p-8${pending ? " is-pending" : ""}${error ? " has-error" : ""}`}>
+      <div className={`auth-otp-card rounded-[2rem] border border-line bg-surface p-6 shadow-2xl sm:p-8${pending ? " is-pending" : ""}${verified ? " is-verified" : ""}${error ? " has-error" : ""}`}>
         <div className="auth-otp-icon flex size-14 items-center justify-center rounded-2xl bg-accent/10 text-accent">
-          <ShieldCheck className="size-7" />
+          {verified ? <CheckCircle2 className="size-7" /> : <ShieldCheck className="size-7" />}
         </div>
 
         <p className="mt-6 text-xs font-semibold uppercase tracking-[0.22em] text-accent">
@@ -126,6 +130,36 @@ export function VerifyLoginOtpForm({ locale }: { locale: string }) {
         <p className="mt-3 text-sm leading-7 text-muted">
           {t(locale, "verifyLoginDescription")}
         </p>
+
+        {pending || verified ? (
+          <div
+            aria-live="polite"
+            className={`auth-otp-verification-stage mt-6${pending ? " is-verifying" : " is-success"}`}
+            role="status"
+          >
+            <div className="auth-otp-verification-orbit" aria-hidden="true">
+              <span className="auth-otp-orbit-ring auth-otp-orbit-ring-one" />
+              <span className="auth-otp-orbit-ring auth-otp-orbit-ring-two" />
+              <span className="auth-otp-orbit-core">
+                {verified ? <CheckCircle2 className="size-7" /> : <ShieldCheck className="size-7" />}
+              </span>
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold">
+                {verified ? t(locale, "verifyLoginSuccess") : t(locale, "verifyLoginChecking")}
+              </p>
+              <p className="mt-1 text-xs leading-5 text-muted">
+                {verified ? t(locale, "verifyLoginPreparing") : t(locale, "verifyEmailPending")}
+              </p>
+              <div className="auth-otp-step-track mt-3" aria-hidden="true">
+                <span className="is-active" />
+                <span className={verified ? "is-active" : ""} />
+                <span className={verified ? "is-active" : "is-loading"} />
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         <div aria-hidden="true" className="auth-otp-progress mt-6">
           {Array.from({ length: 6 }, (_, index) => (
@@ -142,6 +176,7 @@ export function VerifyLoginOtpForm({ locale }: { locale: string }) {
               autoComplete="one-time-code"
               autoFocus
               className="auth-otp-input h-14 pl-12 text-center text-2xl font-semibold tracking-[0.32em]"
+              disabled={pending || verified}
               inputMode="numeric"
               onChange={(event) => setCode(normalizeCode(event.target.value))}
               onKeyDown={(event) => {
@@ -160,6 +195,7 @@ export function VerifyLoginOtpForm({ locale }: { locale: string }) {
           <input
             checked={trustDevice}
             className="mt-1 size-4 accent-current"
+            disabled={pending || verified}
             onChange={(event) => setTrustDevice(event.target.checked)}
             type="checkbox"
           />
@@ -190,7 +226,7 @@ export function VerifyLoginOtpForm({ locale }: { locale: string }) {
 
         <Button
           className="mt-6 h-12 w-full"
-          disabled={pending || code.length !== 6}
+          disabled={pending || verified || code.length !== 6}
           onClick={verifyCode}
           type="button"
         >
@@ -205,7 +241,7 @@ export function VerifyLoginOtpForm({ locale }: { locale: string }) {
 
         <Button
           className="mt-3 h-11 w-full"
-          disabled={pending || remaining > 0}
+          disabled={pending || verified || remaining > 0}
           onClick={resendCode}
           type="button"
           variant="secondary"
