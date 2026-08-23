@@ -5,6 +5,7 @@ import "./globals.css";
 import { configurationResolver } from "@/features/configuration/server/configuration-resolver.service";
 import { tenantContextService } from "@/features/platform/server/services/tenant-context.service";
 import { normalizeLocale } from "@/lib/i18n";
+import { ScrollHideHeaders } from "@/components/scroll-hide-headers";
 
 const stringSetting = (value: unknown) =>
   typeof value === "string" && value.trim().length > 0 ? value : undefined;
@@ -194,6 +195,10 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4efe7" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1114" },
+  ],
 };
 
 export default async function RootLayout({
@@ -206,7 +211,10 @@ export default async function RootLayout({
 
   return (
     <html lang={htmlLang} className={`${""} ${""} h-full antialiased`}>
-      <body className="flex min-h-dvh flex-col">{children}</body>
+      <body className="flex min-h-dvh flex-col">
+        <ScrollHideHeaders />
+        {children}
+      </body>
     </html>
   );
 }

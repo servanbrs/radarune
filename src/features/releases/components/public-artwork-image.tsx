@@ -8,6 +8,7 @@ type PublicArtworkImageProps = {
   alt: string;
   fallbackLabel?: string;
   className?: string;
+  loading?: "eager" | "lazy";
 };
 
 export function PublicArtworkImage({
@@ -15,6 +16,7 @@ export function PublicArtworkImage({
   alt,
   fallbackLabel = "Kapak görseli kullanılamıyor",
   className,
+  loading = "lazy",
 }: PublicArtworkImageProps) {
   const [failed, setFailed] = useState(false);
 
@@ -37,7 +39,7 @@ export function PublicArtworkImage({
       src={src}
       alt={alt}
       className={className}
-      loading="eager"
+      loading={loading}
       decoding="async"
       onError={() => setFailed(true)}
     />

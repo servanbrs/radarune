@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element -- Public artwork is served through a runtime API route. */
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -6,6 +5,8 @@ import { notFound } from "next/navigation";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { PublicGrowthShell } from "@/features/growth/components/public-shell";
 import { PublicTrackPlayer } from "@/features/growth/components/public-track-player";
+import { PublicArtworkImage } from "@/features/releases/components/public-artwork-image";
+import { publicReleaseArtworkUrl } from "@/features/releases/lib/public-artwork-url";
 import { prisma } from "@/server/prisma/prisma";
 import { getRequestLocale } from "@/lib/i18n-server";
 
@@ -70,7 +71,7 @@ export default async function PublicTrackPage({ params }: Props) {
         <section className="overflow-hidden rounded-[2.4rem] bg-[#071612] text-white shadow-[0_30px_100px_rgba(4,24,20,0.25)]">
           <div className="grid gap-8 p-6 sm:p-10 md:grid-cols-[minmax(240px,360px)_1fr] md:items-center">
             <div className="aspect-square overflow-hidden rounded-[2rem] bg-[#142521] shadow-2xl">
-              {track.release.artworkUploadId ? <img alt={`${track.title} kapak görseli`} className="size-full object-cover" src={`/api/public/v1/releases/${track.release.id}/artwork?v=${track.release.updatedAt.getTime()}`} /> : <div className="grid size-full place-items-center text-white/45">Kapak görseli yok</div>}
+              {track.release.artworkUploadId ? <PublicArtworkImage alt={`${track.title} kapak görseli`} className="size-full object-cover" src={publicReleaseArtworkUrl(track.release.id, track.release.updatedAt)} /> : <div className="grid size-full place-items-center text-white/45">Kapak görseli yok</div>}
             </div>
             <div className="min-w-0">
               <p className="text-xs font-black uppercase tracking-[0.25em] text-[#54e7c2]">RADARUNE ŞARKI SAYFASI</p>

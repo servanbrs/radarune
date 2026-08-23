@@ -46,6 +46,7 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
         OR: [
           ...(release.artworkUploadId ? [{ id: release.artworkUploadId }] : []),
           { releaseId: id },
+          { track: { releaseId: id } },
         ],
       },
       orderBy: { createdAt: "desc" },

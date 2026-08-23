@@ -17,6 +17,7 @@ import {
 import { DiscoverCommentForm } from "@/features/growth/components/discover-comment-form";
 import { DiscoverArtistFollowButton } from "@/features/growth/components/discover-artist-follow-button";
 import { PublicTrackPlayer } from "@/features/growth/components/public-track-player";
+import { PublicArtworkImage } from "@/features/releases/components/public-artwork-image";
 import { publicReleaseArtworkUrl } from "@/features/releases/lib/public-artwork-url";
 import type { DiscoverFeedItem } from "@/features/growth/server/services/discover.service";
 import { localize } from "@/lib/i18n";
@@ -101,7 +102,10 @@ export function DiscoverFeedCard({
   const artworkUrl =
     item.thumbnailUrl ||
     (item.releaseId
-      ? publicReleaseArtworkUrl(item.releaseId, item.publishedAt)
+      ? publicReleaseArtworkUrl(
+          item.releaseId,
+          item.sourceType === "RADARUNE" ? item.artworkVersion : item.publishedAt,
+        )
       : null);
 
   const youtubeId = useMemo(
@@ -241,13 +245,10 @@ export function DiscoverFeedCard({
               title={item.title}
             />
           ) : artworkUrl ? (
-            <div
-              aria-label={`${item.title} kapak görseli`}
-              className="absolute inset-0 scale-[1.01] bg-cover bg-center transition duration-700 hover:scale-[1.04]"
-              role="img"
-              style={{
-                backgroundImage: `url("${artworkUrl}")`,
-              }}
+            <PublicArtworkImage
+              alt={`${item.title} kapak görseli`}
+              className="absolute inset-0 size-full scale-[1.01] object-cover transition duration-700 hover:scale-[1.04]"
+              src={artworkUrl}
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_center,#1d2939,#050608_70%)]">

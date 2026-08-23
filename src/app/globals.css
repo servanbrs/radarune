@@ -248,7 +248,7 @@ main[data-admin-theme="dark"] [class*="bg-[#0d211d]"] { background-color: #17223
 
 html {
   min-width: 100%;
-  min-height: 100%;
+  min-height: 100dvh;
   background:
     radial-gradient(circle at top left, rgba(15, 118, 110, 0.18), transparent 30%),
     radial-gradient(circle at bottom right, rgba(255, 147, 87, 0.18), transparent 35%),
@@ -257,7 +257,8 @@ html {
 
 body {
   min-width: 100%;
-  min-height: 100%;
+  min-height: 100dvh;
+  margin: 0;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-heading), sans-serif;
@@ -1089,9 +1090,30 @@ summary.details-marker-hidden::-webkit-details-marker {
 
 html,
 body {
-  min-height: 100%;
+  min-height: 100dvh;
   max-width: 100%;
   overflow-x: hidden;
+}
+
+/* The mobile browser status-bar area inherits the document background. Keep
+   it aligned with the app instead of exposing the default white canvas. */
+html {
+  background-color: var(--background);
+}
+
+[data-scroll-hide] {
+  transition: transform 240ms ease, box-shadow 240ms ease, background-color 240ms ease;
+  will-change: transform;
+}
+
+[data-scroll-hide][data-scroll-hidden="true"] {
+  transform: translateY(-105%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-scroll-hide] {
+    transition: none;
+  }
 }
 
 img,

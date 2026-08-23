@@ -36,7 +36,7 @@ function artworkUrl(item: DiscoverFeedItem | null) {
   if (!item) return null;
 
   if (item.sourceType === "RADARUNE" && item.releaseId) {
-    return publicReleaseArtworkUrl(item.releaseId, item.publishedAt);
+    return publicReleaseArtworkUrl(item.releaseId, item.artworkVersion);
   }
 
   return item.thumbnailUrl;

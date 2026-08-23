@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element -- Chart artwork may use provider or runtime storage URLs. */
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
@@ -13,6 +12,7 @@ import {
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { PublicGrowthShell } from "@/features/growth/components/public-shell";
 import { TrackPlayButton } from "@/features/growth/components/track-play-button";
+import { PublicArtworkImage } from "@/features/releases/components/public-artwork-image";
 import { publicReleaseArtworkUrl } from "@/features/releases/lib/public-artwork-url";
 import type { DiscoverFeedItem } from "@/features/growth/server/services/discover.service";
 import {
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
 
 function artworkUrl(item: DiscoverFeedItem) {
   if (item.sourceType === "RADARUNE" && item.releaseId) {
-    return publicReleaseArtworkUrl(item.releaseId, item.publishedAt);
+    return publicReleaseArtworkUrl(item.releaseId, item.artworkVersion);
   }
 
   return item.thumbnailUrl;
@@ -101,7 +101,7 @@ function LeaderCard({
     >
       <div className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] bg-[#23312f]">
         {image ? (
-          <img
+          <PublicArtworkImage
             alt=""
             className="size-full object-cover"
             loading={rank === 1 ? "eager" : "lazy"}

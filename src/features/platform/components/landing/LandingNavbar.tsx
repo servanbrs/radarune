@@ -16,7 +16,7 @@ const navigation = [
 export async function LandingNavbar() {
   const locale = normalizeLocale(await getRequestLocale());
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#080a0e]/80 backdrop-blur-2xl">
+    <header data-scroll-hide className="sticky top-0 z-50 border-b border-white/10 bg-[#080a0e]/80 backdrop-blur-2xl">
       <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between gap-6 px-5 md:px-10">
         <Link
           href="/"

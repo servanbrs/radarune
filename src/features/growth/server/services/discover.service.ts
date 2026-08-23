@@ -29,6 +29,7 @@ export type RadaruneDiscoverItem = {
   artistName: string;
   primaryGenre: string;
   publishedAt: Date | null;
+  artworkVersion: Date;
   thumbnailUrl: null;
   externalUrl: null;
   embedUrl: null;
@@ -181,6 +182,7 @@ export class DiscoverService {
       status: true,
       liveAt: true,
       createdAt: true,
+      updatedAt: true,
       artists: {
         orderBy: {
           sortOrder: "asc",
@@ -319,6 +321,7 @@ export class DiscoverService {
           status: true,
           liveAt: true,
           createdAt: true,
+          updatedAt: true,
           tracks: {
             orderBy: {
               trackNumber: "asc",
@@ -449,7 +452,7 @@ export class DiscoverService {
         orderBy: [{ liveAt: "desc" }, { createdAt: "desc" }],
         take: 60,
         select: {
-          id: true, title: true, primaryGenre: true, status: true, liveAt: true, createdAt: true,
+          id: true, title: true, primaryGenre: true, status: true, liveAt: true, createdAt: true, updatedAt: true,
           tracks: { orderBy: { trackNumber: "asc" }, take: 1, select: { id: true, title: true, trackNumber: true } },
           artists: { orderBy: { sortOrder: "asc" }, take: 3, select: { artist: { select: { id: true, name: true, slug: true } } } },
           _count: { select: { releaseLikes: true } },
@@ -467,7 +470,7 @@ export class DiscoverService {
         orderBy: [{ liveAt: "desc" }, { createdAt: "desc" }],
         take: 60,
         select: {
-          id: true, title: true, primaryGenre: true, status: true, liveAt: true, createdAt: true,
+          id: true, title: true, primaryGenre: true, status: true, liveAt: true, createdAt: true, updatedAt: true,
           tracks: { orderBy: { trackNumber: "asc" }, take: 1, select: { id: true, title: true, trackNumber: true } },
           artists: { orderBy: { sortOrder: "asc" }, take: 3, select: { artist: { select: { id: true, name: true, slug: true } } } },
           _count: { select: { releaseLikes: true } },
@@ -500,6 +503,7 @@ export class DiscoverService {
               .join(", ") || "Radarune sanatçısı",
           primaryGenre: release.primaryGenre,
           publishedAt,
+          artworkVersion: release.updatedAt,
           thumbnailUrl: null,
           externalUrl: null,
           embedUrl: null,

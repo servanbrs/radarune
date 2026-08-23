@@ -22,10 +22,31 @@ const multipartUnsupported = () => {
 export class LocalStorageAdapter implements StorageProviderAdapter {
   readonly type = "LOCAL" as const;
 
-  private get root() {
+  private get configuredRoot() {
     // Keep the fallback relative and static so Next.js NFT does not treat the
     // entire repository as a runtime filesystem dependency.
     return path.resolve(/* turbopackIgnore: true */ env.STORAGE_LOCAL_ROOT ?? env.STORAGE_LOCAL_PATH ?? "storage");
+  }
+
+  /**
+   * Deployments made before the storage root was made configurable may have
+   * left artwork under the app's working directory (or its public_html
+   * sibling). Read those locations as a compatibility fallback so a code
+   * deployment cannot make existing covers disappear.
+   */
+  private get roots() {
+    const candidates = [
+      this.configuredRoot,
+      path.resolve(/* turbopackIgnore: true */ process.cwd(), "storage"),
+      path.resolve(/* turbopackIgnore: true */ process.cwd(), "../storage"),
+      path.resolve(/* turbopackIgnore: true */ process.cwd(), "../public_html/storage"),
+    ];
+
+    return Array.from(new Set(candidates));
+  }
+
+  private target(root: string, key: string) {
+    return resolveStoragePath(root, key);
   }
 
   validateConfiguration(): StorageConfigurationResult {
@@ -42,8 +63,8 @@ export class LocalStorageAdapter implements StorageProviderAdapter {
     const config = this.validateConfiguration();
     if (!config.configured) return { success: false as const, message: "Local storage production ortamında açıkça etkinleştirilmelidir." };
     try {
-      await mkdir(this.root, { recursive: true });
-      await access(this.root);
+      await mkdir(this.configuredRoot, { recursive: true });
+      await access(this.configuredRoot);
       return { success: true as const, checkedAt: new Date() };
     } catch (error) {
       return { success: false as const, message: this.normalizeError(error).message };
@@ -51,7 +72,7 @@ export class LocalStorageAdapter implements StorageProviderAdapter {
   }
 
   async upload(input: StorageUploadInput) {
-    const target = resolveStoragePath(this.root, input.key);
+    const target = this.target(this.configuredRoot, input.key);
     await mkdir(path.dirname(target), { recursive: true });
     await writeFile(target, input.body, { flag: "wx" });
     const file = await stat(target);
@@ -59,7 +80,7 @@ export class LocalStorageAdapter implements StorageProviderAdapter {
   }
 
   async uploadStream(input: StorageStreamUploadInput) {
-    const target = resolveStoragePath(this.root, input.key);
+    const target = this.target(this.configuredRoot, input.key);
     await mkdir(path.dirname(target), { recursive: true });
     const handle = await open(target, "wx");
     try {
@@ -80,29 +101,61 @@ export class LocalStorageAdapter implements StorageProviderAdapter {
   abortMultipartUpload(): Promise<void> { return multipartUnsupported(); }
 
   async getObject(key: string) {
-    return readFile(resolveStoragePath(this.root, key));
+    let lastError: unknown;
+    for (const root of this.roots) {
+      try {
+        return await readFile(this.target(root, key));
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    throw lastError instanceof Error ? lastError : new Error("Dosya depolamada bulunamadı.");
   }
 
   async getStream(key: string, range?: { start: number; end?: number }) {
-    return createReadStream(resolveStoragePath(this.root, key), range);
+    for (const root of this.roots) {
+      try {
+        await access(this.target(root, key));
+        return createReadStream(this.target(root, key), range);
+      } catch {
+        // Try the next legacy storage root.
+      }
+    }
+
+    throw new Error("Dosya depolamada bulunamadı.");
   }
 
   async deleteObject(key: string) {
-    await unlink(resolveStoragePath(this.root, key));
+    for (const root of this.roots) {
+      try {
+        await unlink(this.target(root, key));
+        return;
+      } catch {
+        // Try the next legacy storage root.
+      }
+    }
+
+    throw new Error("Dosya depolamada bulunamadı.");
   }
 
   async objectExists(key: string) {
-    try {
-      await access(resolveStoragePath(this.root, key));
-      return true;
-    } catch {
-      return false;
+    for (const root of this.roots) {
+      try {
+        await access(this.target(root, key));
+        return true;
+      } catch {
+        // Try the next legacy storage root.
+      }
     }
+
+    return false;
   }
 
   async copyObject(input: { sourceKey: string; destinationKey: string }) {
-    const source = resolveStoragePath(this.root, input.sourceKey);
-    const destination = resolveStoragePath(this.root, input.destinationKey);
+    const sourceRoot = await this.findRoot(input.sourceKey);
+    const source = this.target(sourceRoot, input.sourceKey);
+    const destination = this.target(this.configuredRoot, input.destinationKey);
     await mkdir(path.dirname(destination), { recursive: true });
     await copyFile(source, destination);
     const sourceMetadata = await this.getMetadata(input.sourceKey);
@@ -110,8 +163,9 @@ export class LocalStorageAdapter implements StorageProviderAdapter {
   }
 
   async moveObject(input: { sourceKey: string; destinationKey: string }) {
-    const source = resolveStoragePath(this.root, input.sourceKey);
-    const destination = resolveStoragePath(this.root, input.destinationKey);
+    const sourceRoot = await this.findRoot(input.sourceKey);
+    const source = this.target(sourceRoot, input.sourceKey);
+    const destination = this.target(this.configuredRoot, input.destinationKey);
     await mkdir(path.dirname(destination), { recursive: true });
     await rename(source, destination);
     const sourceMetadata = await this.getMetadata(input.destinationKey);
@@ -119,8 +173,8 @@ export class LocalStorageAdapter implements StorageProviderAdapter {
   }
 
   async getMetadata(key: string) {
-    const target = resolveStoragePath(this.root, key);
-    const file = await stat(target);
+    const root = await this.findRoot(key);
+    const file = await stat(this.target(root, key));
     return this.metadata(key, "application/octet-stream", file);
   }
 
@@ -143,6 +197,19 @@ export class LocalStorageAdapter implements StorageProviderAdapter {
 
   normalizeError(error: unknown) {
     return error instanceof Error ? error : new Error("Local storage işlemi başarısız oldu.");
+  }
+
+  private async findRoot(key: string) {
+    for (const root of this.roots) {
+      try {
+        await access(this.target(root, key));
+        return root;
+      } catch {
+        // Try the next legacy storage root.
+      }
+    }
+
+    throw new Error("Dosya depolamada bulunamadı.");
   }
 
   private metadata(key: string, contentType: string, file?: { size: number; mtime: Date }) {
