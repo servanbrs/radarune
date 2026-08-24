@@ -19,6 +19,21 @@ function isTrustedThumbnailUrl(value: string) {
   }
 }
 
+function youtubeThumbnail(value: string | null) {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    const id = url.hostname === "youtu.be"
+      ? url.pathname.slice(1).split("/")[0]
+      : url.searchParams.get("v") ?? url.pathname.match(/^\/(?:shorts|embed|live)\/([^/]+)/)?.[1];
+    return id && (url.hostname.includes("youtube.com") || url.hostname === "youtu.be")
+      ? `https://i.ytimg.com/vi/${encodeURIComponent(id)}/hqdefault.jpg`
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
@@ -30,7 +45,18 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
           where: { status: "ACTIVE", thumbnailUrl: { not: null } },
           orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
           take: 5,
-          select: { thumbnailUrl: true },
+          select: { thumbnailUrl: true, externalUrl: true },
+        },
+        tracks: {
+          select: {
+            externalMediaSources: {
+              where: { status: "ACTIVE", thumbnailUrl: { not: null } },
+              orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+              take: 3,
+              select: { thumbnailUrl: true, externalUrl: true },
+            },
+            sourceUrl: true,
+          },
         },
       },
     });
@@ -82,7 +108,10 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
     // Imported releases can still have a provider thumbnail even when an
     // old local upload was removed during deployment. Use only HTTPS image
     // URLs saved by the import pipeline; never proxy arbitrary user input.
-    const fallbackThumbnail = release.externalMediaSources
+    const fallbackThumbnail = [...release.externalMediaSources, ...release.tracks.flatMap((track) => [
+      ...track.externalMediaSources,
+      { thumbnailUrl: youtubeThumbnail(track.sourceUrl), externalUrl: track.sourceUrl },
+    ])]
       .map((source) => source.thumbnailUrl)
       .find((url): url is string => Boolean(url && isTrustedThumbnailUrl(url)));
 

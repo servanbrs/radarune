@@ -10,7 +10,15 @@ function formatTime(value: number) {
   return `${minutes}:${seconds}`;
 }
 
-export function PublicTrackPlayer({ trackId, title, compact = false, onPlay }: { trackId: string; title: string; compact?: boolean; onPlay?: () => void }) {
+type ExternalMedia = {
+  provider: string;
+  externalUrl: string;
+  embedUrl: string | null;
+  title: string;
+  embeddable: boolean;
+};
+
+export function PublicTrackPlayer({ trackId, title, compact = false, onPlay, externalMedia, hasUploadedAudio = true }: { trackId: string; title: string; compact?: boolean; onPlay?: () => void; externalMedia?: ExternalMedia | null; hasUploadedAudio?: boolean }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -18,6 +26,8 @@ export function PublicTrackPlayer({ trackId, title, compact = false, onPlay }: {
   const [volume, setVolume] = useState(1);
   const lastVolumeRef = useRef(1);
   const [error, setError] = useState(false);
+  const [useExternalPlayer, setUseExternalPlayer] = useState(!hasUploadedAudio && Boolean(externalMedia?.embedUrl));
+  const externalEmbedUrl = externalMedia?.embedUrl;
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -31,7 +41,8 @@ export function PublicTrackPlayer({ trackId, title, compact = false, onPlay }: {
     const ended = () => setPlaying(false);
     const failed = () => {
       setPlaying(false);
-      setError(true);
+      if (externalEmbedUrl) setUseExternalPlayer(true);
+      else setError(true);
     };
     audio.addEventListener("timeupdate", sync);
     audio.addEventListener("loadedmetadata", loaded);
@@ -45,7 +56,7 @@ export function PublicTrackPlayer({ trackId, title, compact = false, onPlay }: {
       audio.removeEventListener("ended", ended);
       audio.removeEventListener("error", failed);
     };
-  }, []);
+  }, [externalEmbedUrl]);
 
   function toggle() {
     const audio = audioRef.current;
@@ -81,8 +92,20 @@ export function PublicTrackPlayer({ trackId, title, compact = false, onPlay }: {
 
   return (
     <div className={`w-full min-w-0 rounded-2xl border border-black/[0.08] bg-[#f8f5ef] shadow-sm ${compact ? "p-2" : "p-3"}`} aria-label={`${title} oynatıcı`}>
-      <audio ref={audioRef} preload="metadata" src={`/api/public/v1/tracks/${trackId}/stream`} />
-      <div className="flex items-center gap-3">
+      {useExternalPlayer && externalMedia?.embedUrl ? (
+        <div className="overflow-hidden rounded-xl bg-black">
+          <iframe
+            allow="autoplay; encrypted-media; picture-in-picture"
+            className="aspect-video w-full border-0"
+            loading="lazy"
+            src={`${externalMedia.embedUrl}${externalMedia.embedUrl.includes("?") ? "&" : "?"}playsinline=1&rel=0`}
+            title={`${title} dış oynatıcı`}
+          />
+          <a className="block px-3 py-2 text-center text-xs font-semibold text-white/75 hover:text-white" href={externalMedia.externalUrl} rel="noreferrer" target="_blank">Sağlayıcıda aç</a>
+        </div>
+      ) : null}
+      <audio ref={audioRef} preload="metadata" src={useExternalPlayer ? undefined : `/api/public/v1/tracks/${trackId}/stream`} />
+      {!useExternalPlayer ? <div className="flex items-center gap-3">
         <button aria-label={playing ? `${title} duraklat` : `${title} oynat`} className={`grid shrink-0 place-items-center rounded-full bg-[#101817] text-white transition hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 ${compact ? "size-9" : "size-11"}`} onClick={toggle} type="button">
           {playing ? <Pause className="size-4 fill-current" /> : <Play className="ml-0.5 size-4 fill-current" />}
         </button>
@@ -94,7 +117,8 @@ export function PublicTrackPlayer({ trackId, title, compact = false, onPlay }: {
         <button aria-label={volume ? "Sesi kapat" : "Sesi aç"} className="grid size-9 shrink-0 place-items-center rounded-full text-[#52605d] hover:bg-black/[0.06]" onClick={toggleMute} type="button">
           {volume ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}
         </button>
-      </div>
+      </div> : null}
+      {!hasUploadedAudio && externalMedia?.embedUrl && !useExternalPlayer ? <button className="mt-2 text-xs font-semibold text-emerald-700 underline" onClick={() => setUseExternalPlayer(true)} type="button">Dış sağlayıcı oynatıcısını kullan</button> : null}
       {error ? <p className="mt-2 text-xs font-medium text-red-700">Bu parça şu anda oynatılamıyor. Lütfen biraz sonra tekrar deneyin.</p> : null}
     </div>
   );

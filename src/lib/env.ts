@@ -80,6 +80,9 @@ const envSchema = z.object({
   STORAGE_S3_SECRET_ACCESS_KEY: z.string().min(1).optional(),
   STORAGE_S3_FORCE_PATH_STYLE: z.coerce.boolean().default(false),
   STORAGE_S3_PUBLIC_BASE_URL: z.url().optional(),
+  SUPABASE_URL: z.url().optional(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
+  SUPABASE_STORAGE_BUCKET: z.string().min(1).default("radarune"),
   PUSH_NOTIFICATION_PROVIDER: z.enum(["EXPO_PUSH", "FCM", "APNS"]).default("EXPO_PUSH"),
 });
 
@@ -159,6 +162,9 @@ const parsedEnv = envSchema.safeParse({
   STORAGE_S3_SECRET_ACCESS_KEY: process.env.STORAGE_S3_SECRET_ACCESS_KEY,
   STORAGE_S3_FORCE_PATH_STYLE: process.env.STORAGE_S3_FORCE_PATH_STYLE,
   STORAGE_S3_PUBLIC_BASE_URL: process.env.STORAGE_S3_PUBLIC_BASE_URL,
+  SUPABASE_URL: process.env.SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  SUPABASE_STORAGE_BUCKET: process.env.SUPABASE_STORAGE_BUCKET,
   PUSH_NOTIFICATION_PROVIDER: process.env.PUSH_NOTIFICATION_PROVIDER,
 });
 
@@ -207,6 +213,9 @@ export function getProductionEnvironmentIssues(): string[] {
   }
   if (env.STORAGE_PROVIDER === "LOCAL" && (!env.STORAGE_ALLOW_LOCAL_IN_PRODUCTION || !(env.STORAGE_LOCAL_ROOT ?? env.STORAGE_LOCAL_PATH))) {
     issues.push("LOCAL storage production için açıkça etkinleştirilmeli ve kalıcı bir yol tanımlanmalıdır.");
+  }
+  if (env.STORAGE_PROVIDER === "SUPABASE_STORAGE" && (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY || !env.SUPABASE_STORAGE_BUCKET)) {
+    issues.push("SUPABASE_STORAGE için SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY ve SUPABASE_STORAGE_BUCKET gereklidir.");
   }
   if (env.MAIL_PROVIDER === "SMTP" && (!env.SMTP_HOST || !env.SMTP_PORT || !env.SMTP_USERNAME || !env.SMTP_PASSWORD || !env.SMTP_FROM_EMAIL)) {
     issues.push("SMTP provider için SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD ve SMTP_FROM_EMAIL gereklidir.");

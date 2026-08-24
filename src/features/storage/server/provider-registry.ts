@@ -4,6 +4,7 @@ import type { StorageProviderAdapter, StorageProviderType } from "@/features/sto
 import { S3CompatibleStorageAdapter } from "@/features/storage/server/adapters/s3-compatible-storage.adapter";
 import { ConfigurationRequiredStorageAdapter } from "@/features/storage/server/adapters/configuration-required-storage.adapter";
 import { localStorageAdapter } from "@/features/storage/server/adapters/local-storage.adapter";
+import { supabaseStorageAdapter } from "@/features/storage/server/adapters/supabase-storage.adapter";
 
 const configurationAdapters = {
   S3: new S3CompatibleStorageAdapter("S3"),
@@ -11,7 +12,7 @@ const configurationAdapters = {
   CLOUDFLARE_R2: new S3CompatibleStorageAdapter("CLOUDFLARE_R2"),
   DIGITALOCEAN_SPACES: new S3CompatibleStorageAdapter("DIGITALOCEAN_SPACES"),
   MINIO: new S3CompatibleStorageAdapter("MINIO"),
-  SUPABASE_STORAGE: new ConfigurationRequiredStorageAdapter("SUPABASE_STORAGE"),
+  SUPABASE_STORAGE: supabaseStorageAdapter,
   AZURE_BLOB: new ConfigurationRequiredStorageAdapter("AZURE_BLOB"),
   GOOGLE_CLOUD_STORAGE: new ConfigurationRequiredStorageAdapter("GOOGLE_CLOUD_STORAGE"),
 } satisfies Record<Exclude<StorageProviderType, "LOCAL">, StorageProviderAdapter>;
