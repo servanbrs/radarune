@@ -5,6 +5,9 @@ import { formatMinorMoney } from "@/features/finance/lib/formatters";
 import { financialStatementService } from "@/features/finance/server/services/financial-statement.service";
 import { payoutService } from "@/features/finance/server/services/payout.service";
 import { royaltyEngineService } from "@/features/finance/server/services/royalty-engine.service";
+import { analyticsService } from "@/features/finance/server/services/analytics.service";
+import { financeAccessService } from "@/features/finance/server/services/finance-access.service";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "Finans merkezi | Radarune",
@@ -43,8 +46,12 @@ export default async function FinancePage() {
     userId: user.id,
   } as const;
 
-  // Finans yetkisi olmayan üyelerde sayfa kırılmasın; merkezi yine açıklayıcı
-  // bir başlangıç ekranı olarak göstermek daha iyi bir ürün deneyimi sağlar.
+  const accessibleArtistIds = await financeAccessService.listAccessibleArtistIds(actor);
+  if (accessibleArtistIds !== null && accessibleArtistIds.length === 0) {
+    redirect("/become?reason=finance-artist-required");
+  }
+
+  const analytics = await analyticsService.getDashboard(actor, {});
   const [statements, payouts, reports] = await Promise.all([
     financialStatementService.listStatements(actor).catch(() => []),
     payoutService.listPayouts(actor).catch(() => []),
@@ -192,6 +199,46 @@ export default async function FinancePage() {
               </div>
             )}
           </article>
+        </section>
+
+        <section className="panel overflow-hidden p-6 md:p-8">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-muted">Gelir hareketleri</p>
+              <h2 className="mt-2 text-2xl font-semibold">Hangi parça, hangi platform, hangi ülke?</h2>
+            </div>
+            <Link className="text-sm font-semibold text-accent hover:underline" href="/analytics">Tüm analizi aç →</Link>
+          </div>
+          {analytics.details.length === 0 ? (
+            <p className="mt-5 rounded-2xl border border-dashed border-line p-5 text-sm text-muted">
+              Henüz gelir satırı yok. Admin OneRPM gelir dışa aktarımını içeri aldığında parça bazlı kayıtlar burada görünür.
+            </p>
+          ) : (
+            <div className="mt-5 overflow-x-auto rounded-2xl border border-line">
+              <table className="min-w-[900px] w-full text-left text-sm">
+                <thead className="bg-surface-strong text-xs uppercase tracking-[0.16em] text-muted">
+                  <tr>
+                    <th className="px-4 py-3">Tarih</th>
+                    <th className="px-4 py-3">Sanatçı / parça</th>
+                    <th className="px-4 py-3">Platform / ülke</th>
+                    <th className="px-4 py-3">Stream</th>
+                    <th className="px-4 py-3 text-right">Net</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {analytics.details.slice(0, 25).map((row) => (
+                    <tr className="border-t border-line/70" key={row.id}>
+                      <td className="whitespace-nowrap px-4 py-3">{dateLabel(row.reportDate)}</td>
+                      <td className="px-4 py-3"><span className="font-medium">{row.trackTitle}</span><span className="block text-xs text-muted">{row.artist?.name ?? "Eşleşmemiş sanatçı"}</span></td>
+                      <td className="px-4 py-3">{row.platformName} · {row.storeName} · {row.countryCode}</td>
+                      <td className="px-4 py-3">{row.streamCount.toLocaleString("tr-TR")}</td>
+                      <td className="px-4 py-3 text-right font-semibold">{formatMinorMoney(row.netRevenueMinor, row.currencyCode)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
 
         <section className="grid gap-4 md:grid-cols-3">

@@ -150,6 +150,29 @@ export class ArtistRepository {
     });
   }
 
+  async listFinanceAccessibleArtistIdsByUserId(
+    organizationId: string,
+    userId: string,
+  ) {
+    return prisma.artist.findMany({
+      where: {
+        organizationId,
+        OR: [
+          { ownerUserId: userId },
+          {
+            teamMembers: {
+              some: {
+                userId,
+                role: { in: ["OWNER", "MANAGER", "ANALYST", "FINANCE"] },
+              },
+            },
+          },
+        ],
+      },
+      select: { id: true },
+    });
+  }
+
   async countByOrganizationId(organizationId: string) {
     return prisma.artist.count({
       where: {

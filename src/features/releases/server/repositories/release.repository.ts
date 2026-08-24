@@ -128,11 +128,20 @@ const releaseDetailInclude = {
 } satisfies Prisma.ReleaseInclude;
 
 export class ReleaseRepository {
-  async listForActor(params: { organizationId: string; userId: string; canViewAll: boolean }) {
+  async listForActor(params: { organizationId: string; userId: string; canViewAll: boolean; artistIds?: string[] }) {
     return prisma.release.findMany({
       where: {
         organizationId: params.organizationId,
-        ...(params.canViewAll ? {} : { createdByUserId: params.userId }),
+        ...(params.canViewAll
+          ? {}
+          : {
+              OR: [
+                { createdByUserId: params.userId },
+                ...(params.artistIds?.length
+                  ? [{ artists: { some: { artistId: { in: params.artistIds } } } }]
+                  : []),
+              ],
+            }),
       },
       orderBy: {
         updatedAt: "desc",

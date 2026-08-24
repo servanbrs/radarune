@@ -230,15 +230,21 @@ type RadaruneChartItem = {
 };
 
 const getRadaruneChartItems = unstable_cache(
-  async (): Promise<RadaruneChartItem[]> => {
+  async (organizationId: string): Promise<RadaruneChartItem[]> => {
     try {
       // One bounded query feeds all three Radarune lists. The previous
       // implementation opened three independent queries per page request;
       // on mobile retries that could exhaust the production connection pool.
-      return await prisma.externalMediaSource.findMany({
+      //
+      // Imported media is not the complete catalog. A release can be live
+      // without an ExternalMediaSource row, so use the local release catalog
+      // as a bounded fallback. This keeps /lists useful after an import is
+      // removed or when the database has been migrated from another provider.
+      const externalItems = await prisma.externalMediaSource.findMany({
         where: {
+          organizationId,
           status: "ACTIVE",
-          playable: true,
+          OR: [{ playable: true }, { externalUrl: { not: "" } }],
         },
         orderBy: {
           createdAt: "desc",
@@ -264,6 +270,87 @@ const getRadaruneChartItems = unstable_cache(
           },
         },
       });
+
+      if (externalItems.length >= 48) {
+        return externalItems;
+      }
+
+      let releaseItems;
+      try {
+        releaseItems = await prisma.release.findMany({
+          where: {
+            organizationId,
+            status: { in: ["APPROVED", "DISTRIBUTED", "LIVE"] },
+            tracks: { some: {} },
+          },
+          orderBy: [{ liveAt: "desc" }, { updatedAt: "desc" }],
+          take: 48,
+          select: {
+            id: true,
+            title: true,
+            liveAt: true,
+            createdAt: true,
+            updatedAt: true,
+            tracks: {
+              orderBy: [{ discNumber: "asc" }, { trackNumber: "asc" }],
+              take: 1,
+              select: { id: true, title: true },
+            },
+            artists: {
+              orderBy: { sortOrder: "asc" },
+              take: 3,
+              select: { artist: { select: { name: true } } },
+            },
+            _count: {
+              select: { releaseLikes: true, comments: true },
+            },
+          },
+        });
+      } catch (error) {
+        console.warn("Radarune yayın kataloğu zaman aşımına uğradı:", error);
+        return externalItems;
+      }
+
+      const existingTrackIds = new Set(
+        externalItems.map((item) => item.trackId).filter(Boolean),
+      );
+      const existingReleaseIds = new Set(
+        externalItems.map((item) => item.releaseId).filter(Boolean),
+      );
+      const catalogItems: RadaruneChartItem[] = releaseItems.flatMap((release) => {
+        const track = release.tracks[0];
+
+        if (
+          !track ||
+          existingTrackIds.has(track.id) ||
+          existingReleaseIds.has(release.id)
+        ) {
+          return [];
+        }
+
+        return [
+          {
+            id: `release-${release.id}`,
+            trackId: track.id,
+            releaseId: release.id,
+            title: track.title || release.title,
+            artistName:
+              release.artists.map(({ artist }) => artist.name).join(", ") || null,
+            thumbnailUrl: null,
+            externalUrl: `/track/${track.id}`,
+            embedUrl: null,
+            publishedAt: release.liveAt,
+            createdAt: release.createdAt,
+            updatedAt: release.updatedAt,
+            _count: {
+              likes: release._count.releaseLikes,
+              comments: release._count.comments,
+            },
+          },
+        ];
+      });
+
+      return [...externalItems, ...catalogItems].slice(0, 48);
     } catch (error) {
       console.error("Radarune liste verisi hazırlanamadı:", error);
       return [];
@@ -302,16 +389,40 @@ function toRadaruneTrack(
 
 class PublicChartsService {
   private readonly inFlight = new Map<string, Promise<PublicChartSection[]>>();
+  private readonly lastGood = new Map<string, PublicChartSection[]>();
+
+  getCachedCharts(organizationId: string) {
+    return this.lastGood.get(organizationId) ?? null;
+  }
 
   async getPublicCharts(organizationId: string): Promise<PublicChartSection[]> {
     const existing = this.inFlight.get(organizationId);
     if (existing) return existing;
 
-    const pending = this.loadPublicCharts(organizationId).finally(() => {
-      if (this.inFlight.get(organizationId) === pending) {
-        this.inFlight.delete(organizationId);
-      }
-    });
+    const pending = this.loadPublicCharts(organizationId)
+      .then((sections) => {
+        const hasTracks = sections.some((section) => section.tracks.length > 0);
+
+        // Never replace a working chart snapshot with an empty response from
+        // a transient database/provider timeout. This is especially important
+        // on mobile, where the browser may retry the server render shortly
+        // after the first response.
+        if (hasTracks) {
+          this.lastGood.set(organizationId, sections);
+          return sections;
+        }
+
+        return this.lastGood.get(organizationId) ?? sections;
+      })
+      .catch((error) => {
+        console.error("Radarune listeleri hazırlanamadı:", error);
+        return this.lastGood.get(organizationId) ?? [];
+      })
+      .finally(() => {
+        if (this.inFlight.get(organizationId) === pending) {
+          this.inFlight.delete(organizationId);
+        }
+      });
 
     this.inFlight.set(organizationId, pending);
     return pending;
@@ -348,7 +459,7 @@ class PublicChartsService {
           )
         : Promise.resolve([]),
       withTimeout(
-        getRadaruneChartItems(),
+        getRadaruneChartItems(organizationId),
         [],
         "Radarune liste verisi",
         3_000,

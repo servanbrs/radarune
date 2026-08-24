@@ -8,6 +8,45 @@ import { notificationService } from "@/features/admin/server/services/notificati
 import { sendTemplatedEmail } from "@/features/email/server/email-settings.service";
 
 export class SupportService {
+  private queueRequesterEmail(input: {
+    organizationId: string;
+    requesterUserId: string;
+    subject: string;
+    status: "OPEN" | "IN_PROGRESS" | "WAITING_USER" | "RESOLVED" | "CLOSED";
+    reason: string;
+  }) {
+    void (async () => {
+      const recipient = await prisma.user.findUnique({
+        where: { id: input.requesterUserId },
+        select: { email: true, name: true },
+      });
+
+      if (!recipient?.email) return;
+      const recipientName = recipient.name?.trim() || recipient.email.split("@")[0] || "Radarune";
+
+      const statusLabels = {
+        OPEN: "Açık",
+        IN_PROGRESS: "İnceleniyor",
+        WAITING_USER: "Sizden yanıt bekleniyor",
+        RESOLVED: "Çözüldü",
+        CLOSED: "Kapatıldı",
+      } as const;
+
+      await sendTemplatedEmail({
+        organizationId: input.organizationId,
+        to: recipient.email,
+        name: recipientName,
+        template: "supportUpdate",
+        title: input.subject,
+        status: statusLabels[input.status],
+        reason: input.reason,
+        url: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://radarune.com"}/dashboard/support`,
+      });
+    })().catch((error) => {
+      console.error("[RADARUNE_EMAIL] Destek kullanıcı e-postası gönderilemedi:", error);
+    });
+  }
+
   private canSeeAllOrganizations(actor: FinanceActorContext) {
     // Support is a platform-level admin queue: an admin must be able to see
     // tickets created from a user's personal organization as well.
@@ -101,6 +140,14 @@ export class SupportService {
       if (failed.length) console.error("[RADARUNE_EMAIL] Destek başvurusu bildirimi gönderilemedi:", failed.length);
     });
 
+    this.queueRequesterEmail({
+      organizationId: actor.organizationId,
+      requesterUserId: actor.userId,
+      subject: parsed.subject,
+      status: "OPEN",
+      reason: "Destek talebiniz alındı. Ekibimiz inceleyip size e-posta ve destek merkezi üzerinden bilgi verecek.",
+    });
+
     return ticket;
   }
 
@@ -141,12 +188,24 @@ export class SupportService {
   async addMessage(actor: FinanceActorContext, ticketId: string, input: unknown) {
     const parsed = createSupportMessageSchema.parse(input);
     if (parsed.internal && !this.canManageSupport(actor)) throw new Error("İç not ekleme yetkiniz yok.");
-    const ticket = await prisma.supportTicket.findFirst({ where: { id: ticketId, ...(this.canSeeAllOrganizations(actor) ? {} : { organizationId: actor.organizationId }), ...(this.canManageSupport(actor) ? {} : { requesterUserId: actor.userId }) }, select: { id: true, organizationId: true } });
+    const ticket = await prisma.supportTicket.findFirst({ where: { id: ticketId, ...(this.canSeeAllOrganizations(actor) ? {} : { organizationId: actor.organizationId }), ...(this.canManageSupport(actor) ? {} : { requesterUserId: actor.userId }) }, select: { id: true, organizationId: true, subject: true, requesterUserId: true } });
     if (!ticket) throw new Error("Destek talebi bulunamadı.");
+    const nextStatus = this.canManageSupport(actor) && !parsed.internal ? "WAITING_USER" : "IN_PROGRESS";
     await prisma.$transaction([
       prisma.supportMessage.create({ data: { organizationId: ticket.organizationId, ticketId, senderUserId: actor.userId, content: parsed.content, internal: parsed.internal } }),
-      prisma.supportTicket.update({ where: { id: ticketId }, data: { lastMessageAt: new Date(), status: this.canManageSupport(actor) && !parsed.internal ? "WAITING_USER" : "IN_PROGRESS" } }),
+      prisma.supportTicket.update({ where: { id: ticketId }, data: { lastMessageAt: new Date(), status: nextStatus } }),
     ]);
+
+    if (this.canManageSupport(actor) && !parsed.internal && actor.userId !== ticket.requesterUserId) {
+      this.queueRequesterEmail({
+        organizationId: ticket.organizationId,
+        requesterUserId: ticket.requesterUserId,
+        subject: ticket.subject,
+        status: nextStatus,
+        reason: parsed.content,
+      });
+    }
+
     return this.getThread(actor, ticketId);
   }
 
@@ -156,7 +215,7 @@ export class SupportService {
 
     const ticket = await prisma.supportTicket.findFirst({
       where: { id: ticketId, ...(this.canSeeAllOrganizations(actor) ? {} : { organizationId: actor.organizationId }) },
-      select: { id: true, organizationId: true },
+      select: { id: true, organizationId: true, requesterUserId: true, subject: true, status: true },
     });
 
     if (!ticket) {
@@ -178,7 +237,7 @@ export class SupportService {
       }
     }
 
-    return prisma.supportTicket.update({
+    const updated = await prisma.supportTicket.update({
       where: { id: ticket.id },
       data: {
         ...(parsed.status
@@ -195,6 +254,26 @@ export class SupportService {
           : {}),
       },
     });
+
+    if (parsed.status && parsed.status !== ticket.status) {
+      const statusMessages = {
+        OPEN: "Destek talebiniz yeniden açıldı.",
+        IN_PROGRESS: "Destek ekibimiz talebinizi incelemeye başladı.",
+        WAITING_USER: "Destek ekibimiz sizden ek bilgi bekliyor.",
+        RESOLVED: "Destek talebiniz çözüldü olarak işaretlendi.",
+        CLOSED: "Destek talebiniz kapatıldı.",
+      } as const;
+
+      this.queueRequesterEmail({
+        organizationId: ticket.organizationId,
+        requesterUserId: ticket.requesterUserId,
+        subject: ticket.subject,
+        status: parsed.status,
+        reason: statusMessages[parsed.status],
+      });
+    }
+
+    return updated;
   }
 }
 

@@ -10,6 +10,8 @@ import { payoutMethodService } from "@/features/finance/server/services/payout-m
 import { payoutService } from "@/features/finance/server/services/payout.service";
 import { financialStatementService } from "@/features/finance/server/services/financial-statement.service";
 import { labelService } from "@/features/label/server/services/label.service";
+import { financeAccessService } from "@/features/finance/server/services/finance-access.service";
+import { redirect } from "next/navigation";
 
 export default async function PayoutsPage() {
   const { organization, user } = await authSessionService.getDashboardContext();
@@ -27,12 +29,23 @@ export default async function PayoutsPage() {
     userId: user.id,
   } as const;
 
+  const accessibleArtistIds = await financeAccessService.listAccessibleArtistIds(actor);
+  if (accessibleArtistIds !== null && accessibleArtistIds.length === 0) {
+    redirect("/become?reason=finance-artist-required");
+  }
+
   const [methods, payouts, statements, artists, labels] = await Promise.all([
     payoutMethodService.listMethods(actor),
     payoutService.listPayouts(actor),
     financialStatementService.listStatements(actor),
-    artistService.listByOrganizationId(organization.organization.id),
-    labelService.listByOrganizationId(organization.organization.id),
+    artistService.listByOrganizationId(organization.organization.id).then((items) =>
+      accessibleArtistIds === null
+        ? items
+        : items.filter((artist) => accessibleArtistIds.includes(artist.id)),
+    ),
+    financeAccessService.canViewLabelFinance(actor)
+      ? labelService.listByOrganizationId(organization.organization.id)
+      : Promise.resolve([]),
   ]);
 
   return (

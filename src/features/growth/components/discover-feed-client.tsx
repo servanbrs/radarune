@@ -22,6 +22,7 @@ import {
 } from "react";
 
 import { DiscoverFeedCard } from "@/features/growth/components/discover-feed-card";
+import { PublicArtworkImage } from "@/features/releases/components/public-artwork-image";
 import { publicReleaseArtworkUrl } from "@/features/releases/lib/public-artwork-url";
 import type { DiscoverFeedItem } from "@/features/growth/server/services/discover.service";
 import { localize } from "@/lib/i18n";
@@ -53,6 +54,8 @@ export function DiscoverFeedClient({
     "recommended",
   );
 
+  const [genreFilter, setGenreFilter] = useState("all");
+
   const [inlinePlayingId, setInlinePlayingId] = useState<string | null>(null);
 
   const [drag, setDrag] = useState({
@@ -83,19 +86,31 @@ export function DiscoverFeedClient({
     return () => window.cancelAnimationFrame(frame);
   }, [feed]);
 
+  const genres = useMemo(() => {
+    const values = feed
+      .map((item) => item.primaryGenre?.trim())
+      .filter((value): value is string => Boolean(value));
+
+    return Array.from(new Set(values)).slice(0, 6);
+  }, [feed]);
+
   const visibleFeed = useMemo(() => {
+    const filtered = genreFilter === "all"
+      ? feed
+      : feed.filter((item) => item.primaryGenre === genreFilter);
+
     if (sortMode === "recommended") {
       // The server has weighted-randomized this request by votes and
       // freshness. Keep that order so every visit feels different.
-      return feed;
+      return filtered;
     }
 
-    return [...feed].sort(
+    return [...filtered].sort(
       (left, right) =>
         (right.likeCount ?? 0) - (left.likeCount ?? 0) ||
         right.score - left.score,
     );
-  }, [feed, sortMode]);
+  }, [feed, genreFilter, sortMode]);
 
   const activeItem = visibleFeed[activeIndex] ?? null;
 
@@ -338,7 +353,7 @@ export function DiscoverFeedClient({
           </p>
         </div>
 
-        <div className="inline-flex rounded-2xl border border-black/[0.07] bg-white/80 p-1.5 shadow-lg backdrop-blur-xl">
+        <div className="flex max-w-full flex-wrap items-center justify-center gap-2 rounded-2xl border border-black/[0.07] bg-white/80 p-1.5 shadow-lg backdrop-blur-xl">
           <button
             className={[
               "rounded-xl px-5 py-2.5 text-sm font-semibold transition",
@@ -370,6 +385,41 @@ export function DiscoverFeedClient({
           >
             {localize(locale, { tr: "Trend", en: "Trending", de: "Trend" })}
           </button>
+
+          <button
+            className={[
+              "rounded-xl px-4 py-2.5 text-sm font-semibold transition",
+              genreFilter === "all"
+                ? "bg-emerald-500 text-white shadow-md"
+                : "text-[#65706e] hover:text-[#101817]",
+            ].join(" ")}
+            onClick={() => {
+              setGenreFilter("all");
+              setActiveIndex(0);
+            }}
+            type="button"
+          >
+            {localize(locale, { tr: "Tümü", en: "All", de: "Alle" })}
+          </button>
+
+          {genres.map((genre) => (
+            <button
+              className={[
+                "hidden rounded-xl px-4 py-2.5 text-sm font-semibold transition sm:inline-flex",
+                genreFilter === genre
+                  ? "bg-emerald-500 text-white shadow-md"
+                  : "text-[#65706e] hover:text-[#101817]",
+              ].join(" ")}
+              key={genre}
+              onClick={() => {
+                setGenreFilter(genre);
+                setActiveIndex(0);
+              }}
+              type="button"
+            >
+              {genre}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -545,6 +595,58 @@ export function DiscoverFeedClient({
               <RotateCcw className="size-4" />
               {localize(locale, { tr: "Akışı başa al", en: "Restart feed", de: "Feed neu starten" })}
             </button>
+
+            <article className="rounded-[1.75rem] border border-black/[0.07] bg-white/80 p-5 shadow-xl backdrop-blur-xl sm:col-span-2 lg:col-span-1">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-700">
+                    {localize(locale, { tr: "Sıradaki keşifler", en: "Up next", de: "Als Nächstes" })}
+                  </p>
+                  <h3 className="mt-1 text-lg font-semibold text-[#101817]">
+                    {localize(locale, { tr: "Akışın devamı", en: "Keep the flow going", de: "Der Flow geht weiter" })}
+                  </h3>
+                </div>
+                <span className="rounded-full bg-black/[0.05] px-2.5 py-1 text-xs font-semibold text-[#65706e]">
+                  {visibleFeed.length}
+                </span>
+              </div>
+
+              <div className="mt-4 space-y-2">
+                {visibleFeed
+                  .map((item, index) => ({ item, index }))
+                  .filter(({ index }) => index !== activeIndex)
+                  .slice(0, 3)
+                  .map(({ item, index }) => {
+                    const nextArtwork = artworkUrl(item);
+
+                    return (
+                      <button
+                        className="flex w-full min-w-0 items-center gap-3 rounded-2xl border border-black/[0.06] bg-white/70 p-2.5 text-left transition hover:-translate-y-0.5 hover:border-emerald-500/30 hover:bg-white"
+                        key={item.id}
+                        onClick={() => {
+                          setActiveIndex(index);
+                          setInlinePlayingId(null);
+                          setDrag({ x: 0, y: 0 });
+                        }}
+                        type="button"
+                      >
+                        {nextArtwork ? (
+                          <PublicArtworkImage alt="" className="size-11 shrink-0 rounded-xl object-cover" loading="lazy" src={nextArtwork} />
+                        ) : (
+                          <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#101817] text-white">
+                            <Sparkles className="size-4" />
+                          </span>
+                        )}
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-semibold text-[#101817]">{item.title}</span>
+                          <span className="mt-0.5 block truncate text-xs text-[#65706e]">{item.artistName}</span>
+                        </span>
+                        <ChevronRight className="ml-auto size-4 shrink-0 text-[#8b9693]" />
+                      </button>
+                    );
+                  })}
+              </div>
+            </article>
           </aside>
         ) : null}
       </div>

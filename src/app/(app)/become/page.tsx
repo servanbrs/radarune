@@ -15,12 +15,13 @@ import { VerifiedArtistExamples } from "@/features/artist/components/verified-ar
 export default async function BecomePage({
   searchParams,
 }: {
-  searchParams?: Promise<{ type?: string | string[] }>;
+  searchParams?: Promise<{ type?: string | string[]; reason?: string | string[] }>;
 }) {
   const { user } =
     await authSessionService.getDashboardContext();
   const params = await searchParams;
   const requestedType = typeof params?.type === "string" ? params.type : undefined;
+  const reason = typeof params?.reason === "string" ? params.reason : undefined;
   const applicationKind = requestedType === "label" ? "LABEL" : "ORGANIZATION";
 
   const access = creatorAccessService.getAccess({
@@ -77,6 +78,11 @@ export default async function BecomePage({
   return (
     <main className="page-shell">
       <section className="max-w-3xl">
+        {reason === "finance-artist-required" ? (
+          <div className="mb-6 rounded-2xl border border-accent/30 bg-accent/10 px-5 py-4 text-sm leading-6">
+            Finans ekranlarını açabilmek için hesabına bağlı bir sanatçı kanalı gerekiyor. Başvurunu tamamladığında yalnızca kendi yayınlarının gelirlerini görebilirsin.
+          </div>
+        ) : null}
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
           Radarune Creator
         </p>

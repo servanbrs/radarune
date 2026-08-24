@@ -27,6 +27,7 @@ import {
 import { releasePublicPath } from "@/features/releases/lib/release-url";
 import { publicReleaseArtworkUrl } from "@/features/releases/lib/public-artwork-url";
 import { normalizeLocale, t } from "@/lib/i18n";
+import { ArtistChannelDirectory } from "@/features/dashboard/components/artist-channel-directory";
 
 type DashboardData = {
   stats: {
@@ -85,9 +86,20 @@ type DashboardOverviewProps = {
     profilePublishedAt: Date | null;
     _count: { releaseArtistLinks: number; follows: number; smartLinks: number; applications: number };
   }>;
+  channelReleases: Array<{
+    id: string;
+    title: string;
+    status: string;
+    updatedAt: string;
+    artworkUploadId: string | null;
+    trackCount: number;
+    artistIds: string[];
+  }>;
   artistsCount: number;
   canManageArtists: boolean;
   manageableArtistsCount: number;
+  showManagementActivity: boolean;
+  showCatalogAnalytics: boolean;
   data: DashboardData;
   labelsCount: number;
   organizationName: string;
@@ -343,10 +355,13 @@ function EmptyState({
 
 export function DashboardOverview({
   artists,
+  channelReleases,
   artistsCount,
   canManageArtists,
   data,
   manageableArtistsCount,
+  showManagementActivity,
+  showCatalogAnalytics,
   labelsCount,
   organizationName,
   role,
@@ -358,7 +373,9 @@ export function DashboardOverview({
   const formatNumber = (value: number) => value.toLocaleString(activeLocale);
   const firstName = userName.trim().split(/\s+/)[0] || userName;
 
-  const hasArtistWorkspace = role === "ARTIST" || artistsCount > 0;
+  // A system role alone is not enough to expose creator analytics. The
+  // account must actually have an artist channel linked to it.
+  const hasArtistWorkspace = artistsCount > 0;
   const hasOrganizationWorkspace = ["ORGANIZER", "LABEL", "LABEL_MANAGER"].includes(role) || labelsCount > 0;
   const roleName = hasArtistWorkspace ? t(activeLocale, "artistAccount") : hasOrganizationWorkspace ? t(activeLocale, "labelAccount") : t(activeLocale, "creatorAccount");
   const roleDescription = hasArtistWorkspace
@@ -613,6 +630,7 @@ export function DashboardOverview({
           </div>
         </section>
 
+        {showCatalogAnalytics ? <>
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {metrics.map((metric) => (
             <MetricCard key={metric.label} {...metric} />
@@ -630,24 +648,31 @@ export function DashboardOverview({
               {canManageArtists ? t(activeLocale, "manageArtists") : t(activeLocale, "goToProfileSettings")} <ArrowRight className="ml-1 inline size-3.5" />
             </Link>
           </div>
-          {artists.length > 0 ? (
-            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {artists.slice(0, 6).map((artist) => (
-                <article className="group rounded-2xl border border-white/10 bg-white/[0.06] p-4 transition hover:-translate-y-0.5 hover:bg-white/[0.09]" key={artist.id}>
-                  <div className="flex items-center gap-3">
-                    <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-emerald-300/15 text-lg font-bold text-emerald-200">
-                      {artist.profileImageUrl ? <Image alt="" className="object-cover" fill sizes="48px" src={artist.profileImageUrl} unoptimized /> : artist.name.slice(0, 1).toUpperCase()}
-                    </div>
-                    <div className="min-w-0 flex-1"><div className="flex items-center gap-2"><h3 className="truncate font-semibold">{artist.name}</h3><span className="shrink-0 rounded-full bg-emerald-300/15 px-2 py-0.5 text-[10px] font-bold text-emerald-200">{artist._count.applications > 0 ? t(activeLocale, "verifiedArtist") : t(activeLocale, "artistProfile")}</span></div><p className="mt-1 truncate text-xs text-white/45">radarune.com/artist/{artist.slug}</p></div>
-                  </div>
-                  <div className="mt-4 grid grid-cols-3 gap-2 text-center"><div className="rounded-xl bg-black/15 p-2"><p className="text-sm font-semibold">{artist._count.releaseArtistLinks}</p><p className="mt-1 text-[10px] text-white/40">{t(activeLocale, "release")}</p></div><div className="rounded-xl bg-black/15 p-2"><p className="text-sm font-semibold">{artist._count.follows}</p><p className="mt-1 text-[10px] text-white/40">{t(activeLocale, "followers")}</p></div><div className="rounded-xl bg-black/15 p-2"><p className="text-sm font-semibold">{artist._count.smartLinks}</p><p className="mt-1 text-[10px] text-white/40">{t(activeLocale, "link")}</p></div></div>
-                  <div className="mt-4 flex gap-2"><Link className="flex-1 rounded-xl bg-emerald-300 px-3 py-2 text-center text-xs font-bold text-[#08201a]" href={`/artist/${artist.slug}`}>{t(activeLocale, "openProfile")}</Link><Link className="rounded-xl border border-white/10 px-3 py-2 text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white" href={`/dashboard/artists/${artist.id}/profile`}>{t(activeLocale, "edit")}</Link></div>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <div className="mt-5 rounded-2xl border border-dashed border-white/15 px-5 py-8 text-sm text-white/50">{t(activeLocale, "noArtistProfile")}</div>
-          )}
+          <ArtistChannelDirectory
+            artists={artists.map((artist) => ({
+              id: artist.id,
+              name: artist.name,
+              slug: artist.slug,
+              profileImageUrl: artist.profileImageUrl,
+              releaseCount: artist._count.releaseArtistLinks,
+              followerCount: artist._count.follows,
+              smartLinkCount: artist._count.smartLinks,
+              verified: artist._count.applications > 0,
+            }))}
+            labels={{
+              artistProfile: t(activeLocale, "artistProfile"),
+              edit: t(activeLocale, "edit"),
+              followers: t(activeLocale, "followers"),
+              link: t(activeLocale, "link"),
+              noArtistProfile: t(activeLocale, "noArtistProfile"),
+              noRelease: activeLocale === "tr-TR" ? "Henüz yayın yok." : activeLocale === "de-DE" ? "Noch kein Release." : "No releases yet.",
+              openProfile: t(activeLocale, "openProfile"),
+              release: t(activeLocale, "release"),
+              searchPlaceholder: activeLocale === "tr-TR" ? "Sanatçı ara…" : activeLocale === "de-DE" ? "Künstler suchen…" : "Search artist…",
+              verifiedArtist: t(activeLocale, "verifiedArtist"),
+            }}
+            releases={channelReleases}
+          />
         </section>
 
         <section className="relative overflow-hidden rounded-[2rem] border border-emerald-900/10 bg-[linear-gradient(115deg,#eafff6_0%,#f4f9ff_55%,#fff8e8_100%)] p-5 shadow-[0_18px_70px_rgba(22,101,76,0.08)] md:p-6">
@@ -818,7 +843,7 @@ export function DashboardOverview({
           </article>
         </section>
 
-        <section className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <section className={showManagementActivity ? "grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_380px]" : "grid min-w-0 gap-6"}>
           <article className="panel min-w-0 p-5 md:p-6">
             <div className="flex items-center justify-between gap-4">
               <div>
@@ -850,7 +875,7 @@ export function DashboardOverview({
             </div>
           </article>
 
-          <article className="panel min-w-0 overflow-hidden">
+          {showManagementActivity ? <article className="panel min-w-0 overflow-hidden">
             <div className="border-b border-line px-5 py-5">
               <h2 className="font-semibold text-foreground">
                 {activeLocale === "tr-TR" ? "Son aktiviteler" : activeLocale === "de-DE" ? "Letzte Aktivitäten" : "Recent activity"}
@@ -888,8 +913,9 @@ export function DashboardOverview({
                 />
               )}
             </div>
-          </article>
+          </article> : null}
         </section>
+        </> : null}
 
         <section>
           <div className="mb-4">

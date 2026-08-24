@@ -5,6 +5,7 @@ import { analyticsService } from "@/features/finance/server/services/analytics.s
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import Link from "next/link";
+import { financeAccessService } from "@/features/finance/server/services/finance-access.service";
 import { creatorAccessService } from "@/features/authorization/server/creator-access.service";
 import { redirect } from "next/navigation";
 
@@ -39,13 +40,19 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
     systemRole: user.systemRole,
   });
 
+  const actor = {
+    organizationId: organization.organization.id,
+    membershipRole: organization.role,
+    systemRole: user.systemRole,
+    userId: user.id,
+  } as const;
+  const accessibleArtistIds = await financeAccessService.listAccessibleArtistIds(actor);
+  if (accessibleArtistIds !== null && accessibleArtistIds.length === 0) {
+    redirect("/become?reason=finance-artist-required");
+  }
+
   const dashboard = await analyticsService.getDashboard(
-    {
-      organizationId: organization.organization.id,
-      membershipRole: organization.role,
-      systemRole: user.systemRole,
-      userId: user.id,
-    },
+    actor,
     {
       periodStart: readSearchParam(params, "periodStart")
         ? new Date(readSearchParam(params, "periodStart")!)
@@ -243,6 +250,52 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
               ))}
             </div>
           </article>
+        </section>
+
+        <section className="panel overflow-hidden p-6">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.24em] text-muted">Gelir satırları</p>
+              <h2 className="mt-2 text-2xl font-semibold">Parça, tarih ve platform detayı</h2>
+            </div>
+            <p className="text-sm text-muted">En son 100 kayıt · yalnızca erişebildiğin sanatçılar</p>
+          </div>
+          {dashboard.details.length === 0 ? (
+            <p className="mt-5 rounded-2xl border border-dashed border-line p-5 text-sm text-muted">
+              Henüz gelir verisi aktarılmadı. Admin, OneRPM gelir dışa aktarımını içeri aldığında bu tablo otomatik dolar.
+            </p>
+          ) : (
+            <div className="mt-5 overflow-x-auto rounded-2xl border border-line">
+              <table className="min-w-[900px] w-full text-left text-sm">
+                <thead className="bg-surface-strong text-xs uppercase tracking-[0.16em] text-muted">
+                  <tr>
+                    <th className="px-4 py-3">Tarih</th>
+                    <th className="px-4 py-3">Sanatçı / parça</th>
+                    <th className="px-4 py-3">Platform / ülke</th>
+                    <th className="px-4 py-3">Dinlenme</th>
+                    <th className="px-4 py-3 text-right">Net gelir</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dashboard.details.map((row) => (
+                    <tr className="border-t border-line/70" key={row.id}>
+                      <td className="whitespace-nowrap px-4 py-3">{row.reportDate.toLocaleDateString("tr-TR")}</td>
+                      <td className="px-4 py-3">
+                        <p className="font-medium">{row.artist?.name ?? "Eşleşmemiş sanatçı"}</p>
+                        <p className="mt-1 text-xs text-muted">{row.trackTitle} · {row.releaseTitle}</p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <p>{row.platformName} · {row.storeName}</p>
+                        <p className="mt-1 text-xs text-muted">{row.countryCode}</p>
+                      </td>
+                      <td className="px-4 py-3">{row.streamCount.toLocaleString("tr-TR")}</td>
+                      <td className="px-4 py-3 text-right font-semibold">{formatMinorMoney(row.netRevenueMinor, row.currencyCode)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
       </div>
     </main>

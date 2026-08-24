@@ -45,6 +45,7 @@ export class AnalyticsService {
       storeDistribution,
       topTracks,
       topReleases,
+      details,
     ] = await Promise.all([
       analyticsRepository.getRevenueSummary(
         actor.organizationId,
@@ -69,6 +70,11 @@ export class AnalyticsService {
       ),
       analyticsRepository.getTopTracks(actor.organizationId, filters, accessibleArtistIds),
       analyticsRepository.getTopReleases(actor.organizationId, filters, accessibleArtistIds),
+      analyticsRepository.listRevenueDetails(
+        actor.organizationId,
+        filters,
+        accessibleArtistIds,
+      ),
     ]);
 
     return {
@@ -89,6 +95,7 @@ export class AnalyticsService {
         topTracks,
         topReleases,
       },
+      details,
       filters,
     };
   }

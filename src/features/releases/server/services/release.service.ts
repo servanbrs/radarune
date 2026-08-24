@@ -21,10 +21,14 @@ import { resolveAndAttachExternalLink } from "@/features/integrations/server/ser
 
 export class ReleaseService {
   async listReleases(actor: ReleaseActor) {
+    const artistIds = releaseAccessService.canViewAll(actor)
+      ? undefined
+      : await releaseAccessService.listManageableArtistIds(actor);
     return releaseRepository.listForActor({
       organizationId: actor.organizationId,
       userId: actor.userId,
       canViewAll: releaseAccessService.canViewAll(actor),
+      ...(artistIds ? { artistIds } : {}),
     });
   }
 
@@ -34,7 +38,7 @@ export class ReleaseService {
       return null;
     }
 
-    releaseAccessService.assertCanViewRelease(actor, release);
+    await releaseAccessService.assertCanViewRelease(actor, release);
     return release;
   }
 
@@ -129,7 +133,7 @@ export class ReleaseService {
       };
     }
 
-    releaseAccessService.assertCanEditRelease(actor, release);
+    await releaseAccessService.assertCanEditRelease(actor, release);
 
     const parsed = updateReleaseSchema.safeParse(input);
     if (!parsed.success) {
@@ -233,7 +237,7 @@ export class ReleaseService {
     const release = await releaseRepository.findDetailById(releaseId);
     if (!release) return { success: false as const, message: "Yayın bulunamadı." };
 
-    releaseAccessService.assertCanEditSupplementalRelease(actor, release);
+    await releaseAccessService.assertCanEditSupplementalRelease(actor, release);
     const parsed = releaseSupplementalUpdateSchema.safeParse(input);
     if (!parsed.success) {
       return { success: false as const, message: this.firstZodError(parsed.error) ?? "Ek yayın bilgileri geçerli değil." };
@@ -259,6 +263,74 @@ export class ReleaseService {
     return { success: true as const, data };
   }
 
+  async requestEdit(actor: ReleaseActor, releaseId: string, message?: string) {
+    const release = await releaseRepository.findDetailById(releaseId);
+    if (!release) return { success: false as const, message: "Yayın bulunamadı." };
+
+    await releaseAccessService.assertCanViewRelease(actor, release);
+    if (["DRAFT", "REVISION_REQUESTED"].includes(release.status)) {
+      return { success: false as const, message: "Bu yayın zaten düzenlemeye açık." };
+    }
+
+    const requestMessage = message?.trim() || "Sanatçı bu yayının bilgileri için düzenleme talep etti.";
+    await prisma.$transaction(async (tx) => {
+      const existing = await tx.releaseValidationIssue.findFirst({
+        where: {
+          releaseId,
+          fieldPath: "artist.editRequest",
+          code: "ARTIST_EDIT_REQUEST",
+          resolvedAt: null,
+        },
+        select: { id: true },
+      });
+
+      if (existing) {
+        await tx.releaseValidationIssue.update({
+          where: { id: existing.id },
+          data: { message: requestMessage, createdAt: new Date() },
+        });
+      } else {
+        await tx.releaseValidationIssue.create({
+          data: {
+            organizationId: actor.organizationId,
+            releaseId,
+            fieldPath: "artist.editRequest",
+            step: "artist",
+            code: "ARTIST_EDIT_REQUEST",
+            category: "METADATA",
+            title: "Sanatçı düzenleme talebi",
+            message: requestMessage,
+            suggestedAction: "Sanatçı talebini inceleyip gerekli alanları düzenleyin.",
+            severity: "INFO",
+            blocking: false,
+            source: "RULE_ENGINE",
+            metadata: { requestedByUserId: actor.userId },
+          },
+        });
+      }
+
+      await auditLogService.create({
+        organizationId: actor.organizationId,
+        actorUserId: actor.userId,
+        action: "RELEASE_EDIT_REQUESTED",
+        entityType: "Release",
+        entityId: releaseId,
+        metadata: { message: requestMessage },
+      }, tx);
+    });
+
+    await notificationService.notifyOrganizationAdmins({
+      organizationId: actor.organizationId,
+      type: "RELEASE_EDIT_REQUESTED",
+      title: "Yayın düzenleme talebi",
+      message: `${release.title} için sanatçıdan düzenleme talebi geldi: ${requestMessage}`,
+      entityType: "Release",
+      entityId: releaseId,
+    });
+
+    return { success: true as const, message: "Düzenleme talebiniz admin ekibine iletildi." };
+  }
+
   async upsertTrack(actor: ReleaseActor, releaseId: string, input: TrackInput) {
     const release = await releaseRepository.findDetailById(releaseId);
     if (!release) {
@@ -268,7 +340,7 @@ export class ReleaseService {
       };
     }
 
-    releaseAccessService.assertCanEditRelease(actor, release);
+    await releaseAccessService.assertCanEditRelease(actor, release);
 
     const parsed = trackInputSchema.safeParse(input);
     if (!parsed.success) {
@@ -309,7 +381,7 @@ export class ReleaseService {
       };
     }
 
-    releaseAccessService.assertCanEditRelease(actor, release);
+    await releaseAccessService.assertCanEditRelease(actor, release);
     const belongsToRelease = release.tracks.some((track) => track.id === trackId);
     if (!belongsToRelease) {
       return {
@@ -341,7 +413,7 @@ export class ReleaseService {
       };
     }
 
-    releaseAccessService.assertCanEditSupplementalRelease(actor, release);
+    await releaseAccessService.assertCanEditSupplementalRelease(actor, release);
 
     if (params.kind === "AUDIO" && (!params.trackId || !release.tracks.some((track) => track.id === params.trackId))) {
       return {
@@ -375,7 +447,7 @@ export class ReleaseService {
       };
     }
 
-    releaseAccessService.assertCanEditRelease(actor, release);
+    await releaseAccessService.assertCanEditRelease(actor, release);
     const issues = releaseValidatorService.validateForSubmit({
       type: release.type,
       previouslyReleased: release.previouslyReleased,
@@ -425,7 +497,7 @@ export class ReleaseService {
         };
       }
 
-      releaseAccessService.assertCanEditRelease(actor, release);
+      await releaseAccessService.assertCanEditRelease(actor, release);
 
       if (!["DRAFT", "REVISION_REQUESTED"].includes(release.status)) {
         return {

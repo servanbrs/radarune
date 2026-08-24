@@ -20,6 +20,7 @@ export class PayoutRepository {
       ],
       select: {
         id: true,
+        userId: true,
         artistId: true,
         labelId: true,
         type: true,

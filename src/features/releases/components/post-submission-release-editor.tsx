@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ReleaseEditRequestButton } from "@/features/releases/components/release-edit-request-button";
 
 type Track = { id: string; title: string; isrc: string | null };
 
@@ -86,6 +87,7 @@ export function PostSubmissionReleaseEditor(props: {
         <label className="space-y-2 text-sm font-medium">Klip mağazaları<input value={videoStores} onChange={(event) => setVideoStores(event.target.value)} className="input" placeholder="YOUTUBE, META_VIDEO" /></label>
       </div>
       <p className="text-xs text-muted">ONErpm resmi API veya webhook ile UPC/ISRC döndürürse dağıtım işleyicisi bu alanlarla otomatik eşleştirir. Resmi bağlantı yoksa kodlar buradan güvenli şekilde girilebilir.</p>
+      <ReleaseEditRequestButton releaseId={props.releaseId} />
       {status ? <p className="text-sm text-muted" role="status">{status}</p> : null}
       <button type="button" onClick={save} disabled={saving || uploading} className="button-primary">{saving ? "Kaydediliyor…" : "Ek bilgileri kaydet"}</button>
     </section>

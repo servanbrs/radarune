@@ -63,6 +63,37 @@ export class ArtistProfileService {
     return artists.map((artist) => artist.id);
   }
 
+  async listEditableReleases(input: ArtistEditorActor & { artistIds: string[] }) {
+    if (input.artistIds.length === 0) return [];
+
+    return prisma.release.findMany({
+      where: {
+        organizationId: input.organizationId,
+        artists: { some: { artistId: { in: input.artistIds } } },
+      },
+      orderBy: { updatedAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        updatedAt: true,
+        createdAt: true,
+        artworkUploadId: true,
+        uploads: {
+          where: { kind: "ARTWORK", status: { in: ["READY", "PENDING"] } },
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { id: true, status: true },
+        },
+        artists: {
+          orderBy: { sortOrder: "asc" },
+          select: { artistId: true, artist: { select: { name: true } } },
+        },
+        _count: { select: { tracks: true } },
+      },
+    });
+  }
+
   async assertEditable(input: ArtistEditorTarget) {
     const artist = await prisma.artist.findFirst({
       where: editableArtistWhere(input),

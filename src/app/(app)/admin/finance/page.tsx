@@ -84,6 +84,11 @@ export default async function AdminFinancePage() {
         <section className="grid gap-6 xl:grid-cols-2">
           <article className="panel p-6 md:p-8">
             <p className="text-xs uppercase tracking-[0.24em] text-muted">Revenue import</p>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-muted">
+              OneRPM gelir dışa aktarım CSV&apos;sini yükleyin. Artist slug bulunmasa bile ISRC veya UPC,
+              Radarune&apos;daki yayınla eşleşiyorsa sanatçı ve label otomatik bağlanır. Eşleşmeyen satırlar
+              güvenlik için içeri alınmaz; OneRPM hesabı ve 2FA bilgileri sunucuda saklanmaz.
+            </p>
             <div className="mt-6">
               <RevenueImportForm />
             </div>

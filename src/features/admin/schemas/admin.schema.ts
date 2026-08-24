@@ -39,6 +39,13 @@ export const artistApplicationActionSchema = z.object({
 });
 
 export const createArtistApplicationSchema = z.object({
+  // Existing API clients may not send this field yet; they keep the old
+  // verified-profile flow. The form sends NEW explicitly for a new channel.
+  artistMode: z.enum(["EXISTING", "NEW"]).default("EXISTING"),
+  identityConfirmation: z.preprocess(
+    (value) => value === true || value === "true" || value === "on",
+    z.boolean().default(false),
+  ),
   stageName: z
     .string()
     .trim()
@@ -92,6 +99,13 @@ export const createArtistApplicationSchema = z.object({
       code: "custom",
       path: ["documentReference"],
       message: "Başvuruyu göndermek için en az bir doğrulama kanıtı bağlantısı ekleyin.",
+    });
+  }
+  if (data.artistMode === "NEW" && !data.identityConfirmation) {
+    context.addIssue({
+      code: "custom",
+      path: ["identityConfirmation"],
+      message: "Yeni sanatçı başvurusu için gerçek sanatçı/yetkili onayı gereklidir.",
     });
   }
 });

@@ -53,7 +53,10 @@ export class PayoutMethodService {
           return true;
         }
 
-        return method.artistId ? accessibleArtistIds.includes(method.artistId) : false;
+        return (
+          method.userId === actor.userId ||
+          (method.artistId ? accessibleArtistIds.includes(method.artistId) : false)
+        );
       })
       .map((method) => maskMethod(method));
   }

@@ -18,6 +18,17 @@ const isrcSchema = z
   .toUpperCase()
   .regex(/^[A-Z]{2}[A-Z0-9]{3}\d{7}$/, "ISRC formatı geçersiz.");
 
+const optionalText = (message?: string) =>
+  z.preprocess(
+    (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+    z.string().trim().min(1, message).optional(),
+  );
+
+const optionalIsrcSchema = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+  isrcSchema.optional(),
+);
+
 export const royaltySplitInputSchema = z.object({
   beneficiaryUserId: z.string().trim().min(1).optional(),
   artistId: z.string().trim().min(1).optional(),
@@ -105,12 +116,12 @@ export const revenueImportCsvRowSchema = z
     platformName: z.string().trim().min(1, "Platform alanı zorunludur."),
     countryCode: isoCountryCodeSchema,
     currencyCode: currencySchema,
-    labelSlug: z.string().trim().min(1, "Label slug alanı zorunludur."),
-    artistSlug: z.string().trim().min(1, "Artist slug alanı zorunludur."),
+    labelSlug: optionalText(),
+    artistSlug: optionalText(),
     releaseTitle: z.string().trim().min(1, "Release title alanı zorunludur."),
     trackTitle: z.string().trim().min(1, "Track title alanı zorunludur."),
-    isrc: isrcSchema.optional(),
-    upc: z.string().trim().max(32).optional(),
+    isrc: optionalIsrcSchema,
+    upc: optionalText().pipe(z.string().max(32).optional()),
     streamCount: z.coerce.number().int().min(0),
     downloadCount: z.coerce.number().int().min(0),
     playlistAppearances: z.coerce.number().int().min(0).default(0),
@@ -149,6 +160,14 @@ export const revenueImportCsvRowSchema = z
         code: z.ZodIssueCode.custom,
         message: "Negatif net gelir kabul edilmez.",
         path: ["netRevenueMinor"],
+      });
+    }
+
+    if (!value.artistSlug && !value.isrc && !value.upc) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Artist slug, ISRC veya UPC alanlarından en az biri gereklidir.",
+        path: ["artistSlug"],
       });
     }
 

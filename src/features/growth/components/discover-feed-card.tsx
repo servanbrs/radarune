@@ -16,6 +16,7 @@ import {
 
 import { DiscoverCommentForm } from "@/features/growth/components/discover-comment-form";
 import { DiscoverArtistFollowButton } from "@/features/growth/components/discover-artist-follow-button";
+import { DiscoverSaveButton } from "@/features/growth/components/discover-save-button";
 import { PublicTrackPlayer } from "@/features/growth/components/public-track-player";
 import { PublicArtworkImage } from "@/features/releases/components/public-artwork-image";
 import { publicReleaseArtworkUrl } from "@/features/releases/lib/public-artwork-url";
@@ -358,6 +359,8 @@ export function DiscoverFeedCard({
                   <MessageCircle className="size-5" />
                   <span className="text-sm font-semibold">{localize(locale, { tr: "Yorum", en: "Comment", de: "Kommentar" })}</span>
                 </div>
+
+                {item.trackId ? <DiscoverSaveButton trackId={item.trackId} /> : null}
 
                 <button
                   aria-label={localize(locale, { tr: "Tam ekran", en: "Fullscreen", de: "Vollbild" })}

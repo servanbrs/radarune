@@ -108,21 +108,21 @@ export class ReleaseAccessService {
       status: string;
     },
   ) {
-    this.assertCanViewRelease(actor, release);
+    return this.assertCanViewRelease(actor, release).then(() => {
+      if (this.canManageSubmitted(actor)) {
+        return;
+      }
 
-    if (this.canManageSubmitted(actor)) {
-      return;
-    }
-
-    if (
-      !["DRAFT", "REVISION_REQUESTED"].includes(
-        release.status,
-      )
-    ) {
-      throw new Error(
-        "İncelemeye gönderilmiş yayınlar kullanıcı tarafından düzenlenemez.",
-      );
-    }
+      if (
+        !["DRAFT", "REVISION_REQUESTED"].includes(
+          release.status,
+        )
+      ) {
+        throw new Error(
+          "İncelemeye gönderilmiş yayınlar kullanıcı tarafından düzenlenemez.",
+        );
+      }
+    });
   }
 
   assertCanEditSupplementalRelease(
@@ -133,21 +133,22 @@ export class ReleaseAccessService {
       status: string;
     },
   ) {
-    this.assertCanViewRelease(actor, release);
+    return this.assertCanViewRelease(actor, release).then(() => {
+      if (this.canManageSubmitted(actor) || release.createdByUserId === actor.userId) {
+        return;
+      }
 
-    if (this.canManageSubmitted(actor) || release.createdByUserId === actor.userId) {
-      return;
-    }
-
-    throw new Error("Bu yayının ek medya ve kodlarını düzenleme yetkiniz yok.");
+      throw new Error("Bu yayının ek medya ve kodlarını düzenleme yetkiniz yok.");
+    });
   }
 
-  assertCanViewRelease(
+  async assertCanViewRelease(
     actor: ReleaseActor,
     release: {
       createdByUserId: string;
       organizationId: string;
       status: string;
+      artists?: Array<{ artistId: string }>;
     },
   ) {
     if (
@@ -163,11 +164,17 @@ export class ReleaseAccessService {
       return;
     }
 
-    if (release.createdByUserId !== actor.userId) {
-      throw new Error(
-        "Bu yayını görüntüleme yetkiniz yok.",
-      );
+    if (release.createdByUserId === actor.userId) {
+      return;
     }
+
+    const manageableArtistIds = await this.listManageableArtistIds(actor);
+    const releaseArtistIds = release.artists?.map((artist) => artist.artistId) ?? [];
+    if (releaseArtistIds.some((artistId) => manageableArtistIds.includes(artistId))) {
+      return;
+    }
+
+    throw new Error("Bu yayını görüntüleme yetkiniz yok.");
   }
 }
 

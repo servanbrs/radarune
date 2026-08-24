@@ -95,13 +95,16 @@ export default async function ListsPage() {
   // /lists is a public page. Do not resolve the signed-in user's membership
   // here: that extra query made mobile retries compete for the small DB pool.
   // The public tenant is already cached and is the correct source for charts.
+  const cachedSections = cachedOrganizationId
+    ? publicChartsService.getCachedCharts(cachedOrganizationId)
+    : null;
   const sections = cachedOrganizationId
     ? await withTimeout(
         publicChartsService.getPublicCharts(cachedOrganizationId),
-        [],
+        cachedSections ?? [],
         5_500,
       )
-    : [];
+    : cachedSections ?? [];
 
   const currentUser = session
     ? {

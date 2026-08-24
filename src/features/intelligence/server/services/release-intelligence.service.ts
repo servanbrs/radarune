@@ -21,7 +21,7 @@ export class ReleaseIntelligenceService {
       throw new Error("Yayın bulunamadı.");
     }
 
-    releaseAccessService.assertCanViewRelease(actor, release);
+    await releaseAccessService.assertCanViewRelease(actor, release);
     const issues = metadataValidationService.validateRelease(release);
     const inputHash = metadataValidationService.buildInputHash(release);
 
@@ -48,7 +48,7 @@ export class ReleaseIntelligenceService {
     if (!release) {
       throw new Error("Yayın bulunamadı.");
     }
-    releaseAccessService.assertCanViewRelease(actor, release);
+    await releaseAccessService.assertCanViewRelease(actor, release);
 
     if (parsed.jobTypes.includes("METADATA_ANALYSIS")) {
       await entitlementService.assertWithinLimit({ organizationId: actor.organizationId }, "ai.metadata.monthly_limit");
@@ -91,7 +91,7 @@ export class ReleaseIntelligenceService {
     if (!release) {
       throw new Error("Yayın bulunamadı.");
     }
-    releaseAccessService.assertCanViewRelease(actor, release);
+    await releaseAccessService.assertCanViewRelease(actor, release);
 
     const readiness = await intelligenceRepository.latestReadinessScore(release.organizationId, release.id);
     return {
@@ -103,7 +103,7 @@ export class ReleaseIntelligenceService {
   async getSubmissionAssistant(actor: FinanceActorContext, releaseId: string) {
     const release = await intelligenceRepository.findReleaseDetail(releaseId);
     if (!release) throw new Error("Yayın bulunamadı.");
-    releaseAccessService.assertCanViewRelease(actor, release);
+    await releaseAccessService.assertCanViewRelease(actor, release);
     const validation = await this.validateRelease(actor, releaseId);
     const metadata = {
       title: release.title,

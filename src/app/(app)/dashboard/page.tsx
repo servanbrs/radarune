@@ -22,24 +22,50 @@ export default async function DashboardPage() {
     name: user.name,
   };
 
-  const [labels, allArtists, dashboard, manageableArtistIds, editableArtistIds] = await Promise.all([
-    labelService.listByOrganizationId(organizationId),
+  const [allArtists, manageableArtistIds, editableArtistIds] = await Promise.all([
     artistService.listByOrganizationId(organizationId),
-    dashboardService.getDashboard(organizationId),
     releaseAccessService.listManageableArtistIds(actor),
     artistProfileService.listEditableIds(actor),
   ]);
   const editableArtistIdSet = new Set(editableArtistIds);
   const artists = allArtists.filter((artist) => editableArtistIdSet.has(artist.id));
+  const editableReleases = await artistProfileService.listEditableReleases({
+    organizationId,
+    systemRole: user.systemRole,
+    userId: user.id,
+    artistIds: editableArtistIds,
+  });
+  const channelReleases = editableReleases.map((release) => ({
+    id: release.id,
+    title: release.title,
+    status: release.status,
+    updatedAt: release.updatedAt.toISOString(),
+    artworkUploadId: release.artworkUploadId ?? release.uploads[0]?.id ?? null,
+    trackCount: release._count.tracks,
+    artistIds: release.artists.map((artist) => artist.artistId),
+  }));
+  const isOrganizationWideRole =
+    ["ADMIN", "SUPER_ADMIN"].includes(user.systemRole) ||
+    ["OWNER", "ORGANIZER", "LABEL", "LABEL_MANAGER"].includes(organization.role);
+  const labels = isOrganizationWideRole
+    ? await labelService.listByOrganizationId(organizationId)
+    : [];
+  const dashboard = await dashboardService.getDashboard(organizationId, {
+    artistIds: isOrganizationWideRole ? null : manageableArtistIds,
+    userId: user.id,
+  });
 
   return (
     <DashboardOverview
       artists={artists}
-      artistsCount={allArtists.length}
+      channelReleases={channelReleases}
+      artistsCount={artists.length}
       canManageArtists={rbacService.hasPermission(organization.role, "artist:update")}
       data={dashboard}
       labelsCount={labels.length}
       manageableArtistsCount={manageableArtistIds.length}
+      showManagementActivity={isOrganizationWideRole}
+      showCatalogAnalytics={isOrganizationWideRole || artists.length > 0}
       organizationName={organization.organization.name}
       role={user.systemRole}
       locale={organization.organization.defaultLocale}

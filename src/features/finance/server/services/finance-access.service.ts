@@ -34,7 +34,10 @@ export class FinanceAccessService {
       return null;
     }
 
-    const artists = await artistRepository.listOwnedArtistIdsByUserId(context.userId);
+    const artists = await artistRepository.listFinanceAccessibleArtistIdsByUserId(
+      context.organizationId,
+      context.userId,
+    );
 
     return artists.map((artist) => artist.id);
   }

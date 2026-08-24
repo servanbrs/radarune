@@ -34,7 +34,14 @@ export type EmailSettings = {
 };
 
 export type EmailTemplateName =
-  "verification" | "welcome" | "passwordReset" | "signIn" | "release" | "support";
+  | "verification"
+  | "welcome"
+  | "passwordReset"
+  | "signIn"
+  | "release"
+  | "support"
+  | "artistApplication"
+  | "supportUpdate";
 
 type TemplateVariables = {
   name?: string;
@@ -43,6 +50,8 @@ type TemplateVariables = {
   code?: string;
   platform?: string;
   title?: string;
+  status?: string;
+  reason?: string;
   year?: string;
 };
 
@@ -401,6 +410,8 @@ function replaceVariables(value: string, variables: TemplateVariables) {
     "{{code}}": variables.code ?? "",
     "{{platform}}": variables.platform ?? "Radarune",
     "{{title}}": variables.title ?? "",
+    "{{status}}": variables.status ?? "",
+    "{{reason}}": variables.reason ?? "",
     "{{year}}": variables.year ?? String(new Date().getFullYear()),
   };
 
@@ -470,6 +481,26 @@ function templateData(settings: EmailSettings, template: EmailTemplateName) {
         title: "Yeni destek talebi",
         buttonLabel: "Talebi incele",
       };
+
+    case "artistApplication":
+      return {
+        subject: "Sanatçı başvurunuz güncellendi · {{title}}",
+        body:
+          "Merhaba {{name}},\n\n{{title}} sanatçı başvurunuzun durumu güncellendi.\n\nDurum: {{status}}\n\n{{reason}}\n\nBaşvurunuzla ilgili yeni bir gelişme olduğunda sizi tekrar bilgilendireceğiz.",
+        eyebrow: "Sanatçı başvurusu",
+        title: "Başvurunuz güncellendi",
+        buttonLabel: "Başvurularımı görüntüle",
+      };
+
+    case "supportUpdate":
+      return {
+        subject: "Destek talebiniz güncellendi · {{title}}",
+        body:
+          "Merhaba {{name}},\n\n“{{title}}” başlıklı destek talebinizle ilgili yeni bir gelişme var.\n\nDurum: {{status}}\n\n{{reason}}\n\nYanıtı görüntülemek veya ek bilgi paylaşmak için destek merkezinizi açabilirsiniz.",
+        eyebrow: "Destek merkezi",
+        title: "Destek talebiniz güncellendi",
+        buttonLabel: "Destek merkezini aç",
+      };
   }
 }
 
@@ -489,7 +520,14 @@ export function renderEmailTemplate(input: {
   const subject = replaceVariables(data.subject, variables);
 
   const renderedBody = replaceVariables(data.body, variables);
-  const body = ["verification", "welcome", "passwordReset", "signIn"].includes(
+  const body = [
+    "verification",
+    "welcome",
+    "passwordReset",
+    "signIn",
+    "artistApplication",
+    "supportUpdate",
+  ].includes(
     input.template,
   )
     ? formatCustomerEmailCopy(renderedBody)
@@ -691,10 +729,12 @@ export async function verifyEmailTransport(organizationId?: string) {
 export async function sendTemplatedEmail(input: {
   organizationId?: string;
   to: string;
-  template: "verification" | "welcome" | "passwordReset" | "release" | "support";
+  template: EmailTemplateName;
   name?: string;
   url?: string;
   title?: string;
+  status?: string;
+  reason?: string;
 }) {
   const settings = await getEmailSettings(input.organizationId);
 
@@ -706,6 +746,8 @@ export async function sendTemplatedEmail(input: {
       email: input.to,
       ...(input.url ? { url: input.url } : {}),
       ...(input.title ? { title: input.title } : {}),
+      ...(input.status ? { status: input.status } : {}),
+      ...(input.reason ? { reason: input.reason } : {}),
     },
   });
 

@@ -139,8 +139,12 @@ export class RevenueImportService {
       fileTransactionIds.add(row.sourceTransactionId);
     }
 
-    const labelSlugs = Array.from(new Set(rows.map((row) => row.labelSlug)));
-    const artistSlugs = Array.from(new Set(rows.map((row) => row.artistSlug)));
+    const labelSlugs = Array.from(
+      new Set(rows.map((row) => row.labelSlug).filter((slug): slug is string => Boolean(slug))),
+    );
+    const artistSlugs = Array.from(
+      new Set(rows.map((row) => row.artistSlug).filter((slug): slug is string => Boolean(slug))),
+    );
     const [labels, artists] = await Promise.all([
       labelRepository.findByOrganizationAndSlugs(params.actor.organizationId, labelSlugs),
       artistRepository.findByOrganizationAndSlugs(params.actor.organizationId, artistSlugs),
@@ -148,25 +152,101 @@ export class RevenueImportService {
 
     const labelMap = new Map(labels.map((label) => [label.slug, label]));
     const artistMap = new Map(artists.map((artist) => [artist.slug, artist]));
+    const matchableIsrcs = Array.from(
+      new Set(rows.map((row) => row.isrc).filter((isrc): isrc is string => Boolean(isrc))),
+    );
+    const matchableUpcs = Array.from(
+      new Set(rows.map((row) => row.upc).filter((upc): upc is string => Boolean(upc))),
+    );
+    const matchedTracks = await prisma.track.findMany({
+      where: {
+        organizationId: params.actor.organizationId,
+        ...(matchableIsrcs.length > 0 || matchableUpcs.length > 0
+          ? {
+              OR: [
+                ...(matchableIsrcs.length > 0 ? [{ isrc: { in: matchableIsrcs } }] : []),
+                ...(matchableUpcs.length > 0
+                  ? [{ release: { upc: { in: matchableUpcs } } }]
+                  : []),
+              ],
+            }
+          : {}),
+      },
+      select: {
+        isrc: true,
+        release: {
+          select: {
+            upc: true,
+            labelId: true,
+            artists: {
+              orderBy: { sortOrder: "asc" },
+              take: 1,
+              select: {
+                artist: {
+                  select: { id: true, slug: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    const matchByIsrc = new Map(
+      matchedTracks
+        .filter((track) => track.isrc && track.release.artists[0]?.artist)
+        .map((track) => [
+          track.isrc as string,
+          {
+            artistId: track.release.artists[0]!.artist!.id,
+            artistSlug: track.release.artists[0]!.artist!.slug,
+            labelId: track.release.labelId,
+          },
+        ]),
+    );
+    const matchByUpc = new Map(
+      matchedTracks
+        .filter((track) => track.release.upc && track.release.artists[0]?.artist)
+        .map((track) => [
+          track.release.upc as string,
+          {
+            artistId: track.release.artists[0]!.artist!.id,
+            artistSlug: track.release.artists[0]!.artist!.slug,
+            labelId: track.release.labelId,
+          },
+        ]),
+    );
+    const resolvedRows = rows.map((row) => {
+      const matched = (row.isrc ? matchByIsrc.get(row.isrc) : undefined) ??
+        (row.upc ? matchByUpc.get(row.upc) : undefined);
+      const artist = row.artistSlug ? artistMap.get(row.artistSlug) : undefined;
+
+      return {
+        row,
+        artistId: artist?.id ?? matched?.artistId,
+        artistSlug: artist?.slug ?? matched?.artistSlug,
+        labelId: row.labelSlug ? labelMap.get(row.labelSlug)?.id : matched?.labelId,
+      };
+    });
     const unresolvedRows = rows.filter(
-      (row) => !labelMap.has(row.labelSlug) || !artistMap.has(row.artistSlug),
+      (row, index) => {
+        const resolved = resolvedRows[index];
+        return !resolved || Boolean(row.labelSlug && !resolved.labelId) || !resolved.artistId;
+      },
     );
 
     if (unresolvedRows.length > 0) {
       await revenueImportRepository.failImport({
         importId: importRecord.id,
-        failureReason: "Bazı satırlarda label veya artist eşleşmesi bulunamadı.",
+        failureReason: "Bazı satırlarda artist eşleşmesi bulunamadı. Artist slug, ISRC veya UPC kontrol edilmeli.",
       });
 
       return {
         success: false as const,
-        message: "Bazı satırlarda label veya artist eşleşmesi bulunamadı.",
+        message: "Bazı satırlarda artist eşleşmesi bulunamadı. Artist slug, ISRC veya UPC kontrol edilmeli.",
       };
     }
 
-    const storeRevenueRows = rows.map((row) => {
-      const label = labelMap.get(row.labelSlug);
-      const artist = artistMap.get(row.artistSlug);
+    const storeRevenueRows = resolvedRows.map(({ row, artistId, labelId }) => {
       const dedupeKey = sha256(
         [
           params.actor.organizationId,
@@ -201,8 +281,8 @@ export class RevenueImportService {
         netRevenueMinor: row.netRevenueMinor,
         externalTransactionId: row.sourceTransactionId,
         dedupeKey,
-        ...(label?.id ? { labelId: label.id } : {}),
-        ...(artist?.id ? { artistId: artist.id } : {}),
+        ...(labelId ? { labelId } : {}),
+        ...(artistId ? { artistId } : {}),
         ...(row.isrc ? { isrc: row.isrc } : {}),
         ...(row.upc ? { upc: row.upc } : {}),
       };

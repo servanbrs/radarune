@@ -5,6 +5,7 @@ import { assertAdminPermission } from "@/features/admin/server/admin-context";
 import { artistApplicationRepository } from "@/features/admin/server/repositories/artist-application.repository";
 import { notificationService } from "@/features/admin/server/services/notification.service";
 import { auditLogService } from "@/features/finance/server/services/audit-log.service";
+import { sendTemplatedEmail } from "@/features/email/server/email-settings.service";
 import { createArtistApplicationSchema, type ArtistApplicationActionInput, type CreateArtistApplicationInput } from "@/features/admin/schemas/admin.schema";
 import type { FinanceActorContext } from "@/features/finance/server/services/finance-access.service";
 
@@ -19,6 +20,45 @@ function slugify(value: string) {
 }
 
 export class ArtistApplicationService {
+  private queueApplicantEmail(input: {
+    organizationId: string;
+    userId: string;
+    stageName: string;
+    status: "PENDING" | "UNDER_REVIEW" | "APPROVED" | "REJECTED" | "REVISION_REQUESTED";
+    reason: string;
+  }) {
+    void (async () => {
+      const recipient = await prisma.user.findUnique({
+        where: { id: input.userId },
+        select: { email: true, name: true },
+      });
+
+      if (!recipient?.email) return;
+      const recipientName = recipient.name?.trim() || recipient.email.split("@")[0] || "Radarune";
+
+      const statusLabels = {
+        PENDING: "İncelemede",
+        UNDER_REVIEW: "Ekip tarafından inceleniyor",
+        APPROVED: "Onaylandı",
+        REJECTED: "Reddedildi",
+        REVISION_REQUESTED: "Düzeltme istendi",
+      } as const;
+
+      await sendTemplatedEmail({
+        organizationId: input.organizationId,
+        to: recipient.email,
+        name: recipientName,
+        template: "artistApplication",
+        title: input.stageName,
+        status: statusLabels[input.status],
+        reason: input.reason,
+        url: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://radarune.com"}/dashboard/support`,
+      });
+    })().catch((error) => {
+      console.error("[RADARUNE_EMAIL] Sanatçı başvurusu e-postası gönderilemedi:", error);
+    });
+  }
+
   private canAccessApplication(
     actor: FinanceActorContext,
     application: NonNullable<Awaited<ReturnType<typeof artistApplicationRepository.findById>>>,
@@ -77,6 +117,14 @@ export class ArtistApplicationService {
       entityId: application.id,
     });
 
+    this.queueApplicantEmail({
+      organizationId: actor.organizationId,
+      userId: actor.userId,
+      stageName: application.stageName,
+      status: "PENDING",
+      reason: "Başvurunuz alındı ve ekip tarafından incelenmek üzere sıraya eklendi.",
+    });
+
     return { success: true as const, data: application };
   }
   async listApplications(actor: FinanceActorContext, params: { page: number; pageSize: number; search?: string }) {
@@ -104,7 +152,7 @@ export class ArtistApplicationService {
       throw new Error("Red ve revizyon işlemlerinde açıklama zorunludur.");
     }
 
-    return prisma.$transaction(async (tx) => {
+    const updated = await prisma.$transaction(async (tx) => {
       const application = await artistApplicationRepository.findById(id, tx);
       if (!application || !this.canAccessApplication(actor, application)) {
         throw new Error("Sanatçı başvurusu bulunamadı.");
@@ -219,6 +267,24 @@ export class ArtistApplicationService {
       const nextStatus = input.action === "REJECT" ? "REJECTED" : "REVISION_REQUESTED";
       return this.transitionApplication(actor, application, nextStatus, input, tx);
     });
+
+    this.queueApplicantEmail({
+      organizationId: actor.organizationId,
+      userId: updated.userId,
+      stageName: updated.stageName,
+      status: updated.status,
+      reason:
+        input.reason ??
+        (updated.status === "APPROVED"
+          ? "Başvurunuz onaylandı."
+          : updated.status === "REJECTED"
+            ? "Başvurunuz reddedildi."
+            : updated.status === "REVISION_REQUESTED"
+              ? "Başvurunuz için ek bilgi veya düzeltme istendi."
+              : "Başvurunuz incelemeye alındı."),
+    });
+
+    return updated;
   }
 
   private async transitionApplication(

@@ -14,6 +14,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useRouter } from "next/navigation";
 import { localize, normalizeLocale, type Locale } from "@/lib/i18n";
 
 type NotificationItem = {
@@ -23,6 +24,8 @@ type NotificationItem = {
   message: string;
   readAt: string | null;
   createdAt: string;
+  entityType: string | null;
+  entityId: string | null;
 };
 
 type NotificationResponse = {
@@ -45,8 +48,34 @@ function formatNotificationDate(value: string, locale: Locale) {
   }).format(date);
 }
 
+function notificationHref(item: NotificationItem) {
+  if (!item.entityId) return null;
+
+  if (item.entityType === "User" || item.type === "NEW_USER_REGISTERED") {
+    return `/admin/users/${item.entityId}`;
+  }
+
+  if (
+    item.entityType === "ArtistApplication" ||
+    item.type.startsWith("ARTIST_APPLICATION_")
+  ) {
+    return `/admin/applications/${item.entityId}`;
+  }
+
+  if (item.entityType === "Release") {
+    return `/admin/releases/${item.entityId}`;
+  }
+
+  if (item.entityType === "Artist") {
+    return `/admin/artists/${item.entityId}`;
+  }
+
+  return null;
+}
+
 export function NotificationBell({ locale = "tr-TR" }: { locale?: string }) {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const router = useRouter();
   const activeLocale = normalizeLocale(locale);
   const copy = useMemo(() => ({
     title: localize(activeLocale, { tr: "Bildirimler", en: "Notifications", de: "Benachrichtigungen" }),
@@ -302,8 +331,24 @@ export function NotificationBell({ locale = "tr-TR" }: { locale?: string }) {
                       item.readAt
                         ? "bg-transparent"
                         : "bg-[#d6a85f]/10"
-                    }`}
+                    } ${notificationHref(item) ? "cursor-pointer hover:bg-[#202b44]" : ""}`}
                     key={item.id}
+                    onClick={() => {
+                      const href = notificationHref(item);
+                      if (!href) return;
+                      setOpen(false);
+                      router.push(href);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key !== "Enter" && event.key !== " ") return;
+                      event.preventDefault();
+                      const href = notificationHref(item);
+                      if (!href) return;
+                      setOpen(false);
+                      router.push(href);
+                    }}
+                    role={notificationHref(item) ? "button" : undefined}
+                    tabIndex={notificationHref(item) ? 0 : undefined}
                   >
                     <div className="flex gap-3">
                       <span

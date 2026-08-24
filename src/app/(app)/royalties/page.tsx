@@ -3,6 +3,8 @@ import { authSessionService } from "@/features/authentication/server/services/au
 import { rbacService } from "@/features/authorization/server/rbac";
 import { formatMinorMoney } from "@/features/finance/lib/formatters";
 import { royaltyEngineService } from "@/features/finance/server/services/royalty-engine.service";
+import { financeAccessService } from "@/features/finance/server/services/finance-access.service";
+import { redirect } from "next/navigation";
 
 export default async function RoyaltiesPage() {
   const { organization, user } = await authSessionService.getDashboardContext();
@@ -13,12 +15,18 @@ export default async function RoyaltiesPage() {
     systemRole: user.systemRole,
   });
 
-  const reports = await royaltyEngineService.listReports({
+  const actor = {
     organizationId: organization.organization.id,
     membershipRole: organization.role,
     systemRole: user.systemRole,
     userId: user.id,
-  });
+  } as const;
+  const accessibleArtistIds = await financeAccessService.listAccessibleArtistIds(actor);
+  if (accessibleArtistIds !== null && accessibleArtistIds.length === 0) {
+    redirect("/become?reason=finance-artist-required");
+  }
+
+  const reports = await royaltyEngineService.listReports(actor);
 
   return (
     <main className="page-shell">

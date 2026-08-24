@@ -19,12 +19,14 @@ function buildStoreRevenueWhere(
     };
   }
 
-  if (filters.artistId) {
-    where.artistId = filters.artistId;
-  } else if (artistIds) {
+  if (artistIds) {
     where.artistId = {
-      in: artistIds,
+      in: filters.artistId
+        ? artistIds.filter((artistId) => artistId === filters.artistId)
+        : artistIds,
     };
+  } else if (filters.artistId) {
+    where.artistId = filters.artistId;
   }
 
   if (filters.labelId) {
@@ -188,6 +190,38 @@ export class AnalyticsRepository {
         },
       },
       take: 10,
+    });
+  }
+
+  async listRevenueDetails(
+    organizationId: string,
+    filters: AnalyticsFiltersInput,
+    artistIds?: string[] | null,
+  ) {
+    return prisma.storeRevenue.findMany({
+      where: buildStoreRevenueWhere(organizationId, filters, artistIds),
+      orderBy: [{ reportDate: "desc" }, { netRevenueMinor: "desc" }],
+      take: 100,
+      select: {
+        id: true,
+        reportDate: true,
+        storeName: true,
+        platformName: true,
+        countryCode: true,
+        currencyCode: true,
+        releaseTitle: true,
+        trackTitle: true,
+        trackKey: true,
+        isrc: true,
+        upc: true,
+        streamCount: true,
+        downloadCount: true,
+        playlistAppearances: true,
+        grossRevenueMinor: true,
+        platformFeeMinor: true,
+        netRevenueMinor: true,
+        artist: { select: { id: true, name: true, slug: true } },
+      },
     });
   }
 }

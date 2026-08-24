@@ -9,6 +9,7 @@ const getPlatformDistribution = vi.fn();
 const getStoreDistribution = vi.fn();
 const getTopTracks = vi.fn();
 const getTopReleases = vi.fn();
+const listRevenueDetails = vi.fn();
 const listAccessibleArtistIds = vi.fn();
 
 vi.mock("@/features/finance/server/repositories/analytics.repository", () => ({
@@ -20,6 +21,7 @@ vi.mock("@/features/finance/server/repositories/analytics.repository", () => ({
     getStoreDistribution,
     getTopTracks,
     getTopReleases,
+    listRevenueDetails,
   },
 }));
 vi.mock("@/features/finance/server/services/finance-access.service", () => ({
@@ -47,6 +49,7 @@ describe("analyticsService", () => {
     getStoreDistribution.mockResolvedValue([]);
     getTopTracks.mockResolvedValue([]);
     getTopReleases.mockResolvedValue([]);
+    listRevenueDetails.mockResolvedValue([]);
     listAccessibleArtistIds.mockResolvedValue(["artist_1"]);
   });
 
