@@ -1,15 +1,14 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { unstable_cache } from "next/cache";
 import { ArrowDown, Globe2, Radio, Sparkles, TrendingUp } from "lucide-react";
 
-import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { PublicCharts } from "@/features/growth/components/public-charts";
 import { PublicGrowthShell } from "@/features/growth/components/public-shell";
 import { publicChartsService } from "@/features/growth/server/services/public-charts.service";
 import { prisma } from "@/server/prisma/prisma";
-import { getRequestLocale } from "@/lib/i18n-server";
-import { localize } from "@/lib/i18n";
+import { localize, normalizeLocale, type Locale } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -48,19 +47,52 @@ export const metadata: Metadata = {
   },
 };
 
-const getPublicOrganizationId = unstable_cache(
+const loadPublicOrganizationId = unstable_cache(
   async () => {
-    const organization = await prisma.organization.findFirst({
-      where: { tenantStatus: "ACTIVE" },
-      orderBy: { createdAt: "asc" },
-      select: { id: true },
-    });
+    try {
+      const organization = await prisma.organization.findFirst({
+        where: { tenantStatus: "ACTIVE" },
+        orderBy: { createdAt: "asc" },
+        select: { id: true },
+      });
 
-    return organization?.id ?? null;
+      return organization?.id ?? null;
+    } catch (error) {
+      // A public chart request must never turn a transient database problem
+      // into an error page. The caller will keep the last good chart snapshot.
+      console.error("[PUBLIC_LISTS] Organization lookup failed:", error);
+      return null;
+    }
   },
   ["public-lists-organization-id"],
   { revalidate: 60, tags: ["public-charts"] },
 );
+
+// `unstable_cache` does not deduplicate a cache miss across all concurrent
+// requests. Share the in-flight lookup ourselves so mobile retries can never
+// open a new database connection for the same public tenant.
+let publicOrganizationIdInFlight: Promise<string | null> | null = null;
+
+function getPublicOrganizationId() {
+  if (publicOrganizationIdInFlight) return publicOrganizationIdInFlight;
+
+  const pending = loadPublicOrganizationId().finally(() => {
+    if (publicOrganizationIdInFlight === pending) {
+      publicOrganizationIdInFlight = null;
+    }
+  });
+
+  publicOrganizationIdInFlight = pending;
+  return pending;
+}
+
+async function getListsLocale(): Promise<Locale> {
+  // `/lists` is public and does not need a tenant/session lookup just to
+  // render its language. Avoiding that extra query keeps the small production
+  // database pool available for chart data.
+  const locale = (await cookies()).get("radarune-locale")?.value;
+  return normalizeLocale(locale);
+}
 
 const quickLinks = [
   {
@@ -86,9 +118,8 @@ const quickLinks = [
 ];
 
 export default async function ListsPage() {
-  const [locale, session, cachedOrganizationId] = await Promise.all([
-    getRequestLocale(),
-    withTimeout(authSessionService.getOptionalSession(), null, 900),
+  const [locale, cachedOrganizationId] = await Promise.all([
+    getListsLocale(),
     withTimeout(getPublicOrganizationId(), null, 3_000),
   ]);
 
@@ -106,24 +137,13 @@ export default async function ListsPage() {
       )
     : cachedSections ?? [];
 
-  const currentUser = session
-    ? {
-        name: session.user.name,
-        username:
-          "username" in session.user &&
-          typeof session.user.username === "string"
-            ? session.user.username
-            : null,
-      }
-    : null;
-
   const totalTracks = sections.reduce(
     (total, section) => total + section.tracks.length,
     0,
   );
 
   return (
-    <PublicGrowthShell currentUser={currentUser} locale={locale}>
+    <PublicGrowthShell locale={locale}>
       <div className="min-w-0 space-y-6">
         <section className="relative overflow-hidden rounded-[2.4rem] bg-[#071612] px-6 py-10 text-white shadow-[0_30px_100px_rgba(4,24,20,0.25)] sm:px-10 sm:py-14 lg:px-14 lg:py-16">
           <div className="pointer-events-none absolute -right-28 -top-36 size-[420px] rounded-full bg-[#18d7aa]/20 blur-[90px]" />

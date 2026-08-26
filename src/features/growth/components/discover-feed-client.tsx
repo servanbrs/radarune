@@ -514,14 +514,14 @@ export function DiscoverFeedClient({
         </div>
 
         {activeItem ? (
-          <aside className="grid min-w-0 gap-4 sm:grid-cols-2 lg:col-start-2 lg:row-start-1 lg:block lg:space-y-4 lg:pt-3 xl:col-start-3 xl:pt-3">
-            <article className="rounded-[1.75rem] border border-black/[0.07] bg-white/80 p-6 shadow-xl backdrop-blur-xl">
-              <div className="flex items-center justify-between gap-3">
+          <aside className="grid min-w-0 max-w-full gap-4 sm:grid-cols-2 lg:col-start-2 lg:row-start-1 lg:block lg:space-y-4 lg:pt-3 xl:col-start-3 xl:pt-3">
+            <article className="min-w-0 max-w-full overflow-hidden rounded-[1.75rem] border border-black/[0.07] bg-white/80 p-6 shadow-xl backdrop-blur-xl">
+              <div className="flex min-w-0 items-center justify-between gap-3">
                 <div className="flex size-11 items-center justify-center rounded-2xl bg-[#101817] text-white">
                   <Sparkles className="size-5" />
                 </div>
 
-                <span className="rounded-full bg-orange-500/10 px-3 py-1.5 text-xs font-bold text-orange-600">
+                <span className="min-w-0 max-w-[60%] shrink truncate rounded-full bg-orange-500/10 px-3 py-1.5 text-xs font-bold text-orange-600">
                   Radarune Score
                 </span>
               </div>
@@ -543,12 +543,12 @@ export function DiscoverFeedClient({
                 />
               </div>
 
-              <p className="mt-4 text-sm leading-6 text-[#65706e]">
+              <p className="mt-4 break-words text-sm leading-6 text-[#65706e]">
                 {localize(locale, { tr: "Topluluk ilgisi, tazelik ve keşif sinyallerine göre hesaplanan içerik skoru.", en: "A content score calculated from community interest, freshness and discovery signals.", de: "Ein Inhaltsscore aus Community-Interesse, Aktualität und Entdeckungssignalen." })}
               </p>
             </article>
 
-            <article className="rounded-[1.75rem] border border-black/[0.07] bg-[#101817] p-6 text-white shadow-xl">
+            <article className="min-w-0 max-w-full overflow-hidden rounded-[1.75rem] border border-black/[0.07] bg-[#101817] p-6 text-white shadow-xl">
               <div className="flex items-center gap-2 text-emerald-300">
                 <Flame className="size-4" />
 
@@ -557,7 +557,7 @@ export function DiscoverFeedClient({
                 </span>
               </div>
 
-              <h3 className="mt-5 line-clamp-2 text-2xl font-semibold tracking-[-0.04em]">
+              <h3 className="mt-5 break-words text-2xl font-semibold tracking-[-0.04em]">
                 {activeItem.title}
               </h3>
 
@@ -565,8 +565,8 @@ export function DiscoverFeedClient({
                 {activeItem.artistName}
               </p>
 
-              <div className="mt-6 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-white/[0.06] p-4">
+              <div className="mt-6 grid min-w-0 grid-cols-2 gap-3">
+                <div className="min-w-0 overflow-hidden rounded-2xl bg-white/[0.06] p-4">
                   <p className="text-xs text-white/40">{localize(locale, { tr: "Tür", en: "Genre", de: "Genre" })}</p>
 
                   <p className="mt-1 truncate text-sm font-semibold">
@@ -574,7 +574,7 @@ export function DiscoverFeedClient({
                   </p>
                 </div>
 
-                <div className="rounded-2xl bg-white/[0.06] p-4">
+                <div className="min-w-0 overflow-hidden rounded-2xl bg-white/[0.06] p-4">
                   <p className="text-xs text-white/40">{localize(locale, { tr: "Beğeni", en: "Likes", de: "Likes" })}</p>
 
                   <p className="mt-1 text-sm font-semibold">
@@ -585,7 +585,7 @@ export function DiscoverFeedClient({
             </article>
 
             <button
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-black/[0.07] bg-white/80 px-5 py-4 text-sm font-semibold text-[#52605d] shadow-lg backdrop-blur transition hover:text-[#101817]"
+              className="inline-flex w-full min-w-0 max-w-full items-center justify-center gap-2 overflow-hidden rounded-2xl border border-black/[0.07] bg-white/80 px-5 py-4 text-sm font-semibold text-[#52605d] shadow-lg backdrop-blur transition hover:text-[#101817]"
               onClick={() => {
                 setActiveIndex(0);
                 setSortMode("recommended");
@@ -596,9 +596,9 @@ export function DiscoverFeedClient({
               {localize(locale, { tr: "Akışı başa al", en: "Restart feed", de: "Feed neu starten" })}
             </button>
 
-            <article className="rounded-[1.75rem] border border-black/[0.07] bg-white/80 p-5 shadow-xl backdrop-blur-xl sm:col-span-2 lg:col-span-1">
-              <div className="flex items-center justify-between gap-3">
-                <div>
+            <article className="min-w-0 max-w-full overflow-hidden rounded-[1.75rem] border border-black/[0.07] bg-white/80 p-5 shadow-xl backdrop-blur-xl sm:col-span-2 lg:col-span-1">
+              <div className="flex min-w-0 items-center justify-between gap-3">
+                <div className="min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-700">
                     {localize(locale, { tr: "Sıradaki keşifler", en: "Up next", de: "Als Nächstes" })}
                   </p>
@@ -606,7 +606,7 @@ export function DiscoverFeedClient({
                     {localize(locale, { tr: "Akışın devamı", en: "Keep the flow going", de: "Der Flow geht weiter" })}
                   </h3>
                 </div>
-                <span className="rounded-full bg-black/[0.05] px-2.5 py-1 text-xs font-semibold text-[#65706e]">
+                <span className="shrink-0 rounded-full bg-black/[0.05] px-2.5 py-1 text-xs font-semibold text-[#65706e]">
                   {visibleFeed.length}
                 </span>
               </div>

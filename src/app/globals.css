@@ -1110,28 +1110,39 @@ html {
   transform: translateY(-105%);
 }
 
-/* On small screens the header is visually collapsed while scrolling. A
-   sticky element normally keeps its original height in the document, which
-   leaves a blank strip above the page after the transform. Cancel that flow
-   space and reserve it only while the header is visible. */
+/* Keep the header in normal document flow on small screens. The previous
+   negative-margin/padding compensation made the first content block slide
+   underneath the header and also created a horizontal overflow on pages with
+   wide cards. Sticky headers do not need that compensation: once they scroll
+   out, their layout space is above the viewport and cannot cover content. */
 @media (max-width: 1023px) {
-  header[data-scroll-hide] {
-    --scroll-header-offset: 72px;
-    margin-bottom: calc(var(--scroll-header-offset) * -1);
+  .app-shell,
+  .public-growth-shell {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
   }
 
-  header[data-scroll-hide] + * {
-    padding-top: var(--scroll-header-offset);
-    transition: padding-top 240ms ease;
+  .app-shell > header,
+  .public-growth-shell > header,
+  .app-shell > div,
+  .public-growth-shell > div,
+  .app-shell > footer,
+  .public-growth-shell > footer {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
-  header[data-scroll-hide][data-scroll-hidden="true"] + * {
-    padding-top: 0;
-  }
-
-  /* The public builder header has its own vertical padding. */
-  main > header[data-scroll-hide] {
-    --scroll-header-offset: 68px;
+  .app-shell main,
+  .public-growth-shell main,
+  .app-shell main > *,
+  .public-growth-shell main > *,
+  .app-shell > div > *,
+  .public-growth-shell > div > * {
+    min-width: 0;
+    max-width: 100%;
   }
 }
 

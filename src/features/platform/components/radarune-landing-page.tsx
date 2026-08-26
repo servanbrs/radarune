@@ -78,7 +78,7 @@ export async function RadaruneLandingPage({ discoverReleases = [] }: { discoverR
       <div className="landing-aurora landing-aurora-one pointer-events-none absolute inset-x-0 top-0 h-[38rem]" />
       <div className="landing-aurora landing-aurora-two pointer-events-none absolute right-[-10rem] top-[22rem] h-[30rem] w-[30rem]" />
 
-      <header data-scroll-hide className="landing-reveal landing-reveal-delay-1 sticky top-0 z-50 border-b border-white/10 bg-[#090b0f]/90 px-5 py-4 backdrop-blur-xl md:px-10 md:py-5">
+      <header suppressHydrationWarning data-scroll-hide data-scroll-hidden="false" className="landing-reveal landing-reveal-delay-1 sticky top-0 z-50 border-b border-white/10 bg-[#090b0f]/90 px-5 py-4 backdrop-blur-xl md:px-10 md:py-5">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-6">
           <Link className="flex items-center gap-3" href="/" aria-label="Radarune ana sayfa">
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#efb848] text-sm font-bold text-[#090b0f]">R</span>

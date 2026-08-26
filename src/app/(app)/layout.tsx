@@ -54,7 +54,7 @@ export default async function AppLayout({
 
   return (
     <div className="app-shell flex min-h-dvh min-w-0 flex-col">
-      <header data-radarune-app-header="dark" data-scroll-hide className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#081311]/95 text-white shadow-[0_12px_50px_rgba(4,15,13,0.18)] backdrop-blur-2xl">
+      <header suppressHydrationWarning data-radarune-app-header="dark" data-scroll-hide data-scroll-hidden="false" className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#081311]/95 text-white shadow-[0_12px_50px_rgba(4,15,13,0.18)] backdrop-blur-2xl">
         <div className="relative mx-auto flex min-h-[72px] w-full max-w-[1600px] items-center gap-4 px-4 sm:px-6 lg:px-8">
           <Link className="min-w-0 shrink-0" href="/dashboard">
             <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-emerald-300">

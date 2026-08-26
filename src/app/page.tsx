@@ -82,7 +82,7 @@ export default async function HomePage() {
     } as CSSProperties;
     return (
       <main className="min-h-dvh bg-background pb-20 text-foreground lg:pb-0" style={themeStyle}>
-        <header data-scroll-hide className="sticky top-0 z-50 border-b border-line/70 bg-surface/90 px-6 py-4 backdrop-blur md:px-10 md:py-5">
+        <header suppressHydrationWarning data-scroll-hide data-scroll-hidden="false" className="sticky top-0 z-50 border-b border-line/70 bg-surface/90 px-6 py-4 backdrop-blur md:px-10 md:py-5">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               {tenant.tenantBranding?.logoUrl ? /* Tenant-owned URLs cannot be statically configured for next/image. */ <img alt={tenant.name} className="h-9 w-9 rounded-xl object-cover" src={tenant.tenantBranding.logoUrl} /> : null}

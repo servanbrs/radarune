@@ -8,6 +8,15 @@ import { publicReleaseArtworkUrl } from "@/features/releases/lib/public-artwork-
 
 const CHART_QUERY_TIMEOUT_MS = 4_000;
 
+// A timeout should stop waiting for a public response, not start a second
+// Prisma query while the first one is still waiting for a pool connection.
+// Keep one promise per tenant until the database work really finishes.
+const radaruneChartItemsInFlight = new Map<
+  string,
+  Promise<RadaruneChartItem[]>
+>();
+const youtubeApiKeyInFlight = new Map<string, Promise<string | null>>();
+
 async function withTimeout<T>(
   task: Promise<T>,
   fallback: T,
@@ -229,6 +238,40 @@ type RadaruneChartItem = {
   };
 };
 
+function getRadaruneChartItemsShared(organizationId: string) {
+  const existing = radaruneChartItemsInFlight.get(organizationId);
+  if (existing) return existing;
+
+  const pending = getRadaruneChartItems(organizationId).finally(() => {
+    if (radaruneChartItemsInFlight.get(organizationId) === pending) {
+      radaruneChartItemsInFlight.delete(organizationId);
+    }
+  });
+
+  radaruneChartItemsInFlight.set(organizationId, pending);
+  return pending;
+}
+
+function getYouTubeApiKeyShared(organizationId: string) {
+  const existing = youtubeApiKeyInFlight.get(organizationId);
+  if (existing) return existing;
+
+  const pending = youtubeAdminCredentialService
+    .getApiKey(organizationId)
+    .catch((error) => {
+      console.error("YouTube bağlantısı okunamadı:", error);
+      return null;
+    })
+    .finally(() => {
+      if (youtubeApiKeyInFlight.get(organizationId) === pending) {
+        youtubeApiKeyInFlight.delete(organizationId);
+      }
+    });
+
+  youtubeApiKeyInFlight.set(organizationId, pending);
+  return pending;
+}
+
 const getRadaruneChartItems = unstable_cache(
   async (organizationId: string): Promise<RadaruneChartItem[]> => {
     try {
@@ -435,7 +478,7 @@ class PublicChartsService {
     // loading state for the adapter's 30-second acquire timeout. The chart
     // sections are optional and can be filled on the next cached refresh.
     const apiKey = await withTimeout(
-      youtubeAdminCredentialService.getApiKey(organizationId),
+      getYouTubeApiKeyShared(organizationId),
       null,
       "YouTube bağlantısı",
       1_500,
@@ -457,9 +500,9 @@ class PublicChartsService {
             "Global YouTube listesi",
             3_000,
           )
-        : Promise.resolve([]),
+      : Promise.resolve([]),
       withTimeout(
-        getRadaruneChartItems(organizationId),
+        getRadaruneChartItemsShared(organizationId),
         [],
         "Radarune liste verisi",
         3_000,
