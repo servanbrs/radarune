@@ -61,7 +61,7 @@ export class ReleaseService {
       };
     }
 
-    const release = await releaseRepository.findDetailById(releaseId);
+    const release = await releaseRepository.findEditorById(releaseId);
     return release
       ? { mode: "full" as const, release }
       : null;

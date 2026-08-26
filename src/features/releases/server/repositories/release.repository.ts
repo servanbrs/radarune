@@ -152,6 +152,73 @@ const releaseSupplementalEditSelect = {
   },
 } satisfies Prisma.ReleaseSelect;
 
+// The editor does not need the full release graph (uploads, analyses, history,
+// external sources, etc.). Keeping this projection small prevents edit pages
+// from exhausting the database connection pool on shared hosting.
+const releaseEditorSelect = {
+  id: true,
+  title: true,
+  versionTitle: true,
+  primaryLanguage: true,
+  primaryGenre: true,
+  secondaryGenre: true,
+  type: true,
+  explicit: true,
+  labelId: true,
+  copyrightP: true,
+  copyrightC: true,
+  plannedReleaseDate: true,
+  originalReleaseDate: true,
+  previouslyReleased: true,
+  upc: true,
+  artworkUploadId: true,
+  videoUploadId: true,
+  videoDistributionEnabled: true,
+  videoStores: true,
+  worldwideDistribution: true,
+  presaveEnabled: true,
+  dolbyAtmosEnabled: true,
+  contentIdEnabled: true,
+  artists: {
+    orderBy: { sortOrder: "asc" as const },
+    select: { artistId: true, role: true, sortOrder: true },
+  },
+  stores: { select: { storeCode: true } },
+  territories: { select: { territoryCode: true } },
+  tracks: {
+    orderBy: [{ discNumber: "asc" as const }, { trackNumber: "asc" as const }],
+    select: {
+      id: true,
+      title: true,
+      versionTitle: true,
+      trackNumber: true,
+      discNumber: true,
+      language: true,
+      explicit: true,
+      instrumental: true,
+      previouslyReleased: true,
+      isrc: true,
+      sourceUrl: true,
+      audioUploadId: true,
+      lyrics: true,
+      previewStartSeconds: true,
+      artists: {
+        orderBy: { sortOrder: "asc" as const },
+        select: { artistId: true, role: true, sortOrder: true },
+      },
+      contributors: {
+        orderBy: { createdAt: "asc" as const },
+        select: { role: true, contributor: { select: { name: true } } },
+      },
+    },
+  },
+  validationIssues: {
+    where: { resolvedAt: null },
+    orderBy: { createdAt: "desc" as const },
+    select: { id: true, fieldPath: true, message: true, severity: true },
+  },
+} satisfies Prisma.ReleaseSelect;
+
 export class ReleaseRepository {
   async listForActor(params: { organizationId: string; userId: string; canViewAll: boolean; artistIds?: string[] }) {
     return prisma.release.findMany({
@@ -188,6 +255,13 @@ export class ReleaseRepository {
     return client.release.findUnique({
       where: { id },
       select: releaseSupplementalEditSelect,
+    });
+  }
+
+  async findEditorById(id: string, client: DatabaseClient = prisma) {
+    return client.release.findUnique({
+      where: { id },
+      select: releaseEditorSelect,
     });
   }
 
