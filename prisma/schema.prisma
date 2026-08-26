@@ -660,6 +660,7 @@ enum PreSaveProviderType {
 enum ExternalMediaProvider {
   YOUTUBE
   SPOTIFY
+  ONE_RPM
 }
 
 enum ExternalMediaStatus {
@@ -679,6 +680,7 @@ enum ImportSourceType {
   SPOTIFY_ALBUM
   SPOTIFY_SEARCH
   MANUAL_URL
+  ONERPM_CATALOG
 }
 
 enum ImportSourceStatus {

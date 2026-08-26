@@ -5,14 +5,16 @@ import {
 import { spotifyProviderService } from "@/features/integrations/server/adapters/spotify-provider.service";
 import { youtubeProviderService } from "@/features/integrations/server/adapters/youtube-provider.service";
 
-const adapters: Record<ExternalProviderKey, ExternalProviderAdapter> = {
+const adapters: Partial<Record<ExternalProviderKey, ExternalProviderAdapter>> = {
   YOUTUBE: youtubeProviderService,
   SPOTIFY: spotifyProviderService,
 };
 
 export class ExternalProviderRegistry {
   get(provider: ExternalProviderKey) {
-    return adapters[provider];
+    const adapter = adapters[provider];
+    if (!adapter) throw new Error(`Provider adapter bulunamadı: ${provider}`);
+    return adapter;
   }
 
   list() {

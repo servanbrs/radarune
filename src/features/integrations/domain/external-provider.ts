@@ -1,4 +1,4 @@
-export type ExternalProviderKey = "YOUTUBE" | "SPOTIFY";
+export type ExternalProviderKey = "YOUTUBE" | "SPOTIFY" | "ONE_RPM";
 
 export type ProviderFailureCode =
   | "CONFIGURATION_REQUIRED"

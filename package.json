@@ -30,6 +30,7 @@
     "onerpm:session:capture": "tsx scripts/onerpm-capture-session.ts",
     "onerpm:session:check": "tsx scripts/onerpm-check-session.ts",
     "onerpm:inspect:release": "tsx scripts/onerpm-inspect-release-form.ts"
+    ,"onerpm:catalog:export": "tsx scripts/onerpm-export-catalog.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1097.0",

@@ -58,7 +58,7 @@ export type ExternalDiscoverItem = {
   thumbnailUrl: string | null;
   externalUrl: string;
   embedUrl: string | null;
-  provider: "YOUTUBE" | "SPOTIFY";
+  provider: "YOUTUBE" | "SPOTIFY" | "ONE_RPM";
   playable: boolean;
   score: number;
   releaseId: string | null;
@@ -543,7 +543,7 @@ export class DiscoverService {
             source.artistName ??
             (source.provider === "YOUTUBE"
               ? "YouTube sanatçısı"
-              : "Spotify sanatçısı"),
+              : source.provider === "SPOTIFY" ? "Spotify sanatçısı" : "ONErpm sanatçısı"),
           primaryGenre: "Müzik",
           publishedAt,
           thumbnailUrl: source.thumbnailUrl,

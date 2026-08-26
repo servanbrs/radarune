@@ -25,12 +25,14 @@ import type { FinanceActorContext } from "@/features/finance/server/services/fin
 type SourceReference = { provider: ExternalProviderKey; externalId: string };
 
 function providerForType(type: ImportSourceCreateInput["type"]): ExternalProviderKey | null {
+  if (type === "ONERPM_CATALOG") return "ONE_RPM";
   if (type.startsWith("YOUTUBE")) return "YOUTUBE";
   if (type.startsWith("SPOTIFY")) return "SPOTIFY";
   return null;
 }
 
 function providerImportEnabled(provider: ExternalProviderKey) {
+  if (provider === "ONE_RPM") return true;
   return provider === "YOUTUBE" ? env.YOUTUBE_IMPORT_ENABLED : env.SPOTIFY_IMPORT_ENABLED;
 }
 
@@ -46,10 +48,11 @@ async function runtimeProviderCredentials(organizationId: string, provider: Exte
     const apiKey = await youtubeAdminCredentialService.getApiKey(organizationId);
     if (apiKey) return { apiKey };
   }
-  return integrationCredentialService.runtime(organizationId, provider);
+  return integrationCredentialService.runtime(organizationId, provider as "YOUTUBE" | "SPOTIFY");
 }
 
 function sourceReference(type: ImportSourceCreateInput["type"], rawUrl: string): SourceReference | null {
+  if (type === "ONERPM_CATALOG") return { provider: "ONE_RPM", externalId: "catalog" };
   if (type === "YOUTUBE_SEARCH") return { provider: "YOUTUBE", externalId: rawUrl };
   if (type === "SPOTIFY_SEARCH") return { provider: "SPOTIFY", externalId: rawUrl };
   const url = new URL(rawUrl);
@@ -130,10 +133,12 @@ export class ImportSourceService {
       throw new Error("Desteklenmeyen import bağlantısı. YouTube kanal için /channel/UC…, /@handle, /user/… veya /c/…; playlist/Mix için ?list=… içeren watch veya playlist bağlantısı kullanın. Spotify kaynaklarında /artist/, /playlist/ veya /album/ bağlantısı gerekir.");
     }
 
-    const credentials = await runtimeProviderCredentials(actor.organizationId, provider);
-    const configuration = provider === "YOUTUBE"
-      ? youtubeProviderService.validateConfiguration(credentials?.apiKey)
-      : spotifyProviderService.validateConfiguration(credentials ?? undefined);
+    const credentials = provider === "ONE_RPM" ? null : await runtimeProviderCredentials(actor.organizationId, provider);
+    const configuration = provider === "ONE_RPM"
+      ? { success: true as const, data: { configured: true as const } }
+      : provider === "YOUTUBE"
+        ? youtubeProviderService.validateConfiguration(credentials?.apiKey)
+        : spotifyProviderService.validateConfiguration(credentials ?? undefined);
     const importEnabled = providerImportEnabled(provider) || Boolean(credentials);
     const status = configuration.success && importEnabled
       ? (parsed.active ? "ACTIVE" : "PAUSED")
@@ -176,6 +181,34 @@ export class ImportSourceService {
     return this.executeRun({ organizationId: actor.organizationId, sourceId, actorUserId: actor.userId });
   }
 
+  async importOneRpmCatalog(actor: FinanceActorContext, sourceId: string, input: unknown) {
+    assertAdminPermission(actor, "imports.manage");
+    const source = await importRepository.findSource(actor.organizationId, sourceId);
+    if (!source || source.type !== "ONERPM_CATALOG") throw new Error("ONErpm katalog import kaynağı bulunamadı.");
+    if (!Array.isArray(input)) throw new Error("ONErpm aktarım dosyası geçersiz.");
+    const items = input.slice(0, source.maxItems ?? 100).filter((item): item is Record<string, unknown> => typeof item === "object" && item !== null);
+    const run = await importRepository.createRun({ organizationId: actor.organizationId, sourceId: source.id, cursorBefore: source.cursor });
+    let importedCount = 0; let duplicateCount = 0; let failedCount = 0;
+    for (const item of items) {
+      const title = typeof item.title === "string" ? item.title.trim() : "";
+      const artistName = typeof item.artistName === "string" ? item.artistName.trim() : null;
+      const externalId = typeof item.externalId === "string" && item.externalId.trim() ? item.externalId.trim() : `${title}|${artistName ?? ""}`;
+      if (!title || !externalId) { failedCount += 1; continue; }
+      const metadata: ExternalMediaMetadata = {
+        provider: "ONE_RPM", externalId, externalUrl: typeof item.externalUrl === "string" ? item.externalUrl : "https://dashboard.onerpm.com/distribution-tools/my-catalog/manage-music", embedUrl: null, title, artistName,
+        isrc: typeof item.isrc === "string" ? item.isrc : null, upc: typeof item.upc === "string" ? item.upc : null, durationMs: typeof item.durationMs === "number" ? item.durationMs : null,
+        thumbnailUrl: typeof item.thumbnailUrl === "string" ? item.thumbnailUrl : null, publishedAt: null, playable: false, embeddable: false, regionRestrictions: [], metadataHash: `onerpm:${externalId}`,
+      };
+      const result = await this.processItem(actor.organizationId, source.id, run.id, null, actor.userId, true, metadata);
+      if (result === "DUPLICATE") duplicateCount += 1; else if (result === "FAILED") failedCount += 1; else importedCount += 1;
+    }
+    await prisma.$transaction(async (client) => {
+      await importRepository.finishRun(run.id, { status: failedCount ? "PARTIAL" : "SUCCEEDED", completedAt: new Date(), detectedCount: items.length, importedCount, duplicateCount, failedCount }, client);
+      await client.importSource.update({ where: { id: source.id }, data: { status: "ACTIVE", active: true, lastCheckedAt: new Date(), lastSuccessAt: new Date(), lastError: null } });
+    });
+    return { success: true, detectedCount: items.length, importedCount, duplicateCount, failedCount };
+  }
+
   async runScheduled(sourceId: string) {
     const source = await importRepository.findSourceById(sourceId);
     if (!source) throw new Error("Import kaynağı bulunamadı.");
@@ -194,10 +227,12 @@ export class ImportSourceService {
     // being deleted and recreated.
     const providerKey = source.provider;
     if (!providerKey) throw new Error("Import provider bilgisi eksik.");
-    const credentials = await runtimeProviderCredentials(organizationId, providerKey);
-    const configuration = providerKey === "YOUTUBE"
-      ? youtubeProviderService.validateConfiguration(credentials?.apiKey)
-      : spotifyProviderService.validateConfiguration(credentials ?? undefined);
+    const credentials = providerKey === "ONE_RPM" ? null : await runtimeProviderCredentials(organizationId, providerKey);
+    const configuration = providerKey === "ONE_RPM"
+      ? { success: true as const, data: { configured: true as const } }
+      : providerKey === "YOUTUBE"
+        ? youtubeProviderService.validateConfiguration(credentials?.apiKey)
+        : spotifyProviderService.validateConfiguration(credentials ?? undefined);
     const importEnabled = providerImportEnabled(providerKey) || Boolean(credentials);
 
     if (!importEnabled) {
@@ -317,7 +352,7 @@ export class ImportSourceService {
     });
   }
 
-  private async fetchSourceMetadata(source: { type: string; provider: "YOUTUBE" | "SPOTIFY" | null; providerExternalId: string | null; lastCheckedAt: Date | null; maxItems?: number }, credentials: Record<string, string> | null) {
+  private async fetchSourceMetadata(source: { type: string; provider: "YOUTUBE" | "SPOTIFY" | "ONE_RPM" | null; providerExternalId: string | null; lastCheckedAt: Date | null; maxItems?: number }, credentials: Record<string, string> | null) {
     if (!source.provider || !source.providerExternalId) return { success: false as const, code: "PROVIDER_ERROR" as const, message: "Import provider kimliği eksik." };
     if (source.provider === "YOUTUBE") {
       const maxItems = Math.min(source.maxItems ?? 100, 200);

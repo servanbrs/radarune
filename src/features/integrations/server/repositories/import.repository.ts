@@ -102,7 +102,7 @@ export class ImportRepository {
     return client.importRun.update({ where: { id }, data, select: { id: true, status: true, detectedCount: true, duplicateCount: true, importedCount: true, failedCount: true } });
   }
 
-  async findExternalMedia(organizationId: string, provider: "YOUTUBE" | "SPOTIFY", externalId: string) {
+  async findExternalMedia(organizationId: string, provider: "YOUTUBE" | "SPOTIFY" | "ONE_RPM", externalId: string) {
     return prisma.externalMediaSource.findUnique({ where: { organizationId_provider_externalId: { organizationId, provider, externalId } } });
   }
 

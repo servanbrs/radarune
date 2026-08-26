@@ -9,6 +9,7 @@ export const importSourceTypeSchema = z.enum([
   "SPOTIFY_ALBUM",
   "SPOTIFY_SEARCH",
   "MANUAL_URL",
+  "ONERPM_CATALOG",
 ]);
 
 export const importSourceCreateSchema = z.object({
