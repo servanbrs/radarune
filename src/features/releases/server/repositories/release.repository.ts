@@ -127,6 +127,31 @@ const releaseDetailInclude = {
   },
 } satisfies Prisma.ReleaseInclude;
 
+const releaseSupplementalEditSelect = {
+  id: true,
+  title: true,
+  organizationId: true,
+  createdByUserId: true,
+  status: true,
+  upc: true,
+  videoDistributionEnabled: true,
+  videoStores: true,
+  videoUploadId: true,
+  artists: {
+    select: {
+      artistId: true,
+    },
+  },
+  tracks: {
+    orderBy: [{ discNumber: "asc" as const }, { trackNumber: "asc" as const }],
+    select: {
+      id: true,
+      title: true,
+      isrc: true,
+    },
+  },
+} satisfies Prisma.ReleaseSelect;
+
 export class ReleaseRepository {
   async listForActor(params: { organizationId: string; userId: string; canViewAll: boolean; artistIds?: string[] }) {
     return prisma.release.findMany({
@@ -156,6 +181,13 @@ export class ReleaseRepository {
         id,
       },
       include: releaseDetailInclude,
+    });
+  }
+
+  async findSupplementalEditById(id: string, client: DatabaseClient = prisma) {
+    return client.release.findUnique({
+      where: { id },
+      select: releaseSupplementalEditSelect,
     });
   }
 

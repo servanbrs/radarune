@@ -22,21 +22,43 @@ export default async function EditReleasePage({ params }: EditReleasePageProps) 
     systemRole: user.systemRole,
     userId: user.id,
   };
-  const [release, artists, labels] = await Promise.all([
-    releaseService.getRelease(actor, id),
-    artistService.listByOrganizationId(organization.organization.id),
-    labelService.listByOrganizationId(organization.organization.id),
-  ]);
-
-  if (!release) {
+  const editData = await releaseService.getReleaseForEdit(actor, id);
+  if (!editData) {
     notFound();
   }
 
   const adminMode = canAccessAdmin(actor);
-  const draftEditable = adminMode || ["DRAFT", "REVISION_REQUESTED"].includes(release.status);
-  const videoStores = Array.isArray(release.videoStores)
-    ? release.videoStores.filter((value): value is string => typeof value === "string")
-    : [];
+
+  if (editData.mode === "supplemental") {
+    const { release } = editData;
+    const videoStores = Array.isArray(release.videoStores)
+      ? release.videoStores.filter((value): value is string => typeof value === "string")
+      : [];
+
+    return (
+      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-6 py-10 md:px-10">
+        <div>
+          <p className="text-xs font-semibold uppercase text-muted">Sanatçı yayın düzenleme</p>
+          <h1 className="mt-2 text-3xl font-semibold">{release.title}</h1>
+          <p className="mt-3 max-w-2xl rounded-2xl border border-line bg-surface px-4 py-3 text-sm text-muted">Bu görünüm yalnızca size ait yayın metadata alanlarını ve parçalarınızı düzenlemek için kullanılır.</p>
+        </div>
+        <PostSubmissionReleaseEditor
+          releaseId={release.id}
+          upc={release.upc}
+          videoDistributionEnabled={release.videoDistributionEnabled}
+          videoStores={videoStores}
+          videoUploaded={Boolean(release.videoUploadId)}
+          tracks={release.tracks.map((track) => ({ id: track.id, title: track.title, isrc: track.isrc }))}
+        />
+      </main>
+    );
+  }
+
+  const { release } = editData;
+  const [artists, labels] = await Promise.all([
+    artistService.listByOrganizationId(organization.organization.id),
+    labelService.listByOrganizationId(organization.organization.id),
+  ]);
 
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-6 py-10 md:px-10">
@@ -45,7 +67,7 @@ export default async function EditReleasePage({ params }: EditReleasePageProps) 
         <h1 className="mt-2 text-3xl font-semibold">{release.title}</h1>
         <p className="mt-3 max-w-2xl rounded-2xl border border-line bg-surface px-4 py-3 text-sm text-muted">{adminMode ? "Bu görünüm metadata, doğrulama ve moderasyon düzeltmeleri için kullanılır." : "Bu görünüm yalnızca size ait yayın metadata alanlarını ve parçalarınızı düzenlemek için kullanılır."}</p>
       </div>
-      {draftEditable ? <ReleaseWizard
+      <ReleaseWizard
         artists={artists.map((artist) => ({ id: artist.id, name: artist.name }))}
         initialRelease={{
           ...release,
@@ -68,14 +90,7 @@ export default async function EditReleasePage({ params }: EditReleasePageProps) 
           })),
         }}
         labels={labels.map((label) => ({ id: label.id, name: label.name }))}
-      /> : <PostSubmissionReleaseEditor
-        releaseId={release.id}
-        upc={release.upc}
-        videoDistributionEnabled={release.videoDistributionEnabled}
-        videoStores={videoStores}
-        videoUploaded={Boolean(release.videoUploadId)}
-        tracks={release.tracks.map((track) => ({ id: track.id, title: track.title, isrc: track.isrc }))}
-      />}
+      />
     </main>
   );
 }

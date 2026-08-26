@@ -42,6 +42,31 @@ export class ReleaseService {
     return release;
   }
 
+  async getReleaseForEdit(actor: ReleaseActor, releaseId: string) {
+    const summary = await releaseRepository.findSupplementalEditById(releaseId);
+    if (!summary) {
+      return null;
+    }
+
+    await releaseAccessService.assertCanViewRelease(actor, summary);
+
+    const needsFullEditor =
+      releaseAccessService.canViewAll(actor) ||
+      ["DRAFT", "REVISION_REQUESTED"].includes(summary.status);
+
+    if (!needsFullEditor) {
+      return {
+        mode: "supplemental" as const,
+        release: summary,
+      };
+    }
+
+    const release = await releaseRepository.findDetailById(releaseId);
+    return release
+      ? { mode: "full" as const, release }
+      : null;
+  }
+
   async createDraft(actor: ReleaseActor, input: CreateReleaseInput) {
     await releaseAccessService.assertCanCreateRelease(actor);
 
