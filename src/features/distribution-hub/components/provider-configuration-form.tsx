@@ -235,7 +235,7 @@ export function ProviderConfigurationForm({ initial }: { initial: Config[] }) {
             <p className="text-sm font-semibold">ONErpm bağlantı yöntemi</p>
             <p className="mt-2 text-sm leading-6 text-muted">
               ONErpm şifreniz ve 2FA kodunuz Radarune’e girilmez, kaydedilmez ve okunmaz.
-              Açılan güvenli tarayıcıda siz giriş yaparsınız; sistem yalnızca yetkilendirilmiş oturumu kullanır.
+              Giriş işlemini ONErpm panelinde siz yaparsınız.
             </p>
             <label className="mt-4 block text-sm">
               Çalışma şekli
@@ -250,46 +250,46 @@ export function ProviderConfigurationForm({ initial }: { initial: Config[] }) {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-line bg-surface-strong p-5">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold">ONErpm oturum durumu</p>
-              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${sessionConnected ? "bg-emerald-500/15 text-emerald-700" : "bg-amber-500/15 text-amber-700"}`}>
-                {session ? sessionLabels[session.status] : "Kontrol ediliyor"}
-              </span>
+          {oneRpmAutomation ? (
+            <div className="rounded-2xl border border-line bg-surface-strong p-5">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold">ONErpm sunucu otomasyon durumu</p>
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${sessionConnected ? "bg-emerald-500/15 text-emerald-700" : "bg-amber-500/15 text-amber-700"}`}>
+                  {session ? sessionLabels[session.status] : "Kontrol ediliyor"}
+                </span>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-muted">
+                Bu seçenek sunucuda çalışan otomasyon oturumu içindir. Tarayıcıda açılan ONErpm
+                oturumu sunucuya aktarılmaz; terminal kullanmak istemiyorsanız çalışma şeklini
+                “Her yayını panelden ben hazırlayacağım” olarak bırakın.
+              </p>
+              <dl className="mt-4 grid gap-2 text-xs text-muted">
+                <div className="flex justify-between gap-3"><dt>Son bağlantı</dt><dd>{formatDate(session?.connectedAt ?? null)}</dd></div>
+                <div className="flex justify-between gap-3"><dt>Son kontrol</dt><dd>{formatDate(session?.lastCheckedAt ?? null)}</dd></div>
+              </dl>
+              {session?.lastError ? <p className="mt-3 text-xs text-red-700">{session.lastError}</p> : null}
+              <button className="mt-4 rounded-xl border border-line px-4 py-2 text-sm font-semibold disabled:opacity-50" type="button" disabled={sessionLoading} onClick={() => void loadSessionStatus()}>
+                {sessionLoading ? "Kontrol ediliyor…" : "Sunucu otomasyon oturumunu kontrol et"}
+              </button>
             </div>
-            <p className="mt-3 text-sm leading-6 text-muted">
-              ONErpm hesabınıza giriş ve 2FA işlemi yalnızca ONErpm’in kendi sayfasında yapılır.
-              Radarune, tarayıcıdaki ONErpm çerezlerini okuyamaz veya bu oturumu sunucuya kopyalayamaz.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <a
-                className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground"
-                href="https://dashboard.onerpm.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                ONErpm panelini aç ↗
-              </a>
-              <Link
-                className="rounded-xl border border-line px-4 py-2 text-sm font-semibold"
-                href="/admin/import-sources"
-              >
-                Katalog aktarımına git
-              </Link>
+          ) : (
+            <div className="rounded-2xl border border-line bg-surface-strong p-5">
+              <p className="text-sm font-semibold">ONErpm panel bağlantısı</p>
+              <p className="mt-3 text-sm leading-6 text-muted">
+                Terminal gerekmez. ONErpm hesabınızı açılan sayfada kullanın; Radarune şifrenizi
+                ve 2FA kodunuzu görmez veya kaydetmez. Yayın bilgilerini ONErpm panelinden kontrol
+                edip gönderin.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <a className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground" href="https://dashboard.onerpm.com/" target="_blank" rel="noopener noreferrer">
+                  ONErpm panelini aç ↗
+                </a>
+                <Link className="rounded-xl border border-line px-4 py-2 text-sm font-semibold" href="/admin/import-sources">
+                  Katalog aktarımına git
+                </Link>
+              </div>
             </div>
-            <p className="mt-3 text-xs leading-5 text-muted">
-              Panelde giriş yaptıktan sonra ONErpm’den aldığınız katalog dışa aktarma dosyasını
-              içe aktarma ekranından yükleyebilirsiniz. Bu yöntem şifre ve 2FA kodunu Radarune’e taşımaz.
-            </p>
-            <dl className="mt-4 grid gap-2 text-xs text-muted">
-              <div className="flex justify-between gap-3"><dt>Son bağlantı</dt><dd>{formatDate(session?.connectedAt ?? null)}</dd></div>
-              <div className="flex justify-between gap-3"><dt>Son kontrol</dt><dd>{formatDate(session?.lastCheckedAt ?? null)}</dd></div>
-            </dl>
-            {session?.lastError ? <p className="mt-3 text-xs text-red-700">{session.lastError}</p> : null}
-            <button className="mt-4 rounded-xl border border-line px-4 py-2 text-sm font-semibold disabled:opacity-50" type="button" disabled={sessionLoading} onClick={() => void loadSessionStatus()}>
-              {sessionLoading ? "Kontrol ediliyor…" : "Sunucu otomasyon oturumunu kontrol et"}
-            </button>
-          </div>
+          )}
         </div>
       ) : null}
 

@@ -5,7 +5,10 @@ import { env } from "@/lib/env";
 const IV_LENGTH = 12;
 
 function getEncryptionKey() {
-  const source = env.DISTRIBUTION_ENCRYPTION_KEY ?? env.BILLING_ENCRYPTION_KEY;
+  const source =
+    env.DISTRIBUTION_ENCRYPTION_KEY ??
+    env.BILLING_ENCRYPTION_KEY ??
+    env.ENCRYPTION_KEY;
 
   if (!source) {
     throw new Error("Distribution encryption key yapılandırılmamış.");

@@ -106,7 +106,8 @@ export class DistributionProviderConfigurationService {
     if (
       process.env.NODE_ENV === "production" &&
       !process.env.DISTRIBUTION_ENCRYPTION_KEY &&
-      !process.env.BILLING_ENCRYPTION_KEY
+      !process.env.BILLING_ENCRYPTION_KEY &&
+      !process.env.ENCRYPTION_KEY
     ) {
       return {
         success: false as const,
