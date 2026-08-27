@@ -1,4 +1,7 @@
 import "server-only";
+import { access } from "node:fs/promises";
+import { resolve } from "node:path";
+import { chromium } from "playwright";
 import { Prisma } from "@/generated/prisma/client";
 import { env } from "@/lib/env";
 import { assertAdminPermission } from "@/features/admin/server/admin-context";
@@ -404,6 +407,10 @@ export class ImportSourceService {
       return collected.success ? resolveYouTubeMetadata(collected.data) : collected;
     }
 
+    if (source.provider === "ONE_RPM") {
+      return this.fetchOneRpmCatalogMetadata(source.maxItems);
+    }
+
     const provider = spotifyProviderService;
     const maxItems = Math.min(source.maxItems ?? 100, 200);
     if (source.type === "SPOTIFY_SEARCH") {
@@ -449,6 +456,49 @@ export class ImportSourceService {
       if (tracks.length >= maxItems) break;
     }
     return provider.detectNewReleases(tracks.slice(0, maxItems), new Set());
+  }
+
+  private async fetchOneRpmCatalogMetadata(maxItems = 100) {
+    const storageStatePath = resolve(/*turbopackIgnore: true*/ process.env.ONERPM_STORAGE_STATE_PATH?.trim() || ".radarune-private/onerpm/storage-state.json");
+    try {
+      await access(storageStatePath);
+    } catch {
+      return { success: false as const, code: "CONFIGURATION_REQUIRED" as const, message: "ONErpm sunucu oturumu bulunamadı. Sunucuda ONErpm girişi bir kez tamamlanmalı." };
+    }
+
+    const browser = await chromium.launch({ headless: true });
+    try {
+      const context = await browser.newContext({ storageState: storageStatePath });
+      const page = await context.newPage();
+      await page.goto("https://dashboard.onerpm.com/distribution-tools/my-catalog/manage-music", { waitUntil: "domcontentloaded", timeout: 45_000 });
+      await page.waitForLoadState("networkidle", { timeout: 20_000 }).catch(() => undefined);
+      if (/login|sign[- ]?in|auth/i.test(page.url())) {
+        return { success: false as const, code: "CONFIGURATION_REQUIRED" as const, message: "ONErpm sunucu oturumunun süresi dolmuş. Sunucu oturumunu yeniden bağlayın." };
+      }
+      const rows = await page.locator("tr").evaluateAll((elements) => elements.map((element) => {
+        const cells = Array.from(element.querySelectorAll("th,td")).map((cell) => (cell.textContent ?? "").replace(/\s+/g, " ").trim()).filter(Boolean);
+        const href = element.querySelector<HTMLAnchorElement>("a[href]")?.href ?? null;
+        const thumbnailUrl = element.querySelector<HTMLImageElement>("img[src]")?.src ?? null;
+        return { cells, href, thumbnailUrl };
+      }));
+      const metadata: ExternalMediaMetadata[] = rows
+        .filter((row) => row.cells.length >= 2)
+        .slice(0, Math.min(maxItems, 200))
+        .map((row) => {
+          const title = row.cells[0] ?? "";
+          const artistName = row.cells[1] ?? null;
+          const externalId = row.href?.match(/[^/?#]+$/)?.[0] ?? `${title}|${artistName ?? ""}`;
+          return { provider: "ONE_RPM" as const, externalId, externalUrl: row.href ?? "https://dashboard.onerpm.com/distribution-tools/my-catalog/manage-music", embedUrl: null, title, artistName, isrc: row.cells.find((cell) => /^ISRC[:\s]/i.test(cell))?.replace(/^ISRC[:\s]*/i, "") ?? null, upc: row.cells.find((cell) => /^UPC[:\s]/i.test(cell))?.replace(/^UPC[:\s]*/i, "") ?? null, durationMs: null, thumbnailUrl: row.thumbnailUrl, publishedAt: null, playable: false, embeddable: false, regionRestrictions: [], metadataHash: `onerpm:${externalId}` };
+        })
+        .filter((item) => item.title.length > 0)
+        .filter((item, index, list) => list.findIndex((candidate) => candidate.externalId === item.externalId) === index);
+      return { success: true as const, data: metadata };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "ONErpm kataloğu okunamadı.";
+      return { success: false as const, code: "PROVIDER_ERROR" as const, message: `ONErpm kataloğu okunamadı: ${message}` };
+    } finally {
+      await browser.close().catch(() => undefined);
+    }
   }
 
   private async youtubeEligibleArtistIds(organizationId: string, assignedArtistId: string | null) {

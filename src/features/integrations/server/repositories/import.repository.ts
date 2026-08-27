@@ -73,6 +73,13 @@ export class ImportRepository {
     });
   }
 
+  async listOneRpmCatalogSources() {
+    return prisma.importSource.findMany({
+      where: { provider: "ONE_RPM", type: "ONERPM_CATALOG", active: true, status: { in: ["ACTIVE", "CONFIGURATION_REQUIRED"] } },
+      select: { id: true, lastCheckedAt: true, frequencyMinutes: true },
+    });
+  }
+
   async claimSource(organizationId: string, sourceId: string, lockToken: string, lockExpiresAt: Date) {
     const result = await prisma.importSource.updateMany({
       where: {

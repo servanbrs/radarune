@@ -42,5 +42,15 @@ module.exports = {
       max_memory_restart: "384M",
       time: true,
     },
+    {
+      name: "radarune-worker-onerpm-catalog",
+      cwd: "/var/www/radarune/current",
+      script: "npm",
+      args: "run worker:onerpm-catalog",
+      env: { NODE_ENV: "production" },
+      autorestart: true,
+      max_memory_restart: "512M",
+      time: true,
+    },
   ],
 };

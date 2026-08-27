@@ -19,6 +19,7 @@
     "worker:intelligence": "NODE_OPTIONS='-r ./scripts/register-server-only.cjs' tsx scripts/intelligence-worker.ts",
     "worker:notifications": "NODE_OPTIONS='-r ./scripts/register-server-only.cjs' tsx scripts/notification-worker.ts",
     "worker:onerpm-automation": "NODE_OPTIONS='-r ./scripts/register-server-only.cjs' tsx scripts/onerpm-automation-worker.ts",
+    "worker:onerpm-catalog": "NODE_OPTIONS='-r ./scripts/register-server-only.cjs' tsx scripts/onerpm-catalog-worker.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "NODE_ENV=development prisma migrate dev",
     "prisma:migrate:deploy": "NODE_ENV=production prisma migrate deploy",

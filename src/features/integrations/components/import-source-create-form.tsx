@@ -20,7 +20,7 @@ export function ImportSourceCreateForm() {
       const response = await fetch("/api/admin/import-sources", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ type, name: name.trim() || `${type} import`, url: type === "ONERPM_CATALOG" ? "https://dashboard.onerpm.com/distribution-tools/my-catalog/manage-music" : url.trim(), query: query.trim(), maxItems: Number(limit), active: true, autoPublish: false, requiresReview: true, scheduleMode: "MANUAL", frequencyMinutes: 60 }),
+        body: JSON.stringify({ type, name: name.trim() || `${type} import`, url: type === "ONERPM_CATALOG" ? "https://dashboard.onerpm.com/distribution-tools/my-catalog/manage-music" : url.trim(), query: query.trim(), maxItems: Number(limit), active: true, autoPublish: false, requiresReview: true, scheduleMode: type === "ONERPM_CATALOG" ? "WORKER" : "MANUAL", frequencyMinutes: 60 }),
       });
       const created = await response.json().catch(() => null);
       if (!response.ok || !created?.id) {
@@ -28,7 +28,7 @@ export function ImportSourceCreateForm() {
         return;
       }
       if (type === "ONERPM_CATALOG") {
-        if (!catalogFile) { setMessage("ONErpm aktarım JSON dosyasını seçin."); return; }
+        if (!catalogFile) { setMessage("ONErpm kataloğu sunucu worker'ı tarafından otomatik çekilecek ve moderasyon kuyruğuna alınacak."); return; }
         const catalog = JSON.parse(await catalogFile.text()) as unknown;
         const importResponse = await fetch(`/api/admin/import-sources/${created.id}/onerpm`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(catalog) });
         const result = await importResponse.json().catch(() => null);
@@ -60,7 +60,7 @@ export function ImportSourceCreateForm() {
           <option value="YOUTUBE_PLAYLIST">YouTube playlist / Mix</option>
           <option value="YOUTUBE_SEARCH">YouTube güncel müzik araması</option>
           <option value="SPOTIFY_SEARCH">Spotify müzik araması</option>
-          <option value="ONERPM_CATALOG">ONErpm katalog aktarımı (JSON)</option>
+          <option value="ONERPM_CATALOG">ONErpm katalog aktarımı (sunucu otomasyonu)</option>
         </select>
         <input className="rounded-xl border border-line bg-surface-strong px-3 py-2 text-sm" onChange={(event) => setName(event.target.value)} placeholder="Kaynak adı" value={name} />
         {type === "ONERPM_CATALOG" ? <input accept="application/json,.json" className="rounded-xl border border-line bg-surface-strong px-3 py-2 text-sm" onChange={(event) => setCatalogFile(event.target.files?.[0] ?? null)} type="file" /> : type.endsWith("SEARCH") ? <input className="rounded-xl border border-line bg-surface-strong px-3 py-2 text-sm" onChange={(event) => setQuery(event.target.value)} placeholder="Arama terimi: yeni türkçe müzik" value={query} /> : <input className="rounded-xl border border-line bg-surface-strong px-3 py-2 text-sm" onChange={(event) => setUrl(event.target.value)} placeholder={type === "YOUTUBE_CHANNEL" ? "https://youtube.com/@kanal veya /channel/UC…" : type.startsWith("YOUTUBE") ? "https://youtube.com/playlist?list=… (Mix dahil)" : "https://open.spotify.com/..."} type="url" value={url} />}
