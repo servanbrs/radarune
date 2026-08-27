@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   distributionCapabilityKeys,
   distributionProviderKeys,
@@ -257,8 +258,28 @@ export function ProviderConfigurationForm({ initial }: { initial: Config[] }) {
               </span>
             </div>
             <p className="mt-3 text-sm leading-6 text-muted">
-              Bağlamak için proje klasöründe <code>npm run onerpm:session:capture</code> komutunu çalıştırın,
-              açılan pencerede ONErpm’e giriş yapıp 2FA’yı tamamlayın ve sonra “Oturumu kontrol et”e basın.
+              ONErpm hesabınıza giriş ve 2FA işlemi yalnızca ONErpm’in kendi sayfasında yapılır.
+              Radarune, tarayıcıdaki ONErpm çerezlerini okuyamaz veya bu oturumu sunucuya kopyalayamaz.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <a
+                className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground"
+                href="https://dashboard.onerpm.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                ONErpm panelini aç ↗
+              </a>
+              <Link
+                className="rounded-xl border border-line px-4 py-2 text-sm font-semibold"
+                href="/admin/import-sources"
+              >
+                Katalog aktarımına git
+              </Link>
+            </div>
+            <p className="mt-3 text-xs leading-5 text-muted">
+              Panelde giriş yaptıktan sonra ONErpm’den aldığınız katalog dışa aktarma dosyasını
+              içe aktarma ekranından yükleyebilirsiniz. Bu yöntem şifre ve 2FA kodunu Radarune’e taşımaz.
             </p>
             <dl className="mt-4 grid gap-2 text-xs text-muted">
               <div className="flex justify-between gap-3"><dt>Son bağlantı</dt><dd>{formatDate(session?.connectedAt ?? null)}</dd></div>
@@ -266,7 +287,7 @@ export function ProviderConfigurationForm({ initial }: { initial: Config[] }) {
             </dl>
             {session?.lastError ? <p className="mt-3 text-xs text-red-700">{session.lastError}</p> : null}
             <button className="mt-4 rounded-xl border border-line px-4 py-2 text-sm font-semibold disabled:opacity-50" type="button" disabled={sessionLoading} onClick={() => void loadSessionStatus()}>
-              {sessionLoading ? "Kontrol ediliyor…" : "Oturumu kontrol et"}
+              {sessionLoading ? "Kontrol ediliyor…" : "Sunucu otomasyon oturumunu kontrol et"}
             </button>
           </div>
         </div>
