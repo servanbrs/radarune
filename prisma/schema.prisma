@@ -1179,7 +1179,7 @@ model User {
   preSaveConversions             PreSaveConversion[]
   preSaveSubscribers             PreSaveSubscriber[]
   releaseLikes                   ReleaseLike[]
-  artistChannelLikes             ArtistChannelLike[]             @relation("ArtistChannelLikePerformer")
+  artistChannelLikes             ArtistChannelLike[]              @relation("ArtistChannelLikePerformer")
   externalMediaLikes             ExternalMediaLike[]
   storyViews                     StoryView[]
   trackLikes                     TrackLike[]
@@ -1213,6 +1213,7 @@ model User {
   rewardWinners                  RewardWinner[]
   usernameHistory                UserUsernameHistory[]
   importSources                  ImportSource[]
+  siteVisits                     SiteVisit[]
   importModerationDecisions      ImportModerationDecision[]
   deletionRequests               UserDeletionRequest[]            @relation("UserDeletionTarget")
   requestedDeletionRequests      UserDeletionRequest[]            @relation("UserDeletionRequester")
@@ -1318,6 +1319,7 @@ model Organization {
   distributionAttempts           DistributionAttempt[]
   releaseDeliveries              ReleaseDelivery[]
   providerWebhookEvents          ProviderWebhookEvent[]
+  siteVisits                     SiteVisit[]
   providerExternalReferences     ProviderExternalReference[]
   providerHealthChecks           ProviderHealthCheck[]
   distributionStatusHistory      DistributionStatusHistory[]
@@ -1715,7 +1717,7 @@ model Artist {
   teamMembers          ArtistTeamMember[]
   profileDraft         ArtistProfileDraft?
   channelLikes         ArtistChannelLike[]
-  authoredComments     Comment[]              @relation("ArtistAuthoredComments")
+  authoredComments     Comment[]             @relation("ArtistAuthoredComments")
 
   @@unique([organizationId, slug])
   @@index([organizationId])
@@ -1861,7 +1863,7 @@ model Release {
   playlistTracks           PlaylistTrack[]
   preSaveCampaigns         PreSaveCampaign[]
   releaseLikes             ReleaseLike[]
-  channelLikes             ArtistChannelLike[]        @relation("ArtistChannelLikeRelease")
+  channelLikes             ArtistChannelLike[]      @relation("ArtistChannelLikeRelease")
   smartLinks               SmartLink[]
   stories                  Story[]
   externalMediaSources     ExternalMediaSource[]
@@ -1909,7 +1911,7 @@ model Track {
   discoverEvents       DiscoverEvent[]
   playlistTracks       PlaylistTrack[]
   trackLikes           TrackLike[]
-  channelLikes         ArtistChannelLike[]        @relation("ArtistChannelLikeTrack")
+  channelLikes         ArtistChannelLike[]      @relation("ArtistChannelLikeTrack")
   playbackSessions     PlaybackSession[]
   externalMediaSources ExternalMediaSource[]
   importMatches        ImportMatch[]
@@ -2968,7 +2970,7 @@ model ExternalMediaSource {
   track              Track?                @relation(fields: [trackId], references: [id], onDelete: SetNull)
   importItems        ImportItem[]
   likes              ExternalMediaLike[]
-  channelLikes       ArtistChannelLike[] @relation("ArtistChannelLikeExternalMedia")
+  channelLikes       ArtistChannelLike[]   @relation("ArtistChannelLikeExternalMedia")
   comments           Comment[]
 
   @@unique([organizationId, provider, externalId])
@@ -3255,6 +3257,27 @@ model SmartLinkView {
   @@unique([smartLinkId, visitorHash, createdAt])
   @@index([organizationId, smartLinkId, createdAt])
   @@index([smartLinkId, country, createdAt])
+}
+
+model SiteVisit {
+  id             String        @id @default(cuid())
+  organizationId String?
+  userId         String?
+  visitorHash    String
+  ipHash         String?
+  country        String?
+  city           String?
+  path           String        @db.VarChar(512)
+  userAgent      String?       @db.VarChar(512)
+  isBot          Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, visitorHash, createdAt])
+  @@index([organizationId, country, city, createdAt])
+  @@index([userId, createdAt])
 }
 
 model SmartLinkClick {

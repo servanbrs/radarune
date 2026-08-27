@@ -114,8 +114,6 @@ export function DiscoverFeedClient({
 
   const activeItem = visibleFeed[activeIndex] ?? null;
 
-  const activeArtwork = artworkUrl(activeItem);
-
   const recordTrackEvent = useCallback(
     async (trackId: string, eventType: "IMPRESSION" | "PLAY") => {
       if (!isAuthenticated) return;
@@ -326,22 +324,6 @@ export function DiscoverFeedClient({
 
   return (
     <div className="relative isolate mx-auto w-full min-w-0 max-w-[1240px] overflow-hidden">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-20 h-[560px] w-[min(1080px,94%)] -translate-x-1/2 overflow-hidden rounded-[4rem] opacity-[0.18] blur-[70px]"
-      >
-        {activeArtwork ? (
-          <div
-            className="absolute inset-0 scale-110 bg-cover bg-center transition-all duration-700"
-            style={{
-              backgroundImage: `url("${activeArtwork}")`,
-            }}
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-blue-500" />
-        )}
-      </div>
-
       <div className="relative z-10 mb-6 flex flex-col items-center justify-between gap-4 px-1 sm:mb-8 lg:flex-row">
         <div>
           <p className="text-center text-[11px] font-bold uppercase tracking-[0.28em] text-emerald-700 lg:text-left">

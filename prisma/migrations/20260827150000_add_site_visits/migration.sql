@@ -1,0 +1,20 @@
+CREATE TABLE `SiteVisit` (
+  `id` VARCHAR(191) NOT NULL,
+  `organizationId` VARCHAR(191) NULL,
+  `userId` VARCHAR(191) NULL,
+  `visitorHash` VARCHAR(191) NOT NULL,
+  `ipHash` VARCHAR(191) NULL,
+  `country` VARCHAR(191) NULL,
+  `city` VARCHAR(191) NULL,
+  `path` VARCHAR(512) NOT NULL,
+  `userAgent` VARCHAR(512) NULL,
+  `isBot` BOOLEAN NOT NULL DEFAULT false,
+  `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (`id`),
+  INDEX `SiteVisit_organizationId_createdAt_idx` (`organizationId`, `createdAt`),
+  INDEX `SiteVisit_organizationId_visitorHash_createdAt_idx` (`organizationId`, `visitorHash`, `createdAt`),
+  INDEX `SiteVisit_organizationId_country_city_createdAt_idx` (`organizationId`, `country`, `city`, `createdAt`),
+  INDEX `SiteVisit_userId_createdAt_idx` (`userId`, `createdAt`),
+  CONSTRAINT `SiteVisit_organizationId_fkey` FOREIGN KEY (`organizationId`) REFERENCES `Organization` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `SiteVisit_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

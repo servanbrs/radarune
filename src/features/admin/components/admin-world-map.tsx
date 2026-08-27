@@ -26,7 +26,15 @@ const isoNumeric: Record<string, string> = {
 
 type Props = {
   countries: AdminV2Analytics["charts"]["countries"];
-  activeSessions: AdminV2Analytics["details"]["activeSessions"];
+  activeSessions: Array<{
+    id: string;
+    userId: string | null;
+    name: string;
+    email: string;
+    country: string;
+    countryCode: string | null;
+    city: string;
+  }>;
 };
 
 export function AdminWorldMap({ countries, activeSessions }: Props) {

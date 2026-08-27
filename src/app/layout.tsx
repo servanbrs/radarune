@@ -6,6 +6,7 @@ import { configurationResolver } from "@/features/configuration/server/configura
 import { tenantContextService } from "@/features/platform/server/services/tenant-context.service";
 import { normalizeLocale } from "@/lib/i18n";
 import { ScrollHideHeaders } from "@/components/scroll-hide-headers";
+import { SiteVisitTracker } from "@/components/site-visit-tracker";
 
 const stringSetting = (value: unknown) =>
   typeof value === "string" && value.trim().length > 0 ? value : undefined;
@@ -212,6 +213,7 @@ export default async function RootLayout({
   return (
     <html lang={htmlLang} className={`${""} ${""} h-full antialiased`}>
       <body className="flex min-h-dvh flex-col">
+        <SiteVisitTracker />
         <ScrollHideHeaders />
         {children}
       </body>

@@ -216,7 +216,7 @@ export function DiscoverFeedCard({
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-full sm:max-w-[760px]">
-      <article className="w-full min-w-0 max-w-full overflow-hidden rounded-[28px] border border-black/10 bg-[#07090c] shadow-[0_28px_90px_rgba(15,23,42,0.22)]">
+      <article className="w-full min-w-0 max-w-full overflow-hidden rounded-[28px] border border-black/10 bg-[#07090c] shadow-[0_20px_48px_rgba(15,23,42,0.16)]">
         <div
           className={`relative aspect-video w-full min-w-0 overflow-hidden ${isLocalAudio ? "" : "cursor-pointer"}`}
           onClick={isLocalAudio ? undefined : togglePlay}

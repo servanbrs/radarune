@@ -104,6 +104,9 @@ export class AdminV2AnalyticsService {
       countryDistributionRaw,
       royaltyCountryRaw,
       liveCountryRaw,
+      siteVisitorGroups,
+      siteVisits30d,
+      liveSiteVisits,
       recentAuditLogs,
       releaseStatusRaw,
       jobStatusRaw,
@@ -311,6 +314,26 @@ export class AdminV2AnalyticsService {
         _count: { _all: true },
       }),
 
+      prisma.siteVisit.groupBy({
+        by: ["visitorHash"],
+        where: { organizationId, isBot: false },
+      }),
+
+      prisma.siteVisit.findMany({
+        where: { organizationId, isBot: false, createdAt: { gte: thirtyDaysAgo } },
+        orderBy: { createdAt: "desc" },
+        take: 5000,
+        select: { visitorHash: true, userId: true, country: true, city: true, path: true, createdAt: true, ipHash: true, user: { select: { name: true, email: true, systemRole: true } } },
+      }),
+
+      prisma.siteVisit.findMany({
+        where: { organizationId, isBot: false, createdAt: { gte: activeThreshold } },
+        orderBy: { createdAt: "desc" },
+        take: 200,
+        distinct: ["visitorHash"],
+        select: { id: true, visitorHash: true, userId: true, country: true, city: true, path: true, createdAt: true, ipHash: true, user: { select: { name: true, email: true, systemRole: true } } },
+      }),
+
       prisma.auditLog.findMany({
         where: {
           organizationId,
@@ -360,6 +383,30 @@ export class AdminV2AnalyticsService {
       (user) => user.createdAt >= sevenDaysAgo,
     ).length;
 
+    const dailyVisitorKeys = new Set<string>();
+    for (const visit of siteVisits30d) {
+      dailyVisitorKeys.add(`${dayKey(startOfDay(visit.createdAt))}:${visit.visitorHash}`);
+    }
+    const dailyVisitorSeries = buildDailySeries(
+      Array.from(dailyVisitorKeys).map((key) => new Date(`${key.slice(0, 10)}T12:00:00.000Z`)),
+      30,
+    );
+    const liveSiteVisitorIds = new Set(liveSiteVisits.map((visit) => visit.visitorHash));
+    const liveVisitors = liveSiteVisits.map((visit) => ({
+      id: visit.id,
+      userId: visit.userId,
+      name: visit.user?.name ?? "Anonim ziyaretçi",
+      email: visit.user?.email ?? "",
+      role: visit.user?.systemRole ?? "GUEST",
+      ipAddress: "Gizli",
+      country: countryLabel(visit.country),
+      countryCode: visit.country?.trim().toUpperCase() ?? null,
+      city: visit.city ?? "Bilinmiyor",
+      userAgent: "Site ziyareti",
+      path: visit.path,
+      updatedAt: visit.createdAt.toISOString(),
+    }));
+
     const locationHashes = Array.from(new Set(activeSessions
       .map((session) => session.ipAddress ? hashPrivacyValue(session.ipAddress) : null)
       .filter((value): value is string => Boolean(value))));
@@ -398,12 +445,20 @@ export class AdminV2AnalyticsService {
         .filter((country) => country.country)
         .map((country) => [country.country!.toUpperCase(), country._count._all]),
     );
+    const siteLiveByCountry = new Map<string, number>();
+    for (const visit of liveSiteVisits) {
+      const code = visit.country?.trim().toUpperCase();
+      if (code && /^[A-Z]{2}$/.test(code)) {
+        siteLiveByCountry.set(code, (siteLiveByCountry.get(code) ?? 0) + 1);
+      }
+    }
     const countryCodes = new Set([
       ...countryDistributionRaw.map((country) => country.countryCode),
       ...royaltyCountryRaw.map((country) => country.countryCode),
       ...liveCountryRaw.flatMap((country) =>
         country.country ? [country.country.toUpperCase()] : [],
       ),
+      ...siteLiveByCountry.keys(),
     ]);
     const countries = Array.from(countryCodes)
       .map((code) => {
@@ -413,7 +468,7 @@ export class AdminV2AnalyticsService {
           streams: store?._sum.streamCount ?? 0,
           revenueMinor: Number(store?._sum.netRevenueMinor ?? 0n),
           royaltyMinor: royaltyByCountry.get(code) ?? 0,
-          liveVisitors: liveByCountry.get(code) ?? 0,
+          liveVisitors: Math.max(liveByCountry.get(code) ?? 0, siteLiveByCountry.get(code) ?? 0),
         };
       })
       .sort((a, b) => b.streams - a.streams || b.liveVisitors - a.liveVisitors)
@@ -424,7 +479,9 @@ export class AdminV2AnalyticsService {
 
       summary: {
         totalUsers,
-        activeUsers,
+        activeUsers: Math.max(activeUsers, liveSiteVisitorIds.size),
+        totalVisitors: siteVisitorGroups.length,
+        activeVisitors: liveSiteVisitorIds.size,
         usersToday,
         usersSevenDays,
         releasesToday,
@@ -455,6 +512,7 @@ export class AdminV2AnalyticsService {
           userAgent: session.userAgent ?? "Cihaz bilgisi yok",
           updatedAt: session.updatedAt.toISOString(),
         })),
+        liveVisitors,
         recentRegistrations: recentRegistrations.map((user) => ({
           ...user,
           createdAt: user.createdAt.toISOString(),
@@ -475,6 +533,7 @@ export class AdminV2AnalyticsService {
           users.map((user) => user.createdAt),
           30,
         ),
+        dailyVisitors: dailyVisitorSeries,
         dailyReleases: buildDailySeries(
           dailyReleasesRaw.map((release) => release.createdAt),
           30,

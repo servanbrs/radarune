@@ -93,7 +93,7 @@ const activityEntityLabels: Record<string, string> = {
 export function AdminV2Dashboard({ dashboard }: Props) {
   const maxUsers = Math.max(
     1,
-    ...dashboard.charts.dailyUsers.map((item) => item.value),
+    ...dashboard.charts.dailyVisitors.map((item) => item.value),
   );
 
   return (
@@ -136,6 +136,13 @@ export function AdminV2Dashboard({ dashboard }: Props) {
             value={dashboard.summary.totalUsers}
             hint="Kayıtlı aktif hesaplar"
             href="/admin/users"
+          />
+          <MetricCard
+            icon={Globe2}
+            label="Toplam ziyaretçi"
+            value={dashboard.summary.totalVisitors}
+            hint="Anonim ve kayıtlı tekil ziyaretçiler"
+            href="/admin/analytics?view=visitors"
           />
           <MetricCard
             icon={UserCheck}
@@ -193,8 +200,9 @@ export function AdminV2Dashboard({ dashboard }: Props) {
             />
 
             <div className="mt-8 flex h-[180px] items-end gap-1.5 sm:gap-2">
-              {dashboard.charts.dailyUsers.map((item) => {
+              {dashboard.charts.dailyVisitors.map((item, index) => {
                 const height = Math.max(4, (item.value / maxUsers) * 100);
+                const registrations = dashboard.charts.dailyUsers[index]?.value ?? 0;
 
                 return (
                   <div
@@ -211,13 +219,14 @@ export function AdminV2Dashboard({ dashboard }: Props) {
                         height: `${height}%`,
                       }}
                     />
+                    {registrations > 0 ? <span className="mx-auto mt-1 size-1 rounded-full bg-[#e5bd7b]" title={`${registrations} yeni kayıt`} /> : null}
                   </div>
                 );
               })}
             </div>
 
             <div className="mt-4 flex items-center justify-between text-xs text-white/45">
-              <span>{dashboard.charts.dailyUsers[0]?.label}</span>
+              <span>{dashboard.charts.dailyVisitors[0]?.label}</span>
 
               <span>Bugün</span>
             </div>
@@ -230,7 +239,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
               icon={Globe2}
             />
 
-            <AdminWorldMap countries={dashboard.charts.countries} activeSessions={dashboard.details.activeSessions} />
+            <AdminWorldMap countries={dashboard.charts.countries} activeSessions={[...dashboard.details.activeSessions, ...dashboard.details.liveVisitors]} />
 
             <div className="mt-5 grid grid-cols-2 gap-2">
               {dashboard.charts.countries.slice(0, 6).map((country) => (
@@ -333,7 +342,7 @@ export function AdminV2Dashboard({ dashboard }: Props) {
             href="/admin/analytics?view=active"
             empty="Son 15 dakikada aktif oturum yok."
           >
-            {dashboard.details.activeSessions.slice(0, 6).map((session) => (
+            {[...dashboard.details.liveVisitors, ...dashboard.details.activeSessions].slice(0, 6).map((session) => (
               <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/[0.06] bg-[#1b2438] p-3" key={session.id}>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{session.name}</p>
