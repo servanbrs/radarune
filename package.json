@@ -83,6 +83,7 @@
   "overrides": {
     "deepmerge-ts": "8.0.1",
     "js-yaml": "5.3.0",
+    "mariadb": "$mariadb",
     "uuid": "11.1.1"
   }
 }
