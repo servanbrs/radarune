@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { isSiteVisitTableAvailable } from "@/features/analytics/server/site-visit-availability";
 import { authSessionService } from "@/features/authentication/server/services/auth-session.service";
 import { hashPrivacyValue } from "@/features/growth/server/security.server";
 import { tenantContextService } from "@/features/platform/server/services/tenant-context.service";
@@ -24,6 +25,12 @@ export async function POST(request: Request) {
     const headerList = await headers();
     const userAgent = headerList.get("user-agent")?.slice(0, 512) ?? null;
     if (/bot|crawler|spider|slurp|headless/i.test(userAgent ?? "")) {
+      return new NextResponse(null, { status: 204 });
+    }
+
+    // Ziyaretçi analizi migration'ı henüz uygulanmadıysa istekleri sessizce
+    // atla. Böylece her sayfa görüntülemesinde pahalı P2021 hatası üretilmez.
+    if (!(await isSiteVisitTableAvailable())) {
       return new NextResponse(null, { status: 204 });
     }
 

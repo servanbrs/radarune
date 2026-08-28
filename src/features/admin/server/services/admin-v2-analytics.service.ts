@@ -1,6 +1,7 @@
 import "server-only";
 
 import { Prisma } from "@/generated/prisma/client";
+import { isSiteVisitTableAvailable } from "@/features/analytics/server/site-visit-availability";
 import { hashPrivacyValue } from "@/features/growth/server/security.server";
 import { prisma } from "@/server/prisma/prisma";
 
@@ -75,6 +76,7 @@ export class AdminV2AnalyticsService {
     const sevenDaysAgo = new Date(today.getTime() - 6 * DAY_MS);
     const thirtyDaysAgo = new Date(today.getTime() - 29 * DAY_MS);
     const activeThreshold = new Date(now.getTime() - 15 * 60 * 1000);
+    const siteVisitTableAvailablePromise = isSiteVisitTableAvailable();
     // Yeni kayıtlar, ilk doğrulama tamamlanmadan kısa bir süre memberships
     // satırı olmadan bulunabilir. Bunları analizlerden düşürmemek için mevcut
     // organizasyon üyelerini ve henüz organizasyona bağlanmamış hesapları
@@ -104,9 +106,6 @@ export class AdminV2AnalyticsService {
       countryDistributionRaw,
       royaltyCountryRaw,
       liveCountryRaw,
-      siteVisitorGroups,
-      siteVisits30d,
-      liveSiteVisits,
       recentAuditLogs,
       releaseStatusRaw,
       jobStatusRaw,
@@ -314,26 +313,6 @@ export class AdminV2AnalyticsService {
         _count: { _all: true },
       }),
 
-      prisma.siteVisit.groupBy({
-        by: ["visitorHash"],
-        where: { organizationId, isBot: false },
-      }),
-
-      prisma.siteVisit.findMany({
-        where: { organizationId, isBot: false, createdAt: { gte: thirtyDaysAgo } },
-        orderBy: { createdAt: "desc" },
-        take: 5000,
-        select: { visitorHash: true, userId: true, country: true, city: true, path: true, createdAt: true, ipHash: true, user: { select: { name: true, email: true, systemRole: true } } },
-      }),
-
-      prisma.siteVisit.findMany({
-        where: { organizationId, isBot: false, createdAt: { gte: activeThreshold } },
-        orderBy: { createdAt: "desc" },
-        take: 200,
-        distinct: ["visitorHash"],
-        select: { id: true, visitorHash: true, userId: true, country: true, city: true, path: true, createdAt: true, ipHash: true, user: { select: { name: true, email: true, systemRole: true } } },
-      }),
-
       prisma.auditLog.findMany({
         where: {
           organizationId,
@@ -376,6 +355,55 @@ export class AdminV2AnalyticsService {
         },
       }),
     ]);
+
+    // Ziyaretçi analizi yeni ve ikincil bir modüldür. Migration henüz
+    // uygulanmamış bir sunucuda bu tabloya yapılan sorgunun tüm yönetim
+    // panelini düşürmesine izin vermeyiz; çekirdek operasyon metrikleri
+    // çalışmaya devam eder ve migration uygulandığında veriler otomatik gelir.
+    const siteVisitTableAvailable = await siteVisitTableAvailablePromise;
+    const [siteVisitorGroups, siteVisits30d, liveSiteVisits] = siteVisitTableAvailable
+      ? await Promise.all([
+          prisma.siteVisit.groupBy({
+            by: ["visitorHash"],
+            where: { organizationId, isBot: false },
+          }),
+          prisma.siteVisit.findMany({
+            where: { organizationId, isBot: false, createdAt: { gte: thirtyDaysAgo } },
+            orderBy: { createdAt: "desc" },
+            take: 5000,
+            select: {
+              visitorHash: true,
+              userId: true,
+              country: true,
+              city: true,
+              path: true,
+              createdAt: true,
+              ipHash: true,
+              user: { select: { name: true, email: true, systemRole: true } },
+            },
+          }),
+          prisma.siteVisit.findMany({
+            where: { organizationId, isBot: false, createdAt: { gte: activeThreshold } },
+            orderBy: { createdAt: "desc" },
+            take: 200,
+            distinct: ["visitorHash"],
+            select: {
+              id: true,
+              visitorHash: true,
+              userId: true,
+              country: true,
+              city: true,
+              path: true,
+              createdAt: true,
+              ipHash: true,
+              user: { select: { name: true, email: true, systemRole: true } },
+            },
+          }),
+        ]).catch((error) => {
+          console.warn("[ADMIN_ANALYTICS] Ziyaretçi analizi geçici olarak kullanılamıyor.", error);
+          return [[], [], []] as const;
+        })
+      : [[], [], []] as const;
 
     const usersToday = users.filter((user) => user.createdAt >= today).length;
 
