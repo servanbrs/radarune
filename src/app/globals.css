@@ -228,6 +228,57 @@ main[data-admin-theme="dark"] [class*="text-white/70"] { color: #b7c2d0 !importa
 main[data-admin-theme="dark"] [class*="bg-[#0d211d]"],
 main[data-admin-theme="dark"] [class*="bg-[#0d211d]"] { background-color: #17223a !important; }
 
+/* Admin overview motion system. It keeps the established navy/gold palette
+   and only animates transform/opacity/size for smooth mobile rendering. */
+@keyframes admin-overview-reveal {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes admin-chart-grow {
+  from { height: 0; opacity: .35; }
+  to { height: var(--admin-bar-height); opacity: 1; }
+}
+@keyframes admin-status-grow {
+  from { width: 0; }
+  to { width: var(--admin-bar-width); }
+}
+@keyframes admin-live-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(214, 168, 95, .35); }
+  50% { box-shadow: 0 0 0 6px rgba(214, 168, 95, 0); }
+}
+@keyframes admin-orb-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-22px, 16px, 0) scale(1.08); }
+}
+.admin-overview .admin-reveal {
+  animation: admin-overview-reveal 560ms cubic-bezier(.2,.75,.25,1) both;
+  animation-delay: var(--admin-delay, 0ms);
+}
+.admin-overview .admin-chart-bar {
+  height: var(--admin-bar-height);
+  animation: admin-chart-grow 760ms cubic-bezier(.2,.75,.25,1) both;
+  animation-delay: calc(220ms + var(--admin-delay, 0ms));
+}
+.admin-overview .admin-status-bar {
+  width: var(--admin-bar-width);
+  animation: admin-status-grow 720ms cubic-bezier(.2,.75,.25,1) both;
+  animation-delay: calc(240ms + var(--admin-delay, 0ms));
+}
+.admin-overview .admin-live-dot { animation: admin-live-pulse 1.8s ease-in-out infinite; }
+.admin-overview .admin-ambient-orb { animation: admin-orb-drift 8s ease-in-out infinite; }
+.admin-overview .admin-list-row { transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease; }
+.admin-overview .admin-list-row:hover { transform: translateX(3px); border-color: rgba(214, 168, 95, .28); background-color: #202b44; }
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-overview .admin-reveal,
+  .admin-overview .admin-chart-bar,
+  .admin-overview .admin-status-bar,
+  .admin-overview .admin-live-dot,
+  .admin-overview .admin-ambient-orb {
+    animation: none !important;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
