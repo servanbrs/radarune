@@ -982,6 +982,33 @@ html[data-theme="light"] .landing-shell [class*="text-white"] { color: var(--lan
 html[data-theme="light"] .landing-shell [class*="border-white"] { border-color: rgba(19, 25, 29, 0.14) !important; }
 html[data-theme="light"] .landing-shell [class*="bg-white"] { background-color: rgba(19, 25, 29, 0.05) !important; }
 html[data-theme="light"] .landing-shell .landing-title { color: #13191d !important; }
+
+/* The landing header deliberately keeps its dark glass surface in both themes.
+   Re-apply its own foreground palette after the broad light-theme utility
+   normalization above so brand, navigation and controls keep one contrast. */
+html[data-theme="light"] .landing-shell .landing-header {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: rgba(9, 11, 15, 0.92) !important;
+  color: #f7fbfa !important;
+  color-scheme: dark;
+}
+html[data-theme="light"] .landing-shell .landing-header .landing-header-brand {
+  color: #f7fbfa !important;
+}
+html[data-theme="light"] .landing-shell .landing-header .landing-header-nav,
+html[data-theme="light"] .landing-shell .landing-header .landing-header-nav a,
+html[data-theme="light"] .landing-shell .landing-header .landing-header-login {
+  color: rgba(247, 251, 250, 0.72) !important;
+}
+html[data-theme="light"] .landing-shell .landing-header .landing-header-nav a:hover,
+html[data-theme="light"] .landing-shell .landing-header .landing-header-login:hover {
+  color: #ffffff !important;
+}
+html[data-theme="light"] .landing-shell .landing-header button {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
 html[data-theme="light"] .landing-shell .landing-eyebrow {
   color: #8a5a00 !important;
   border-color: rgba(138, 90, 0, 0.28) !important;
