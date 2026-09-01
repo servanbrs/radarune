@@ -147,6 +147,16 @@ export class YouTubeProviderService implements ExternalProviderAdapter {
     }, apiKeyOverride);
   }
 
+  async listRelatedVideos(videoIdValue: string, pageToken?: string, apiKeyOverride?: string) {
+    return this.request("search", {
+      part: "snippet",
+      relatedToVideoId: videoIdValue,
+      type: "video",
+      maxResults: "50",
+      ...(pageToken ? { pageToken } : {}),
+    }, apiKeyOverride);
+  }
+
   async getVideo(videoIdValue: string, apiKeyOverride?: string) {
     return this.request("videos", {
       part: "snippet,contentDetails,status",

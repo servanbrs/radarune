@@ -396,13 +396,19 @@ export class ImportSourceService {
         const collected = await collectYouTubePages((pageToken) => youtubeProviderService.listChannelVideosByReference(source.providerExternalId!, pageToken, credentials?.apiKey));
         return collected.success ? resolveYouTubeMetadata(collected.data) : collected;
       }
-      // RD Mix lists may reject playlistItems.list; fall back to the copied
-      // seed video so a valid watch+list link still imports useful content.
-      const [playlistId, seedVideoId] = source.providerExternalId!.startsWith("mix:")
+      const isMix = source.providerExternalId!.startsWith("mix:");
+      const [playlistId, seedVideoId] = isMix
         ? source.providerExternalId!.split(":").slice(1)
         : [source.providerExternalId!, null];
+      if (isMix && seedVideoId) {
+        // YouTube's RD (radio/mix) identifiers are dynamic recommendations,
+        // not regular playlist IDs. playlistItems.list commonly returns an
+        // empty result for them, so use the official related-videos endpoint.
+        const related = await collectYouTubePages((pageToken) => youtubeProviderService.listRelatedVideos(seedVideoId, pageToken, credentials?.apiKey));
+        if (related.success && related.data.length > 0) return resolveYouTubeMetadata([{ id: seedVideoId }, ...related.data]);
+        return resolveYouTubeMetadata([{ id: seedVideoId }]);
+      }
       const collected = await collectYouTubePages((pageToken) => youtubeProviderService.listPlaylistVideos(playlistId, pageToken, credentials?.apiKey));
-      if (!collected.success && seedVideoId) return resolveYouTubeMetadata([{ id: seedVideoId }]);
       return collected.success ? resolveYouTubeMetadata(collected.data) : collected;
     }
 
