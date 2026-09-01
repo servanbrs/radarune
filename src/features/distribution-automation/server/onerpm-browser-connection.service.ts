@@ -3,7 +3,7 @@ import "server-only";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
-import { chromium, type Browser, type BrowserContext, type Page } from "playwright";
+import type { Browser, BrowserContext, Page } from "playwright";
 
 import type { AutomationSessionStatus } from "@/features/distribution-automation/domain/automation-session";
 
@@ -108,7 +108,27 @@ async function getConnection(id: string) {
 export async function startOneRpmBrowserConnection(email: string, password: string): Promise<ConnectionResult> {
   for (const state of connections.values()) await closeConnection(state);
 
-  const browser = await chromium.launch({ headless: true });
+  let chromium: typeof import("playwright").chromium;
+  try {
+    ({ chromium } = await import("playwright"));
+  } catch {
+    return {
+      success: false,
+      status: "FAILED",
+      message: "Sunucu tarayıcısı hazır değil. Hostinger dağıtımında üretim bağımlılıklarını yeniden kurup uygulamayı yeniden başlatın.",
+    };
+  }
+
+  let browser: Browser;
+  try {
+    browser = await chromium.launch({ headless: true });
+  } catch {
+    return {
+      success: false,
+      status: "FAILED",
+      message: "Hostinger sunucusunda Chromium başlatılamadı. ONErpm bağlantısı için sunucu tarayıcısı desteği etkin olmalı.",
+    };
+  }
   const context = await browser.newContext({ viewport: { width: 1440, height: 960 } });
   const page = await context.newPage();
   const state: ConnectionState = {
