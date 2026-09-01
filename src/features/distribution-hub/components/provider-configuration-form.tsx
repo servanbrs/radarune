@@ -118,6 +118,10 @@ export function ProviderConfigurationForm({ initial }: { initial: Config[] }) {
   const [saved, setSaved] = useState(Boolean(current));
   const [session, setSession] = useState<SessionStatus | null>(null);
   const [sessionLoading, setSessionLoading] = useState(false);
+  const [connectionId, setConnectionId] = useState<string | null>(null);
+  const [connectionEmail, setConnectionEmail] = useState("");
+  const [connectionPassword, setConnectionPassword] = useState("");
+  const [connectionCode, setConnectionCode] = useState("");
 
   async function loadSessionStatus() {
     setSessionLoading(true);
@@ -151,6 +155,9 @@ export function ProviderConfigurationForm({ initial }: { initial: Config[] }) {
     setCapabilities(next?.enabledCapabilities ?? ["CREATE_RELEASE", "STATUS_SYNC"]);
     setCredentials({});
     setWebhookSecret("");
+    setConnectionId(null);
+    setConnectionPassword("");
+    setConnectionCode("");
     setSaved(Boolean(next));
     setMessage(null);
   }
@@ -208,6 +215,54 @@ export function ProviderConfigurationForm({ initial }: { initial: Config[] }) {
     if (provider === "ONE_RPM") void loadSessionStatus();
   }
 
+  async function startServerConnection() {
+    setSessionLoading(true);
+    setMessage(null);
+    const response = await fetch("/api/distribution/onerpm/session/connect", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "start", email: connectionEmail.trim(), password: connectionPassword }),
+    });
+    const data = await response.json().catch(() => null);
+    setSessionLoading(false);
+    setConnectionPassword("");
+    setMessage(data?.message ?? "ONErpm bağlantısı başlatılamadı.");
+    if (data?.connectionId) setConnectionId(data.connectionId);
+    if (data?.status) setSession((old) => ({ ...(old ?? { connectedAt: null, lastCheckedAt: null, lastError: null }), status: data.status }));
+    if (data?.success) void loadSessionStatus();
+  }
+
+  async function verifyServerConnection() {
+    if (!connectionId) return;
+    setSessionLoading(true);
+    setMessage(null);
+    const response = await fetch("/api/distribution/onerpm/session/connect", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "verify", connectionId, code: connectionCode.trim() }),
+    });
+    const data = await response.json().catch(() => null);
+    setSessionLoading(false);
+    setConnectionCode("");
+    setMessage(data?.message ?? "2FA doğrulaması başarısız.");
+    if (data?.success) {
+      setConnectionId(null);
+      setSession({ status: "CONNECTED", connectedAt: new Date().toISOString(), lastCheckedAt: new Date().toISOString(), lastError: null });
+    }
+  }
+
+  async function cancelServerConnection() {
+    if (!connectionId) return;
+    await fetch("/api/distribution/onerpm/session/connect", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "cancel", connectionId }),
+    });
+    setConnectionId(null);
+    setConnectionCode("");
+    setMessage("ONErpm bağlantısı iptal edildi.");
+  }
+
   const oneRpmAutomation = provider === "ONE_RPM" && oneRpmMode === "AUTOMATION";
   const sessionConnected = session?.status === "CONNECTED";
 
@@ -259,10 +314,21 @@ export function ProviderConfigurationForm({ initial }: { initial: Config[] }) {
                 </span>
               </div>
               <p className="mt-3 text-sm leading-6 text-muted">
-                Bu seçenek sunucuda çalışan otomasyon oturumu içindir. Tarayıcıda açılan ONErpm
-                oturumu sunucuya aktarılmaz; terminal kullanmak istemiyorsanız çalışma şeklini
-                “Her yayını panelden ben hazırlayacağım” olarak bırakın.
+                ONErpm girişini bu panelden başlatın. Şifreniz kaydedilmez; yalnızca bağlantı
+                tamamlanana kadar sunucu belleğinde tutulur. 2FA kodu da saklanmaz.
               </p>
+              {!connectionId ? (
+                <div className="mt-4 grid gap-3">
+                  <label className="text-sm">ONErpm e-posta<input className="mt-2 w-full rounded-xl border border-line bg-surface px-3 py-2" type="email" autoComplete="username" value={connectionEmail} onChange={(event) => setConnectionEmail(event.target.value)} placeholder="hesabınızın e-postası" /></label>
+                  <label className="text-sm">ONErpm şifresi<input className="mt-2 w-full rounded-xl border border-line bg-surface px-3 py-2" type="password" autoComplete="current-password" value={connectionPassword} onChange={(event) => setConnectionPassword(event.target.value)} placeholder="Bağlantı sırasında kullanılır" /></label>
+                  <button className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground disabled:opacity-50" type="button" disabled={sessionLoading || !connectionEmail || !connectionPassword} onClick={() => void startServerConnection()}>{sessionLoading ? "ONErpm’e bağlanıyor…" : "ONErpm bağlantısını başlat"}</button>
+                </div>
+              ) : (
+                <div className="mt-4 grid gap-3">
+                  <label className="text-sm">ONErpm 2FA kodu<input className="mt-2 w-full rounded-xl border border-line bg-surface px-3 py-2 tracking-[0.3em]" inputMode="numeric" autoComplete="one-time-code" value={connectionCode} onChange={(event) => setConnectionCode(event.target.value.replace(/\D/g, "").slice(0, 10))} placeholder="000000" /></label>
+                  <div className="flex flex-wrap gap-2"><button className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground disabled:opacity-50" type="button" disabled={sessionLoading || connectionCode.length < 4} onClick={() => void verifyServerConnection()}>{sessionLoading ? "Doğrulanıyor…" : "2FA kodunu doğrula"}</button><button className="rounded-xl border border-line px-4 py-2 text-sm font-semibold" type="button" onClick={() => void cancelServerConnection()}>İptal</button></div>
+                </div>
+              )}
               <dl className="mt-4 grid gap-2 text-xs text-muted">
                 <div className="flex justify-between gap-3"><dt>Son bağlantı</dt><dd>{formatDate(session?.connectedAt ?? null)}</dd></div>
                 <div className="flex justify-between gap-3"><dt>Son kontrol</dt><dd>{formatDate(session?.lastCheckedAt ?? null)}</dd></div>
