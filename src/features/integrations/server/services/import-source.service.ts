@@ -283,6 +283,13 @@ export class ImportSourceService {
         return metadata;
       }
 
+      if (source.provider === "YOUTUBE") {
+        // A source scan is also a health check for already imported videos.
+        // YouTube omits deleted/private videos from `videos.list`, so this is
+        // the only reliable way to remove stale content from public surfaces.
+        await this.reconcileYouTubeMedia(organizationId, source.id, credentials?.apiKey);
+      }
+
       // Keep the per-source cap enforced by fetchSourceMetadata. Larger
       // channel imports still remain review-only until an admin approves them.
       const youtubeMetadata = metadata.data;
@@ -461,6 +468,66 @@ export class ImportSourceService {
       if (tracks.length >= maxItems) break;
     }
     return provider.detectNewReleases(tracks.slice(0, maxItems), new Set());
+  }
+
+  private async reconcileYouTubeMedia(organizationId: string, sourceId: string, apiKey?: string) {
+    const knownMedia = await importRepository.listYouTubeMediaForSource(organizationId, sourceId);
+    if (knownMedia.length === 0) return;
+
+    for (let offset = 0; offset < knownMedia.length; offset += 50) {
+      const batch = knownMedia.slice(offset, offset + 50);
+      const response = await youtubeProviderService.getVideos(batch.map((media) => media.externalId), apiKey);
+      // A transient quota/network error must not hide content. The next
+      // scheduled run will retry the reconciliation.
+      if (!response.success) return;
+
+      const returnedById = new Map<string, unknown>();
+      for (const item of response.data.items ?? []) {
+        const id = youtubeProviderService.videoId(item);
+        if (id) returnedById.set(id, item);
+      }
+
+      for (const media of batch) {
+        const raw = returnedById.get(media.externalId);
+        if (!raw) {
+          await prisma.externalMediaSource.update({
+            where: { id: media.id },
+            data: { status: "REMOVED_AT_SOURCE", playable: false, embeddable: false, embedUrl: null, lastCheckedAt: new Date() },
+          });
+          continue;
+        }
+
+        const normalized = youtubeProviderService.normalizeMetadata(raw);
+        if (!normalized.success) {
+          await prisma.externalMediaSource.update({
+            where: { id: media.id },
+            data: { status: "UNAVAILABLE", playable: false, embeddable: false, embedUrl: null, lastCheckedAt: new Date() },
+          });
+          continue;
+        }
+
+        const item = raw as { status?: { privacyStatus?: string; embeddable?: boolean } };
+        const privacyStatus = item.status?.privacyStatus;
+        const unavailable = privacyStatus !== "public" || item.status?.embeddable === false;
+        await prisma.externalMediaSource.update({
+          where: { id: media.id },
+          data: {
+            title: normalized.data.title,
+            artistName: normalized.data.artistName,
+            externalUrl: normalized.data.externalUrl,
+            embedUrl: normalized.data.embedUrl,
+            thumbnailUrl: normalized.data.thumbnailUrl,
+            durationMs: normalized.data.durationMs,
+            publishedAt: normalized.data.publishedAt,
+            playable: normalized.data.playable && !unavailable,
+            embeddable: normalized.data.embeddable && !unavailable,
+            metadataHash: normalized.data.metadataHash,
+            status: unavailable ? (privacyStatus === "private" ? "PRIVATE" : "UNAVAILABLE") : "ACTIVE",
+            lastCheckedAt: new Date(),
+          },
+        });
+      }
+    }
   }
 
   private async fetchOneRpmCatalogMetadata(maxItems = 100) {

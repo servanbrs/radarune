@@ -116,6 +116,19 @@ export class ImportRepository {
     return prisma.externalMediaSource.findUnique({ where: { organizationId_provider_externalId: { organizationId, provider, externalId } } });
   }
 
+  async listYouTubeMediaForSource(organizationId: string, sourceId: string) {
+    return prisma.externalMediaSource.findMany({
+      where: {
+        organizationId,
+        provider: "YOUTUBE",
+        importItems: { some: { organizationId, sourceId, provider: "YOUTUBE" } },
+      },
+      select: { id: true, externalId: true },
+      distinct: ["id"],
+      take: 500,
+    });
+  }
+
   async findMatchingTrack(organizationId: string, title: string, durationMs: number | null, codes?: { isrc?: string | null | undefined; upc?: string | null | undefined }) {
     return prisma.track.findFirst({
       where: {

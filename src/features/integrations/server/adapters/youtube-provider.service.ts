@@ -173,6 +173,10 @@ export class YouTubeProviderService implements ExternalProviderAdapter {
     }, apiKeyOverride);
   }
 
+  videoId(item: unknown): string | null {
+    return isObject(item) ? videoId(item as YouTubeItem) : null;
+  }
+
   detectNewVideos(items: unknown[], publishedAfter?: Date): ProviderResult<ExternalMediaMetadata[]> {
     const normalized: ExternalMediaMetadata[] = [];
     for (const item of items) {
