@@ -55,6 +55,17 @@ describe("external provider adapters", () => {
     }
   });
 
+  it("etiket taşımayan çok kısa Music videolarını Shorts/teaser olarak reddeder", () => {
+    const result = youtubeProviderService.normalizeMetadata({
+      id: "short-without-marker",
+      snippet: { categoryId: "10", title: "Yeni parça", channelTitle: "Sanatçı" },
+      contentDetails: { duration: "PT45S" },
+      status: { privacyStatus: "public", embeddable: true },
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.message).toContain("Shorts");
+  });
+
   it("YouTube kategorisi Music olmayan içerikleri reddeder", () => {
     const result = youtubeProviderService.normalizeMetadata({
       id: "non-music-video",

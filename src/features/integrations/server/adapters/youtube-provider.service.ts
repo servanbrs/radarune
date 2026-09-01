@@ -62,7 +62,13 @@ function isShortVideo(item: YouTubeItem) {
     item.snippet?.description ?? "",
     ...(item.snippet?.tags ?? []),
   ].join(" ");
-  return /(^|[\s#/_-])shorts?(?=\b|[\s#/_-]|$)/i.test(searchableText);
+  if (/(^|[\s#/_-])(shorts?|ytshorts|short[ -]?video)(?=\b|[\s#/_-]|$)/i.test(searchableText)) return true;
+
+  // The Data API has no `isShorts` flag. Very short Music-category results
+  // are commonly Shorts/teasers and are not useful as full-song imports.
+  // Keep the threshold conservative so normal music videos remain eligible.
+  const duration = parseDuration(item.contentDetails?.duration);
+  return duration !== null && duration <= 60_000;
 }
 
 export class YouTubeProviderService implements ExternalProviderAdapter {
