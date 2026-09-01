@@ -68,7 +68,10 @@ export class ImportRepository {
 
   async listScheduledSources() {
     return prisma.importSource.findMany({
-      where: { active: true, scheduleMode: "CRON", status: "ACTIVE" },
+      // Hostinger runs the shared cron endpoint. Include legacy WORKER
+      // sources as well so ONErpm sources created before the cron migration
+      // do not silently stop being processed.
+      where: { active: true, scheduleMode: { in: ["CRON", "WORKER"] }, status: "ACTIVE" },
       select: { id: true, organizationId: true, createdByUserId: true },
     });
   }

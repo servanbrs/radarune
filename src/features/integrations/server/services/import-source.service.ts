@@ -1,7 +1,6 @@
 import "server-only";
 import { access } from "node:fs/promises";
 import { resolve } from "node:path";
-import { chromium } from "playwright";
 import { Prisma } from "@/generated/prisma/client";
 import { env } from "@/lib/env";
 import { assertAdminPermission } from "@/features/admin/server/admin-context";
@@ -464,6 +463,20 @@ export class ImportSourceService {
       await access(storageStatePath);
     } catch {
       return { success: false as const, code: "CONFIGURATION_REQUIRED" as const, message: "ONErpm sunucu oturumu bulunamadı. Sunucuda ONErpm girişi bir kez tamamlanmalı." };
+    }
+
+    // Playwright is only needed for the server-side ONErpm collector. Keep it
+    // out of the page/module initialization path so production admin pages do
+    // not fail when the optional browser runtime is not installed.
+    let chromium: typeof import("playwright").chromium;
+    try {
+      ({ chromium } = await import("playwright"));
+    } catch {
+      return {
+        success: false as const,
+        code: "CONFIGURATION_REQUIRED" as const,
+        message: "ONErpm sunucu otomasyonu için Playwright çalışma zamanı kurulu değil.",
+      };
     }
 
     const browser = await chromium.launch({ headless: true });

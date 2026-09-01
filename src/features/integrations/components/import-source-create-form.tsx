@@ -20,7 +20,7 @@ export function ImportSourceCreateForm() {
       const response = await fetch("/api/admin/import-sources", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ type, name: name.trim() || `${type} import`, url: type === "ONERPM_CATALOG" ? "https://dashboard.onerpm.com/distribution-tools/my-catalog/manage-music" : url.trim(), query: query.trim(), maxItems: Number(limit), active: true, autoPublish: false, requiresReview: true, scheduleMode: type === "ONERPM_CATALOG" ? "WORKER" : "MANUAL", frequencyMinutes: 60 }),
+        body: JSON.stringify({ type, name: name.trim() || `${type} import`, url: type === "ONERPM_CATALOG" ? "https://dashboard.onerpm.com/distribution-tools/my-catalog/manage-music" : url.trim(), query: query.trim(), maxItems: Number(limit), active: true, autoPublish: false, requiresReview: true, scheduleMode: type === "ONERPM_CATALOG" ? "CRON" : "MANUAL", frequencyMinutes: 60 }),
       });
       const created = await response.json().catch(() => null);
       if (!response.ok || !created?.id) {
