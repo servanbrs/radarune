@@ -38,6 +38,10 @@ export async function getSocialProviderCredentials(provider: SocialProvider) {
 }
 
 export async function getSocialProviderAvailability() {
-  const [google, facebook] = await Promise.all([getSocialProviderCredentials("GOOGLE_OAUTH"), getSocialProviderCredentials("FACEBOOK_OAUTH")]);
+  const resolveQuickly = async (provider: SocialProvider) => Promise.race([
+    getSocialProviderCredentials(provider),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), 1_500)),
+  ]);
+  const [google, facebook] = await Promise.all([resolveQuickly("GOOGLE_OAUTH"), resolveQuickly("FACEBOOK_OAUTH")]);
   return { google: Boolean(google), facebook: Boolean(facebook) };
 }
