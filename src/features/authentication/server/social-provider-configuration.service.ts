@@ -38,9 +38,12 @@ export async function getSocialProviderCredentials(provider: SocialProvider) {
 }
 
 export async function getSocialProviderAvailability() {
+  // Social buttons are optional decoration on the sign-in page. Do not make
+  // the primary login form wait on a remote/shared-host database connection.
+  const availabilityTimeoutMs = 350;
   const resolveQuickly = async (provider: SocialProvider) => Promise.race([
     getSocialProviderCredentials(provider),
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), 1_500)),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), availabilityTimeoutMs)),
   ]);
   const [google, facebook] = await Promise.all([resolveQuickly("GOOGLE_OAUTH"), resolveQuickly("FACEBOOK_OAUTH")]);
   return { google: Boolean(google), facebook: Boolean(facebook) };
