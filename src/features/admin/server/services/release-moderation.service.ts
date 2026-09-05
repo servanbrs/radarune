@@ -21,7 +21,7 @@ export class ReleaseModerationService {
 
   async getRelease(actor: FinanceActorContext, id: string) {
     assertAdminPermission(actor, "releases:view");
-    const release = await adminReleaseRepository.findById(id);
+    const release = await adminReleaseRepository.findDetailById(id);
     if (!release || release.organizationId !== actor.organizationId) {
       return null;
     }

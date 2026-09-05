@@ -73,6 +73,50 @@ export class AdminReleaseRepository {
     });
   }
 
+  // The moderation screen only needs a small, stable projection. Keeping this
+  // separate from the action query prevents optional/legacy relations from
+  // taking down the whole admin detail page when a production schema is behind.
+  async findDetailById(id: string, client: DatabaseClient = prisma) {
+    return client.release.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        organizationId: true,
+        title: true,
+        type: true,
+        status: true,
+        upc: true,
+        distributionProvider: true,
+        artworkUploadId: true,
+        createdByUser: { select: { id: true, name: true, email: true } },
+        label: { select: { id: true, name: true } },
+        uploads: { select: { id: true, fileName: true, mimeType: true, kind: true } },
+        tracks: {
+          orderBy: [{ discNumber: "asc" }, { trackNumber: "asc" }],
+          select: {
+            id: true,
+            title: true,
+            discNumber: true,
+            trackNumber: true,
+            isrc: true,
+            audioUploadId: true,
+            uploads: { select: { id: true, fileName: true, mimeType: true } },
+          },
+        },
+        validationIssues: {
+          where: { resolvedAt: null },
+          orderBy: { createdAt: "desc" },
+          select: { id: true, severity: true, fieldPath: true, message: true },
+        },
+        statusHistory: {
+          orderBy: { createdAt: "desc" },
+          take: 30,
+          select: { id: true, previousStatus: true, status: true, reason: true, createdAt: true },
+        },
+      },
+    });
+  }
+
   async createRevisionIssues(
     input: {
       organizationId: string;

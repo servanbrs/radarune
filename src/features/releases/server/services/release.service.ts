@@ -96,15 +96,9 @@ export class ReleaseService {
       },
     });
 
-    const releaseMessage = `Yeni yayın alındı: “${parsed.data.title}”. Admin incelemesi bekliyor.`;
-    await notificationService.notifyOrganizationAdmins({
-      organizationId: actor.organizationId,
-      type: "RELEASE_CREATED",
-      title: "Yeni yayın geldi",
-      message: releaseMessage,
-      entityType: "Release",
-      entityId: release.id,
-    });
+    // A draft is not a submitted release. Notify reviewers only after the
+    // creator completes the wizard and sends it for review.
+    const releaseMessage = `Taslak yayın oluşturuldu: “${parsed.data.title}”.`;
     await webhookEndpointService.createDelivery({
       organizationId: actor.organizationId,
       eventType: "release.created",
@@ -116,33 +110,6 @@ export class ReleaseService {
         status: "DRAFT",
       },
     });
-    const adminRecipients = await prisma.user.findMany({
-      where: {
-        systemRole: { in: ["MODERATOR", "ADMIN", "SUPER_ADMIN"] },
-        accountStatus: "ACTIVE",
-        memberships: { some: { organizationId: actor.organizationId } },
-      },
-      select: { email: true },
-    });
-    const releaseTitle = parsed.data.title.replace(/[\r\n]+/g, " ").trim();
-    const releaseUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://radarune.com"}/release/${release.id}`;
-    void Promise.allSettled(
-      adminRecipients.map((recipient) =>
-        sendTemplatedEmail({
-          organizationId: actor.organizationId,
-          to: recipient.email,
-          template: "release",
-          title: releaseTitle,
-          url: releaseUrl,
-        }),
-      ),
-    ).then((results) => {
-      const failed = results.filter((result) => result.status === "rejected");
-      if (failed.length > 0) {
-        console.error("[RADARUNE_EMAIL] Yayın bildirimi gönderilemedi:", failed.length);
-      }
-    });
-
     return {
       success: true as const,
       data: release,
@@ -599,6 +566,38 @@ export class ReleaseService {
     if (!result.success) return result;
 
     const linkWarnings = await this.resolveReleaseLinks(actor, releaseId);
+    const submittedRelease = await prisma.release.findUnique({
+      where: { id: releaseId },
+      select: { title: true },
+    });
+    const releaseTitle = (submittedRelease?.title ?? "Yeni yayın").replace(/[\r\n]+/g, " ").trim();
+    await notificationService.notifyOrganizationAdmins({
+      organizationId: actor.organizationId,
+      type: "RELEASE_SUBMITTED",
+      title: "İnceleme için yeni yayın",
+      message: `“${releaseTitle}” yayını inceleme için gönderildi.`,
+      entityType: "Release",
+      entityId: releaseId,
+    });
+    const adminRecipients = await prisma.user.findMany({
+      where: {
+        systemRole: { in: ["MODERATOR", "ADMIN", "SUPER_ADMIN"] },
+        accountStatus: "ACTIVE",
+        memberships: { some: { organizationId: actor.organizationId } },
+      },
+      select: { email: true },
+    });
+    const releaseUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://radarune.com"}/release/${releaseId}`;
+    void Promise.allSettled(adminRecipients.map((recipient) => sendTemplatedEmail({
+      organizationId: actor.organizationId,
+      to: recipient.email,
+      template: "release",
+      title: releaseTitle,
+      url: releaseUrl,
+    }))).then((results) => {
+      const failed = results.filter((item) => item.status === "rejected");
+      if (failed.length > 0) console.error("[RADARUNE_EMAIL] Yayın bildirimi gönderilemedi:", failed.length);
+    });
     return {
       success: true as const,
       data: {
